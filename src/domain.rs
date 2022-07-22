@@ -2,10 +2,14 @@ use std::sync::Arc;
 use crate::binds::{MonoDomain,
     mono_domain_free,mono_jit_cleanup,
     mono_domain_create,mono_domain_create_appdomain,
+    mono_domain_get_id,
     mono_domain_set_config,
     mono_jit_init,mono_jit_init_version
 };
+use crate::assembly::{Assembly,AssemblyTraits};
 use std::ffi::{CString};
+use core::ptr::null_mut;
+
 pub type Domain = Arc<_Domain>;
 pub struct _Domain {
     pub ptr:*mut MonoDomain,
@@ -16,6 +20,7 @@ impl Drop for _Domain{
     }
 }
 pub trait DomainTraits{
+    fn get_id(&self)->i32;
     //this function creates root domain and initlizes mono jit
     fn init_jit(name:Option<&str>,version:Option<&str>)->Domain;
     //fucntion used to create new domains with default names and no config
@@ -29,6 +34,9 @@ pub trait DomainTraits{
     fn jit_cleanup(&self);
 }
 impl DomainTraits for Domain{
+    fn get_id(&self) ->i32{
+        return unsafe{mono_domain_get_id(self.ptr)};
+    }
     fn init_jit(name:Option<&str>,version:Option<&str>)->Domain{
         let cstr_name = CString::new(match name{
             Some(name)=>name,
@@ -56,7 +64,15 @@ impl DomainTraits for Domain{
     fn create_appdomain(name:&str,cfg_file:&str)->Domain{
         let cstr_name = CString::new(name).expect("Could not create cstring!");
         let cst_cfg_file = CString::new(cfg_file).expect("Could not create cstring!");
-        return Arc::new(_Domain{ptr:unsafe{mono_domain_create_appdomain(cstr_name.as_ptr() as *mut i8,cst_cfg_file.as_ptr() as *mut i8)}});
+        let should_use_cfg = cfg_file != "";
+        let res = Arc::new(_Domain{
+            ptr:unsafe{mono_domain_create_appdomain(
+                cstr_name.as_ptr() as *mut i8,
+                if (cfg_file != ""){cst_cfg_file.as_ptr() as *mut i8} else {null_mut()}
+        )}});
+        drop(cstr_name);
+        drop(cst_cfg_file);
+        return res;
     }
     unsafe fn get_ptr(&self)->*mut MonoDomain{
         return self.ptr;
@@ -66,4 +82,9 @@ impl DomainTraits for Domain{
         let cst_cfg_file = CString::new(cfg_file).expect("Could not create cstring!");
         unsafe{mono_domain_set_config(self.get_ptr(),cstr_base_dir.as_ptr() as *mut i8,cst_cfg_file.as_ptr() as *mut i8)};
     }
+    
 }   
+unsafe impl Sync for _Domain{}
+unsafe impl Send for _Domain{
+
+}

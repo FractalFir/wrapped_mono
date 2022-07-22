@@ -1,6 +1,18 @@
 use std::path::PathBuf;
-fn comple_test_mono_lib(){
+use std::process::Command;
 
+fn comple_test_mono_lib(){
+    std::fs::create_dir_all("test_dlls");
+    let output = Command::new("mcs") 
+    .arg("-target:library") 
+    .arg("-out:test_dlls/Test.dll")
+    .arg("Test.cs")
+    .output()
+    .expect("Failed to execute command");
+    let stderr = output.stderr;
+    if stderr.len() > 0{
+        panic!("{}",std::str::from_utf8(&stderr).unwrap());
+    }
 }
 fn gen_binds(){
     let hdr_path = "src/cbinds/binds.h";
