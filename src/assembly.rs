@@ -2,6 +2,7 @@ use std::sync::Arc;
 use crate::binds::{MonoAssembly,mono_assembly_close,mono_assembly_open,MonoImageOpenStatus}; 
 use std::ffi::CString;
 use crate::domain::{Domain};
+use core::ptr::null_mut;
 //must be public
 pub struct _Assembly{
     ptr:*mut MonoAssembly,
@@ -14,6 +15,7 @@ pub trait AssemblyTraits{
 }
 impl AssemblyTraits for Assembly{
     fn create_from_ptr(ptr:*mut MonoAssembly,domain:Domain)->Assembly{
+        assert!(ptr!= null_mut());
         return Arc::new(_Assembly{ptr:ptr,domain:domain});
     }
     fn open(domain:Domain,fpath:&str)->Result<Assembly,MonoImageOpenStatus>{

@@ -7,6 +7,8 @@ pub fn add(left: usize, right: usize) -> usize {
 pub mod binds;
 pub mod domain;
 pub mod assembly;
+use core::ptr::null_mut;
+
 //those tests use this library in diffrent ways than normal user would
 //(they must share one mono JIT across separate function that can be called in any order, and there is no guarante that any single one will be called).
 //It forces ceratin libraries(lazy static) to be included for testing purposes, even tough they are not going to be used normaly.
@@ -24,19 +26,21 @@ mod tests {
     }
     #[test]
     fn assembly_loading(){
-
         println!("loading assembly");
         let assembly:Assembly = Assembly::open(JIT_DOMAIN.clone(),"test_dlls/Test.dll").expect("could not load assembly!");
     }
-    //TODO: fix errors related to multiple mono domains
-    //#[test]
+
+    #[test]
     fn multiple_domains(){
         JIT_DOMAIN.get_id();
         let Domain = Domain::create();
     }
+    //TODO: fix errors related to assembly loading
     #[test]
     #[should_panic]
     fn missing_assembly_loading(){
-        let assembly:Assembly = Assembly::open(JIT_DOMAIN.clone(),"test_dlls/Missing.dll").expect("could not load assembly!");
+        let mut status:binds::MonoImageOpenStatus = 0;
+        //let asm = unsafe{binds::mono_domain_assembly_open(b"tests/Test.dll\n" as *const [u8] as *mut i8,&mut status)};
+        //let assembly:Assembly = Assembly::open(JIT_DOMAIN.clone(),"test_dlls/Missing.dll").expect("could not load assembly!");
     }
 }

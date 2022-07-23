@@ -14,18 +14,13 @@ pub type Domain = Arc<_Domain>;
 pub struct _Domain {
     pub ptr:*mut MonoDomain,
 }
-impl Drop for _Domain{
-    fn drop(&mut self){
-        unsafe{mono_domain_free(self.ptr,0)};
-    }
-}
 pub trait DomainTraits{
     fn get_id(&self)->i32;
     //this function creates root domain and initlizes mono jit
     fn init_jit(name:Option<&str>,version:Option<&str>)->Domain;
     //fucntion used to create new domains with default names and no config
     fn create()->Self;
-    fn create_appdomain(name:&str,cfg_file:&str)->Self;
+    fn create_appdomain(name:&str,cfg_file:Option<&str>)->Self;
     //function used to set domain config
     fn set_config(&mut self,base_dir:&str,cfg_path:&str);
     //function returning pointer to MonoDomai
@@ -61,17 +56,20 @@ impl DomainTraits for Domain{
     fn create()->Domain{
         return Arc::new(_Domain{ptr:unsafe{mono_domain_create()}});
     }
-    fn create_appdomain(name:&str,cfg_file:&str)->Domain{
+    fn create_appdomain(name:&str,cfg_file:Option<&str>)->Domain{
         let cstr_name = CString::new(name).expect("Could not create cstring!");
-        let cst_cfg_file = CString::new(cfg_file).expect("Could not create cstring!");
-        let should_use_cfg = cfg_file != "";
-        let res = Arc::new(_Domain{
-            ptr:unsafe{mono_domain_create_appdomain(
-                cstr_name.as_ptr() as *mut i8,
-                if (cfg_file != ""){cst_cfg_file.as_ptr() as *mut i8} else {null_mut()}
-        )}});
+        let res = Arc::new(_Domain{ptr:match cfg_file{
+            Some(cfg) =>{
+                let cst_cfg_file = CString::new(cfg).expect("Could not create cstring!");
+                let ptr = unsafe{mono_domain_create_appdomain(cstr_name.as_ptr() as *mut i8,cst_cfg_file.as_ptr() as *mut i8)};
+                drop(cst_cfg_file);
+                ptr
+            }
+            None =>{
+                unsafe{mono_domain_create_appdomain(cstr_name.as_ptr() as *mut i8,null_mut())}
+            }
+        }});
         drop(cstr_name);
-        drop(cst_cfg_file);
         return res;
     }
     unsafe fn get_ptr(&self)->*mut MonoDomain{
