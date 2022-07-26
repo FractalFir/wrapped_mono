@@ -10,7 +10,7 @@
 ## Features
 - [x] Mono JIT initalization  
 - [x] Mono Domain creation
-- [X] Loading mono assemblies - *works, altough is not yet stable and crasehs under certain conditions*
+- [X] Loading mono assemblies
 - [ ] Getting image from assembly
 - [ ] Getting classes from image
 - [ ] Getting functions from image
@@ -32,22 +32,20 @@
 ### Loading basic assembly
 **WARNING** Mono JIT can only be initialized once, and calling Domain::init_jit more times will lead to crash.
 ```rust
+use wraped_mono::*;
 fn main(){
-    //Initizlizing mono JIT and creating root domain with name "main" and no version specifincation (default runtime version)
-    let domain = Domain::init_jit(Some("main"),None);
+    //Initizlizing mono JIT and creating root domain with name "root" and no version specifincation (default runtime version)
+    let domain = jit::init("root",None);
     //Loading assembly 'Test.dll'
-    let assembly = Assembly::open(domain,"Test.dll").expect("Could not load assembly!);
+    let assembly = domain.asembly_open("Test.dll").unwrap();
 }
 ```
 ### Creating new domains
 **WARNING**!<br> creating root domain and initializing JIT is a necesary step that must be done before creating other domains.
 ```rust
-fn subdomain(){
-    //creating domain with no name or config
+fn main(){
+    let domain = jit::init("root",None);
+    //creating another domain 
     let domain = Domain::create();
-    //creaing domain with name, but no config
-    let named_domain = Domain::create_appdomain("John",None);
-      //creaing domain with name, and config
-    let coinfigured_domain = Domain::create_appdomain("Susan","cfg/Susan_cfg_file.sfg");
 }
 ```

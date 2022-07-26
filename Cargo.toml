@@ -3,11 +3,9 @@ name = "wrapped-mono"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-lazy_static = "1.4.0" #used only in tests, may be excluded later.
 [build-dependencies]
 bindgen = "0.60.1"
-[env]
-RUST_TEST_THREADS = "1"
+#dev-dependencies does not work for some reason
+[dependencies]
+rusty-fork = "0.3.0"
+

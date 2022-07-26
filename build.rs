@@ -1,12 +1,14 @@
 use std::path::PathBuf;
 use std::process::Command;
+use std::fs::File;
+use std::io::Write;
 
 fn comple_test_mono_lib(){
-    std::fs::create_dir_all("test_dlls");
+    std::fs::create_dir_all("test");
     let output = Command::new("mcs") 
     .arg("-target:library") 
-    .arg("-out:test_dlls/Test.dll")
-    .arg("Test.cs")
+    .arg("-out:test/local/Test.dll")
+    .arg("test/Test.cs")
     .output()
     .expect("Failed to execute command");
     let stderr = output.stderr;
@@ -25,7 +27,14 @@ fn gen_binds(){
     .generate()
     .expect("Unable to generate mono bindings");
     let out_path = PathBuf::from(res_path);
-    bindings.write_to_file(out_path).expect("Couldn't write bindings!");
+    let mut file = File::create(out_path).expect("Couldn't create bindings file!");
+    file.write_all(
+        b"#![allow(non_upper_case_globals)]\n
+        #![allow(non_camel_case_types)]\n
+        #![allow(non_snake_case)]\n"
+    ).expect("Could not write bindings prefix");
+
+    bindings.write(Box::new(file)).expect("Couldn't write bindings!");
 }
 fn main() {
     println!("cargo:rustc-link-lib=mono-2.0");
