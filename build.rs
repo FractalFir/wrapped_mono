@@ -2,9 +2,18 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::fs::File;
 use std::io::Write;
-
-fn comple_test_mono_lib(){
-    std::fs::create_dir_all("test");
+fn compile_test_mono_exe(){
+    let output = Command::new("mcs") 
+    .arg("-out:test/local/Exec.dll")
+    .arg("test/Exec.cs")
+    .output()
+    .expect("Failed to execute command");
+    let stderr = output.stderr;
+    if stderr.len() > 0{
+        panic!("{}",std::str::from_utf8(&stderr).unwrap());
+    }
+}
+fn compile_test_mono_lib(){
     let output = Command::new("mcs") 
     .arg("-target:library") 
     .arg("-out:test/local/Test.dll")
@@ -37,8 +46,10 @@ fn gen_binds(){
     bindings.write(Box::new(file)).expect("Couldn't write bindings!");
 }
 fn main() {
+    std::fs::create_dir_all("test/local");
     println!("cargo:rustc-link-lib=mono-2.0");
     gen_binds();
-    comple_test_mono_lib();
+    compile_test_mono_exe();
+    compile_test_mono_lib();
 }
 

@@ -6,9 +6,13 @@ pub struct _Assembly{
 } 
 pub trait AssemblyTrait{
     unsafe fn create_from_ptr(ptr:*mut MonoAssembly) -> Assembly;
+    unsafe fn get_ptr(&self)->*mut MonoAssembly;
 }
 impl AssemblyTrait for Assembly{
     unsafe fn create_from_ptr(ptr:*mut MonoAssembly) -> Assembly{
         return Arc::new(_Assembly{ptr:ptr});
+    }
+    unsafe fn get_ptr(&self)->*mut MonoAssembly{
+        return self.ptr;
     }
 }

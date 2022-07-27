@@ -2,10 +2,13 @@
 name = "wrapped-mono"
 version = "0.1.0"
 edition = "2021"
-
 [build-dependencies]
 bindgen = "0.60.1"
-#dev-dependencies does not work for some reason
+#dev-dependencies does not work for rusty-fork for unknown reasons.TODO: figure out the issue and move rusty-fork to dev-dependencies
 [dependencies]
 rusty-fork = "0.3.0"
+macros = {path = "src/macros"}
+[workspace]
+members = ["src/macros"]
+
 

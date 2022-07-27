@@ -10,7 +10,8 @@
 ## Features
 - [x] Mono JIT initalization  
 - [x] Mono Domain creation
-- [X] Loading mono assemblies
+- [x] Loading mono assemblies
+- [x] Executing code contained in mono assembly
 - [ ] Getting image from assembly
 - [ ] Getting classes from image
 - [ ] Getting functions from image
