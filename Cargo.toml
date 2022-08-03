@@ -7,6 +7,7 @@ bindgen = "0.60.1"
 #dev-dependencies does not work for rusty-fork for unknown reasons.TODO: figure out the issue and move rusty-fork to dev-dependencies
 [dependencies]
 rusty-fork = "0.3.0"
+va_list = "0.1.4"
 macros = {path = "src/macros"}
 [workspace]
 members = ["src/macros"]

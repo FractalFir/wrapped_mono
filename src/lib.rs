@@ -2,11 +2,12 @@ pub mod binds;
 pub mod jit;
 pub mod domain;
 pub mod assembly;
+pub mod invokable;
 use macros::invokable;
 use rusty_fork::rusty_fork_test;
 use core::ptr::null_mut;
 #[invokable]
-fn test_fnc(test_string:&str) -> usize{
+fn test_fnc(test_string:&str){
     return str.len();
 }
 rusty_fork_test! {
