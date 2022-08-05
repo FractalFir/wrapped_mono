@@ -10,7 +10,7 @@ use crate::arg_rep::*;
 use std::fmt;
 use proc_macro::{TokenStream,TokenTree};
 pub struct FnRep{
-    tok_backup:TokenStream,
+    pub tok_backup:TokenStream,
     ret:Option<TokVec>,
     args:Vec<ArgRep>,
     name:String,
@@ -33,6 +33,7 @@ impl fmt::Display for FnRep{
         return fmt::Result::Ok(());
     }
 }
+use std::str::FromStr;
 impl FnRep{
     pub fn fn_rep_from_stream(fn_ts:TokenStream) -> FnRep{
         let tok_backup = fn_ts.clone();
@@ -54,5 +55,32 @@ impl FnRep{
         //name
         let name = tokens.pop().expect("not enough tokens to form a function").to_string();
         return FnRep{tok_backup:tok_backup,ret:ret,args:ArgRep::from_arg_vec(args),name:name}
+    }
+    pub fn create_handler(&self) ->TokenStream{
+        //function signature
+        let mut stream:TokenStream = TokenStream::from_str(&format!("extern \"C\" fn {}_invokable(mut args:va_list::VaList)",&self.name)).expect("Could not create token stream!");
+        //argument handlers
+        let mut inner:TokenStream = TokenStream::new();
+        for arg in &self.args{
+            inner.extend(arg.create_handler());
+        }
+        //inner function call
+        inner.extend(TokenStream::from_str(&format!("{}",&self.name)));
+        let mut call_args = TokenStream::new();
+        let curr = 0;
+        let arg_count = self.args.len();
+        for arg in &self.args{
+            let c = if curr < arg_count - 1{','}else{' '};
+            call_args.extend(TokenStream::from_str(&format!("{}",&arg.name)));
+        }
+        inner.extend(TokenStream::from(
+            TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,call_args))
+        ));
+        inner.extend(TokenStream::from_str(&format!(";")));
+        stream.extend(TokenStream::from(
+            TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner))
+        ));
+        println!("{}",stream);
+        return stream;
     }
 }

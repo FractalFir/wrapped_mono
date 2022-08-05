@@ -2,13 +2,17 @@ pub mod binds;
 pub mod jit;
 pub mod domain;
 pub mod assembly;
-pub mod invokable;
+pub mod invokable_arg;
 use macros::invokable;
 use rusty_fork::rusty_fork_test;
 use core::ptr::null_mut;
+use invokable_arg::InvokableArg;
+           
 #[invokable]
-fn test_fnc(test_string:&str){
-    return str.len();
+fn pass_arg_count(test_val:usize){
+    println!("args:{}",test_val);
+    assert!(test_val == 2);
+    panic!();
 }
 rusty_fork_test! {
     #[test]
@@ -47,15 +51,27 @@ rusty_fork_test! {
     fn jit_execution(){
         use crate::domain::Domain;
         let dom = jit::init("root",None);
-        let asm = dom.assembly_open("test/local/Exec.dll").unwrap();
+        let asm = dom.assembly_open("test/local/Jit.dll").unwrap();
         let mut args:Vec<&str> = Vec::new();
         args.push("1");
         args.push("2");
-        assert!(2 == jit::exec(dom,asm,args));
+        let res = jit::exec(dom,asm,args);
     }
     #[test]
     fn p_invoke(){
-        //testing makro function
-        invokable_test_fnc();
+        use std::ffi::{CString,c_void};
+        use crate::domain::Domain;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/local/Pinvoke.dll").unwrap();
+        let mut args:Vec<&str> = Vec::new();
+        args.push("1");
+        args.push("2");
+        let cstr = CString::new("Test::PassArgCount").expect("Could not create cstring");
+        let fnc = pass_arg_count_invokable;
+        let fnc_ptr = std::ptr::addr_of!(fnc) as *mut c_void;
+        unsafe{binds::mono_add_internal_call(cstr.as_ptr(),fnc_ptr)};
+        drop(cstr);
+        let res = jit::exec(dom,asm,args);
+        panic!();
     }
 }

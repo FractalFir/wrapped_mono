@@ -1,9 +1,10 @@
 use crate::tok_vec::*;
-use proc_macro::{TokenTree};
+use proc_macro::{TokenTree,TokenStream};
 pub struct ArgRep{
-    name:String,
+    pub name:String,
     arg_type:TokVec,
 }
+use std::str::FromStr;
 impl ArgRep{
     pub fn from_vec(tokens: TokVec)->ArgRep{
         let mut name_part = Vec::with_capacity(tokens.len());
@@ -42,6 +43,10 @@ impl ArgRep{
         }
         if tmp.len() > 0 {args.push(Self::from_vec(tmp))};
         return args;
+    }
+    pub fn create_handler(&self)->TokenStream{
+        let mut s_type:String = self.arg_type.to_string();
+        return TokenStream::from_str(&format!("let {} = <{}>::get_iarg(&mut args);",&self.name,s_type)).expect("Could not create token stream!");
     }
 } 
 use std::fmt;

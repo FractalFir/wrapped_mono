@@ -18,6 +18,7 @@ use proc_macro::{TokenStream};
 #[proc_macro_attribute]
 pub fn invokable(_attr_ts: TokenStream, fn_ts: TokenStream) -> TokenStream{
     let fnc = FnRep::fn_rep_from_stream(fn_ts);
-    println!("#{}#",fnc);
-    return TokenStream::new();
+    let mut handler = fnc.create_handler();
+    handler.extend(fnc.tok_backup);
+    return handler;
 }

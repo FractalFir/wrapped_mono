@@ -2,10 +2,10 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::fs::File;
 use std::io::Write;
-fn compile_test_mono_exe(){
+fn compile_jit_test_assembly(){
     let output = Command::new("mcs") 
-    .arg("-out:test/local/Exec.dll")
-    .arg("test/Exec.cs")
+    .arg("-out:test/local/Jit.dll")
+    .arg("test/Jit.cs")
     .output()
     .expect("Failed to execute command");
     let stderr = output.stderr;
@@ -13,7 +13,18 @@ fn compile_test_mono_exe(){
         panic!("{}",std::str::from_utf8(&stderr).unwrap());
     }
 }
-fn compile_test_mono_lib(){
+fn compile_pinvoke_test_assembly(){
+    let output = Command::new("mcs") 
+    .arg("-out:test/local/Pinvoke.dll")
+    .arg("test/Pinvoke.cs")
+    .output()
+    .expect("Failed to execute command");
+    let stderr = output.stderr;
+    if stderr.len() > 0{
+        panic!("{}",std::str::from_utf8(&stderr).unwrap());
+    }
+}
+fn compile_test_lib(){
     let output = Command::new("mcs") 
     .arg("-target:library") 
     .arg("-out:test/local/Test.dll")
@@ -49,7 +60,8 @@ fn main() {
     std::fs::create_dir_all("test/local");
     println!("cargo:rustc-link-lib=mono-2.0");
     gen_binds();
-    compile_test_mono_exe();
-    compile_test_mono_lib();
+    compile_pinvoke_test_assembly();
+    compile_jit_test_assembly();
+    compile_test_lib();
 }
 
