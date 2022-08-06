@@ -9112,6 +9112,9 @@ extern "C" {
         error: *mut MonoError,
     ) -> *mut MonoDomain;
 }
+extern "C" {
+    pub fn test(arg1: ::std::os::raw::c_int) -> *mut ::std::os::raw::c_void;
+}
 pub type __builtin_va_list = [__va_list_tag; 1usize];
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]

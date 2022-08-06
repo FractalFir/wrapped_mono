@@ -44,9 +44,12 @@ impl ArgRep{
         if tmp.len() > 0 {args.push(Self::from_vec(tmp))};
         return args;
     }
+    pub fn get_type_string(&self)->String{
+        return self.arg_type.to_string();
+    }
     pub fn create_handler(&self)->TokenStream{
         let mut s_type:String = self.arg_type.to_string();
-        return TokenStream::from_str(&format!("let {} = <{}>::get_iarg(&mut args);",&self.name,s_type)).expect("Could not create token stream!");
+        return TokenStream::from_str(&format!("let {} = <{}>::get_iarg({}_in);",&self.name,s_type,&self.name)).expect("Could not create token stream!");
     }
 } 
 use std::fmt;

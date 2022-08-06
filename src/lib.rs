@@ -9,7 +9,7 @@ use core::ptr::null_mut;
 use invokable_arg::InvokableArg;
            
 #[invokable]
-fn pass_arg_count(test_val:usize){
+fn pass_arg_count(test_val:i32){
     println!("args:{}",test_val);
     assert!(test_val == 2);
     panic!();
@@ -66,9 +66,10 @@ rusty_fork_test! {
         let mut args:Vec<&str> = Vec::new();
         args.push("1");
         args.push("2");
+        //passing function bind
         let cstr = CString::new("Test::PassArgCount").expect("Could not create cstring");
-        let fnc = pass_arg_count_invokable;
-        let fnc_ptr = std::ptr::addr_of!(fnc) as *mut c_void;
+        let fnc_ptr:*const c_void = unsafe{std::mem::transmute(&pass_arg_count_invokable)};
+        println!("ptr:{:#x}",fnc_ptr as usize);
         unsafe{binds::mono_add_internal_call(cstr.as_ptr(),fnc_ptr)};
         drop(cstr);
         let res = jit::exec(dom,asm,args);

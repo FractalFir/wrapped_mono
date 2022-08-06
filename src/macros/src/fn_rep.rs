@@ -56,9 +56,23 @@ impl FnRep{
         let name = tokens.pop().expect("not enough tokens to form a function").to_string();
         return FnRep{tok_backup:tok_backup,ret:ret,args:ArgRep::from_arg_vec(args),name:name}
     }
+    pub fn create_in_arg_list(&self)->TokenStream{
+        let mut inner:TokenStream = TokenStream::new();
+        let len = self.args.len();
+        let mut curr = 0;
+        for arg in &self.args{
+            let separator = if curr < len - 1{','}else{' '};
+            inner.extend(TokenStream::from_str(&format!("{}_in:<{} as InvokableArg>::SourceType{}",arg.name,arg.get_type_string(),separator)));
+            curr+=1;
+        }
+        let group = TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,inner));
+        return TokenStream::from(group);
+    }
     pub fn create_handler(&self) ->TokenStream{
         //function signature
-        let mut stream:TokenStream = TokenStream::from_str(&format!("extern \"C\" fn {}_invokable(mut args:va_list::VaList)",&self.name)).expect("Could not create token stream!");
+        let mut stream:TokenStream = TokenStream::from_str(&format!("#[no_mangle]extern \"C\" fn {}_invokable",&self.name)).expect("Could not create token stream!");
+        //function args
+        stream.extend(self.create_in_arg_list());
         //argument handlers
         let mut inner:TokenStream = TokenStream::new();
         for arg in &self.args{
