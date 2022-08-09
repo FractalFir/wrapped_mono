@@ -22,12 +22,16 @@
 - [ ] Passing arguments to CLR functions
 - [ ] Reciving data from CLR functions
 - [ ] Getting accesing instance variable fields 
-- [ ] Exposing rust functions to CLR using P/Invoke
+- [X] Exposing rust functions to CLR using P/Invoke **Works only partialy at the moment(only passing strings is working bug - free)**
+- [ ] P/Invoke functions returning values to managed code
+- [ ] Automplementation of InvokableArg trait using derive, supporting passing arbitrary types in P/Invoke functions
 - [ ] Delegate Support
 ## Examples
 <p align = "center">
     <a href="#Loading">Loading basic assembly<a>
     <a href="#Creating new domains">Creating new domains<a>
+    <a href="#Executing manged code">Executing manged code<a>
+    <a href="# Exposig rust functions using P/Invoke">Exposig rust functions using P/Invoke<a>
 </p>
 
 ### Loading basic assembly
@@ -49,4 +53,39 @@ fn main(){
     //creating another domain 
     let domain = Domain::create();
 }
+```
+### Executing manged code
+```rust
+fn main(){
+    //initalizing jit
+    let domain = jit::init("root",None);
+    //opening assembly
+    let assemmbly = domain.assembly_open("Some.dll").unwrap();
+    //creating structre containig arguments to be passed as string[] args
+    let args:Vec<&str> = Vec::new();
+    //calling main function in managed code
+    jit::exec(dom,assembly,args);
+}
+```
+### Exposig rust functions using P/Invoke
+```cs
+    class SomeClass{
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        void SomeFunction(string arg);
+    }
+```
+```rust
+    #[invokable]
+    fn some_function(arg:String){
+        println!("recived arg:'{}'!",arg)!
+    }
+    fn main(){
+        /*
+            jit initialization,domain creation, assembly loading, etc.
+        */
+        add_internal_call!("SomeClass::SomeFunction",some_function);
+        /*
+            executing managed code that calls SomeClass::SomeFunction
+        */
+    }
 ```

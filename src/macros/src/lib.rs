@@ -63,9 +63,9 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
     //unque name for 
     let res =  TokenStream::from_str(
         &format!("let cstr = CString::new({}).expect(\"Could note create cstring\");
-        let fnc_ptr:*const c_void = unsafe{{ std::mem::transmute({}_invokable) }};
+        let fnc_ptr:*const c_void = unsafe{{ std::mem::transmute({}_invokable as {}_fn_type) }};
         unsafe{{ binds::mono_add_internal_call(cstr.as_ptr(),fnc_ptr) }};
-        drop(cstr);",&method,&fnc_name)).expect("Could not create token stream");
+        drop(cstr);",&method,&fnc_name,&fnc_name)).expect("Could not create token stream");
     println!("{}",res);
     return res;
 }
@@ -73,7 +73,7 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn invokable(_attr_ts: TokenStream, fn_ts: TokenStream) -> TokenStream{
     let fnc = FnRep::fn_rep_from_stream(fn_ts);
-    let mut handler = fnc.create_handler();
+    let mut handler = fnc.create_wrapper();
     handler.extend(fnc.tok_backup);
     return handler;
 }

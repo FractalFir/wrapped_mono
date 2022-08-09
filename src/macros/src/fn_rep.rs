@@ -62,15 +62,40 @@ impl FnRep{
         let mut curr = 0;
         for arg in &self.args{
             let separator = if curr < len - 1{','}else{' '};
-            inner.extend(TokenStream::from_str(&format!("{}_in:<{} as InvokableArg>::SourceType{}",arg.name,arg.get_type_string(),separator)));
+            inner.extend(
+                TokenStream::from_str(&format!("{}_in:<{} as InvokableArg>::SourceType{}",arg.name,arg.get_type_string(),separator)));
             curr+=1;
         }
         let group = TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,inner));
         return TokenStream::from(group);
     }
-    pub fn create_handler(&self) ->TokenStream{
+    /*
+        function creating function type(e.g. pub type name_fnc_type = extern "C" fn(arg_type_1,arg_type_2,...)->return_type;
+    */
+    pub fn create_function_type(&self)->TokenStream{
+        //function type inner arg types
+        let mut inner = TokenStream::new();
+        let curr = 0;
+        let arg_count = self.args.len();
+        for arg in &self.args{
+            let c = if curr < arg_count - 1{','}else{' '};
+            inner.extend(TokenStream::from_str(&format!("<{} as InvokableArg>::SourceType",&arg.get_type_string())));
+        }
+        let mut res = TokenStream::from_str(&format!("pub type {}_fn_type = extern \"C\" fn",&self.name)).expect("Could not create token stream!");
+        //function arguments
+        res.extend(TokenStream::from(
+            TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,inner))
+        ));
+        //return value place:res.extend("->");res.extend.(type);
+        res.extend( TokenStream::from_str(";"));
+        return res;
+    }
+    /*
+        function creating a function wrapper around souce function
+    */
+    pub fn create_wrapper(&self) ->TokenStream{
         //function signature
-        let mut stream:TokenStream = TokenStream::from_str(&format!("#[no_mangle]extern \"C\" fn {}_invokable",&self.name)).expect("Could not create token stream!");
+        let mut stream:TokenStream = TokenStream::from_str(&format!("pub extern \"C\" fn {}_invokable",&self.name)).expect("Could not create token stream!");
         //function args
         stream.extend(self.create_in_arg_list());
         //argument handlers
@@ -94,6 +119,7 @@ impl FnRep{
         stream.extend(TokenStream::from(
             TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner))
         ));
+        stream.extend(self.create_function_type());
         println!("{}",stream);
         return stream;
     }
