@@ -2,6 +2,18 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::fs::File;
 use std::io::Write;
+fn compile_assembly(src_path:&str,target_path:&str){
+    let output = Command::new("mcs") 
+    .arg(&format!("-out:{}",target_path))
+    .arg("-debug:embeded")
+    .arg(src_path)
+    .output()
+    .expect("Failed to execute command");
+    let stderr = output.stderr;
+    if stderr.len() > 0{
+        panic!("{}",std::str::from_utf8(&stderr).unwrap());
+    }
+}
 fn compile_jit_test_assembly(){
     let output = Command::new("mcs") 
     .arg("-out:test/local/Jit.dll")
@@ -60,7 +72,8 @@ fn main() {
     std::fs::create_dir_all("test/local");
     println!("cargo:rustc-link-lib=mono-2.0");
     gen_binds();
-    compile_pinvoke_test_assembly();
+    compile_assembly("test/Test.cs","test/local/Pinvoke.dll");
+    //compile_pinvoke_test_assembly();
     compile_jit_test_assembly();
     compile_test_lib();
 }

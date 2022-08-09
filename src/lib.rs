@@ -3,16 +3,18 @@ pub mod jit;
 pub mod domain;
 pub mod assembly;
 pub mod invokable_arg;
-use macros::invokable;
+use macros::{invokable,add_internal_call};
 use rusty_fork::rusty_fork_test;
 use core::ptr::null_mut;
 use invokable_arg::InvokableArg;
            
 #[invokable]
-fn pass_arg_count(test_val:i32){
-    println!("args:{}",test_val);
-    assert!(test_val == 2);
-    panic!();
+fn pass_arg_count(input:i32){
+    let a:u64 = 0xFAFAFAFAFAFAFAFA;
+    println!("Hello from arg_count! input:{}",input);
+    //println!("args:{}",test_val);
+    //assert!(input == 2);
+    //panic!();
 }
 rusty_fork_test! {
     #[test]
@@ -67,11 +69,15 @@ rusty_fork_test! {
         args.push("1");
         args.push("2");
         //passing function bind
-        let cstr = CString::new("Test::PassArgCount").expect("Could not create cstring");
-        let fnc_ptr:*const c_void = unsafe{std::mem::transmute(&pass_arg_count_invokable)};
-        println!("ptr:{:#x}",fnc_ptr as usize);
-        unsafe{binds::mono_add_internal_call(cstr.as_ptr(),fnc_ptr)};
-        drop(cstr);
+        //TODO: fix passing of function pointers
+        //let fnc_ptr = & as &c_void;
+        //println!("ptr:{:#x}",&pass_arg_count_invokable);
+        type test_type = (extern "C" fn(i32));
+        //let tmp = (crate::pass_arg_count as test_type);
+        //add_internal_call!("Test::PassArgCount", tmp);
+        let cstr = CString ::new("Test::PassArgCount").expect("Could note create cstring") ; 
+        let fnc_ptr:*const c_void = unsafe { std :: mem :: transmute(pass_arg_count_invokable  as test_type) } ;
+        unsafe{ binds :: mono_add_internal_call(cstr.as_ptr(), fnc_ptr) } ; drop(cstr) ;
         let res = jit::exec(dom,asm,args);
         panic!();
     }
