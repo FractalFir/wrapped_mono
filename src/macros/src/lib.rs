@@ -1,4 +1,4 @@
-#![recursion_limit = "8"]
+#![recursion_limit = "32"]
 
 extern crate syn;
 extern crate quote;
@@ -62,8 +62,8 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
     let method = tokens.pop().unwrap().to_string();
     //unque name for 
     let res =  TokenStream::from_str(
-        &format!("let cstr = CString::new({}).expect(\"Could note create cstring\");
-        let fnc_ptr:*const c_void = unsafe{{ std::mem::transmute({}_invokable as {}_fn_type) }};
+        &format!("let cstr = std::ffi::CString::new({}).expect(\"Could note create cstring\");
+        let fnc_ptr:*const core::ffi::c_void = unsafe{{ std::mem::transmute({}_invokable as {}_fn_type) }};
         unsafe{{ binds::mono_add_internal_call(cstr.as_ptr(),fnc_ptr) }};
         drop(cstr);",&method,&fnc_name,&fnc_name)).expect("Could not create token stream");
     println!("{}",res);
