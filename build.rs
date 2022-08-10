@@ -13,7 +13,6 @@ fn compile_assembly(src_path:&str,target_path:&str){
     if stderr.len() > 0{
         panic!("{}",std::str::from_utf8(&stderr).unwrap());
     }
-    
 }
 fn compile_jit_test_assembly(){
     let output = Command::new("mcs") 

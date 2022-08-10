@@ -63,7 +63,7 @@ impl FnRep{
         for arg in &self.args{
             let separator = if curr < len - 1{','}else{' '};
             inner.extend(
-                TokenStream::from_str(&format!("{}_in:<{} as InvokableArg>::SourceType{}",arg.name,arg.get_type_string(),separator)));
+                TokenStream::from_str(&format!("{}_in:<{} as InvokePass>::SourceType{}",arg.name,arg.get_type_string(),separator)));
             curr+=1;
         }
         let group = TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,inner));
@@ -79,7 +79,7 @@ impl FnRep{
         let arg_count = self.args.len();
         for arg in &self.args{
             let c = if curr < arg_count - 1{','}else{' '};
-            inner.extend(TokenStream::from_str(&format!("<{} as InvokableArg>::SourceType",&arg.get_type_string())));
+            inner.extend(TokenStream::from_str(&format!("<{} as InvokePass>::SourceType",&arg.get_type_string())));
         }
         let mut res = TokenStream::from_str(&format!("pub type {}_fn_type = extern \"C\" fn",&self.name)).expect("Could not create token stream!");
         //function arguments

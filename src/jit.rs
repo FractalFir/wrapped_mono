@@ -54,9 +54,14 @@ use crate::assembly::{Assembly,AssemblyTrait};
 /// let res = jit::exec(main_domain,asm,args);
 /// ```
 pub fn exec(domain:Domain,assembly:Assembly,args:Vec<&str>)->i32{
-    let argc:i32 = args.len() as i32;
+    let argc:i32 = args.len() as i32 + 1;
     let mut cstr_args:Vec<CString> = Vec::new();
-    let mut argv:Vec<*mut i8> = Vec::new();
+    let mut argv:Vec<*mut i8> = Vec::with_capacity(args.len() + 1);
+    // 1-st argument is expected to be assembly name
+    unsafe{argv.push(
+        crate::binds::mono_stringify_assembly_name(
+        crate::binds::mono_assembly_get_name(assembly.get_ptr()))
+    )};
     for arg in args{
         let cstr_arg = CString::new(arg).unwrap();
         argv.push(cstr_arg.as_ptr() as *mut i8);  

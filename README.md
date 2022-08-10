@@ -22,16 +22,17 @@
 - [ ] Passing arguments to CLR functions
 - [ ] Reciving data from CLR functions
 - [ ] Getting accesing instance variable fields 
-- [X] Exposing rust functions to CLR using P/Invoke **Works only partialy at the moment(only passing strings is working bug - free)**
-- [ ] P/Invoke functions returning values to managed code
-- [ ] Automplementation of InvokableArg trait using derive, supporting passing arbitrary types in P/Invoke functions
+- [X] Exposing rust functions to CLR using internall calls **Not implemented yet for some basic types**
+- [X] Passing arrays from managed to unmanged code
+- [ ] Functions exposed as internal calls returning values to managed code
+- [ ] Automplementation of InvokableArg trait using derive, supporting passing arbitrary types in functions expsed as internal calls functions
 - [ ] Delegate Support
 ## Examples
 <p align = "center">
-    <a href="#Loading">Loading basic assembly<a>
-    <a href="#Creating new domains">Creating new domains<a>
-    <a href="#Executing manged code">Executing manged code<a>
-    <a href="# Exposig rust functions using P/Invoke">Exposig rust functions using P/Invoke<a>
+    <a href="#Loading">Loading basic assembly<a>&nbsp;
+    <a href="#Creating new domains">Creating new domains<a>&nbsp;
+    <a href="#Executing manged code">Executing manged code<a>&nbsp;
+    <a href="# Exposing rust functions as internal calls">Exposing rust functions using internal calls<a>&nbsp;
 </p>
 
 ### Loading basic assembly
@@ -39,14 +40,14 @@
 ```rust
 use wraped_mono::*;
 fn main(){
-    //Initizlizing mono JIT and creating root domain with name "root" and no version specifincation (default runtime version)
+    //Initializing mono JIT and creating root domain with name "root" and no version specifincation (default runtime version)
     let domain = jit::init("root",None);
     //Loading assembly 'Test.dll'
     let assembly = domain.asembly_open("Test.dll").unwrap();
 }
 ```
 ### Creating new domains
-**WARNING**!<br> creating root domain and initializing JIT is a necesary step that must be done before creating other domains.
+**WARNING**!<br> creating root domain and initializing JIT is a necessary step that must be done before creating other domains.
 ```rust
 fn main(){
     let domain = jit::init("root",None);
@@ -61,13 +62,13 @@ fn main(){
     let domain = jit::init("root",None);
     //opening assembly
     let assemmbly = domain.assembly_open("Some.dll").unwrap();
-    //creating structre containig arguments to be passed as string[] args
+    //creating structure containing arguments to be passed as string[] args
     let args:Vec<&str> = Vec::new();
     //calling main function in managed code
     jit::exec(dom,assembly,args);
 }
 ```
-### Exposig rust functions using P/Invoke
+### Exposing rust functions as internal calls
 ```cs
     class SomeClass{
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -77,15 +78,28 @@ fn main(){
 ```rust
     #[invokable]
     fn some_function(arg:String){
-        println!("recived arg:'{}'!",arg)!
+        println!("recived arg:'{}'!",arg);
+    }
+    #[invokable]
+    fn other_function(arg:i32){
+        println!("recived arg:'{}'!",arg);
+    }
+    #[invokable]
+    fn array_function(arg:Array<i32>){
+        let len = arg.len();
+        for i in 0..len{
+            println!("element number {} is :'{}'!",arg.get(i));
+        }
     }
     fn main(){
         /*
             jit initialization,domain creation, assembly loading, etc.
         */
         add_internal_call!("SomeClass::SomeFunction",some_function);
+        add_internal_call!("SomeClass::OtherFunction",some_function);
+        add_internal_call!("SomeClass::ArrayFunction",array_function);
         /*
-            executing managed code that calls SomeClass::SomeFunction
+            executing managed code that calls functions exposed as internal calls
         */
     }
 ```
