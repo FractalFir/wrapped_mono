@@ -11,6 +11,12 @@ pub mod assembly;
 pub mod invokable;
 /// Utilities related to arrays.
 pub mod array;
+///
+pub mod object;
+///
+pub mod class;
+///
+pub mod image;
 mod testing;
 use macros::{invokable,add_internal_call};
 use rusty_fork::rusty_fork_test;

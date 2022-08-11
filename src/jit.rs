@@ -12,7 +12,7 @@ use core::ptr::null_mut;
 /// ```
 pub fn init(name:&str,version:Option<&str>)->Domain{
     let n_cstr = CString::new(name).expect("could not create cstring!");
-    let res = unsafe{Domain::create_from_ptr( match version{
+    let res = unsafe{Domain::from_ptr( match version{
         Some(s)=>{
             let v_cstr = CString::new(s).expect("could not create cstring!");
             let ptr = mono_jit_init_version(n_cstr.as_ptr(),v_cstr.as_ptr());
@@ -37,7 +37,7 @@ pub fn init(name:&str,version:Option<&str>)->Domain{
 pub fn cleanup(domain:Domain){
     unsafe{mono_jit_cleanup(domain.get_ptr())};
 }
-use crate::assembly::{Assembly,AssemblyTrait};
+use crate::assembly::{Assembly};
 /// Function used to call main function from assembly in domain with arguments.
 /// ```csharp
 /// //C# code in file "SomeAssembly.dll"

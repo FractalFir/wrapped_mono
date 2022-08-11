@@ -36,4 +36,19 @@ rusty_fork_test! {
         let dom = jit::init("root",None);
         jit::cleanup(dom);
     }
+    #[test]
+    fn getting_image_from_assembly(){
+        use crate::{domain::Domain,jit};
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/local/Test.dll").unwrap();
+        let img = asm.get_image();
+    }
+    #[test]
+    fn gettig_class_from_image(){
+        use crate::{domain::Domain,jit,class::Class};
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/local/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(img,"","TestFunctions");
+    }
 } 

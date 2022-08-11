@@ -1,18 +1,16 @@
 use std::sync::Arc;
 use crate::binds::{MonoAssembly};
-pub type Assembly = Arc<_Assembly>;
-pub struct _Assembly{
-    pub ptr:*mut MonoAssembly,
-} 
-pub trait AssemblyTrait{
-    unsafe fn create_from_ptr(ptr:*mut MonoAssembly) -> Assembly;
-    unsafe fn get_ptr(&self)->*mut MonoAssembly;
+pub struct Assembly{
+    ptr:*mut crate::binds::MonoAssembly,
 }
-impl AssemblyTrait for Assembly{
-    unsafe fn create_from_ptr(ptr:*mut MonoAssembly) -> Assembly{
-        return Arc::new(_Assembly{ptr:ptr});
+impl Assembly{
+    pub unsafe fn from_ptr(ptr:*mut MonoAssembly) -> Assembly{
+        return Assembly{ptr:ptr};
     }
-    unsafe fn get_ptr(&self)->*mut MonoAssembly{
+    pub unsafe fn get_ptr(&self)->*mut MonoAssembly{
         return self.ptr;
+    }
+    pub fn get_image(&self)->crate::image::Image{
+        return unsafe{crate::image::Image::from_ptr(crate::binds::mono_assembly_get_image(self.ptr))};
     }
 }

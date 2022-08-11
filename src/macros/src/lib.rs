@@ -66,7 +66,7 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
         let fnc_ptr:*const core::ffi::c_void = unsafe{{ std::mem::transmute({}_invokable as {}_fn_type) }};
         unsafe{{ binds::mono_add_internal_call(cstr.as_ptr(),fnc_ptr) }};
         drop(cstr);",&method,&fnc_name,&fnc_name)).expect("Could not create token stream");
-    println!("{}",res);
+    //println!("{}",res);
     return res;
 }
 #[macro_use]

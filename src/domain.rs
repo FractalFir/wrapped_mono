@@ -1,5 +1,5 @@
 use crate::binds::{MonoDomain, mono_domain_create,mono_domain_assembly_open};
-use crate::assembly::{Assembly,AssemblyTrait};
+use crate::assembly::{Assembly};
 use core::ptr::null_mut;
 /// Safe representation of MonoDoamin type.
 pub struct Domain{
@@ -19,7 +19,7 @@ impl Domain{
             return None;
         }
         drop(cstr);
-        return Some(unsafe{Assembly::create_from_ptr(ptr)});
+        return Some(unsafe{Assembly::from_ptr(ptr)});
     }
     /// Creates new empty domain
     pub fn create()->Domain{
@@ -28,10 +28,10 @@ impl Domain{
         //! let domain1 = jit::init();
         //! let domain2 = Domain::create();
         //!```
-        return unsafe{Self::create_from_ptr(mono_domain_create())};
+        return unsafe{Self::from_ptr(mono_domain_create())};
     }
     /// Function creating MonoDomain type from a pointer.
-     pub unsafe fn create_from_ptr(ptr:*mut MonoDomain)->Domain{
+    pub unsafe fn from_ptr(ptr:*mut MonoDomain)->Domain{
         return Self{ptr:ptr};
     }
     /// Function returning internal pointer

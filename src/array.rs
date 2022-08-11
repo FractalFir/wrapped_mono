@@ -14,13 +14,19 @@ impl<T:crate::invokable::InvokePass> Array<T>{
         return unsafe{crate::binds::mono_array_length(self.arr_ptr) as usize};
     }
     ///Function creating Array<T> from a pointer to MonoArray
-    pub fn from_ptr(ptr:*mut crate::binds::MonoArray)->Self{
+    pub unsafe fn from_ptr(ptr:*mut crate::binds::MonoArray)->Self{
         return Array{arr_ptr:ptr,pd:std::marker::PhantomData};
     }
+    //pub fn new(domain:crate::domain::Domain,class:)
 }
 impl<T:crate::invokable::InvokePass> crate::invokable::InvokePass for Array<T>{
     type SourceType = *mut crate::binds::MonoArray;
     fn get_rust_rep(arg:Self::SourceType)->Self{
-        return Self::from_ptr(arg);
+        return unsafe{Self::from_ptr(arg)};
+    }
+}
+impl<T:crate::invokable::InvokePass> Clone for Array<T>{
+    fn clone(&self)->Self{
+        return unsafe{Self::from_ptr(crate::binds::mono_array_clone(self.arr_ptr))};
     }
 }

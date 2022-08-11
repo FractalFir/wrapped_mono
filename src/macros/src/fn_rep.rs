@@ -120,7 +120,7 @@ impl FnRep{
             TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner))
         ));
         stream.extend(self.create_function_type());
-        println!("{}",stream);
+        //println!("{}",stream);
         return stream;
     }
 }

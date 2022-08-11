@@ -34,3 +34,9 @@ impl InvokePass for String{
         return cstr.into_string().expect("Could not convert MonoString to String!");
     }
 }
+impl InvokePass for f32{
+    type SourceType = f32;
+    fn get_rust_rep(mono_arg:Self::SourceType)->Self{
+        return mono_arg;
+    }
+}
