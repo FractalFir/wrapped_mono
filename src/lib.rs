@@ -17,21 +17,21 @@ pub mod object;
 pub mod class;
 ///
 pub mod image;
+///
+pub mod method;
 mod testing;
 use macros::{invokable,add_internal_call};
 use rusty_fork::rusty_fork_test;
-use core::ptr::null_mut;
 use invokable::InvokePass;
 rusty_fork_test! {
     #[test]
     fn jit_execution(){
-        use crate::domain::Domain;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/local/Jit.dll").unwrap();
         let mut args:Vec<&str> = Vec::new();
         args.push("1");
         args.push("2");
-        let res = jit::exec(dom,asm,args);
+        let _res = jit::exec(dom,asm,args);
     }
     
 }

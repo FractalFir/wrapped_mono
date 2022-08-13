@@ -16,7 +16,8 @@
 - [x] Getting classes from image
 - [X] Full array support - getting,setting values, creating new arrays, etc.
 - [ ] Getting functions from image
-- [ ] Getting functions from classes
+- [X] Getting functions from classes
+- [X] Reading data about functions(argument count,names)
 - [ ] Static CLR function execution
 - [X] Creating new class instaces
 - [ ] Constructing new class instances

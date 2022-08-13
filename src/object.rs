@@ -66,13 +66,18 @@ impl Object{
     ///}
     ///```
     pub unsafe fn unbox(&self)->*mut std::ffi::c_void{
-        return unsafe{crate::binds::mono_object_unbox(self.obj_ptr)};
+        return crate::binds::mono_object_unbox(self.obj_ptr);
     }
     pub unsafe fn box_val(domain:crate::domain::Domain,class:crate::class::Class,val:*mut std::ffi::c_void)->crate::object::Object{
-        return unsafe{crate::object::Object::from_ptr(crate::binds::mono_value_box(domain.get_ptr(),class.get_ptr(),val)).expect("Could not box value")};
+        return crate::object::Object::from_ptr(crate::binds::mono_value_box(domain.get_ptr(),class.get_ptr(),val)).expect("Could not box value");
     }
     pub unsafe fn get_ptr(&self)->*mut crate::binds::MonoObject{
         return self.obj_ptr;
+    }
+    pub fn get_virtual_method(obj:Object,method:&crate::method::Method)->Option<crate::method::Method>{
+        return unsafe{crate::method::Method::from_ptr(crate::binds::mono_object_get_virtual_method(
+            obj.get_ptr(),method.get_ptr()
+        ))};
     }
 }
 impl crate::invokable::InvokePass for Object{

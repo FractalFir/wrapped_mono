@@ -61,11 +61,10 @@ fn gen_binds(){
     let out_path = PathBuf::from(res_path);
     let mut file = File::create(out_path).expect("Couldn't create bindings file!");
     file.write_all(
-        b"#![allow(non_upper_case_globals)]\n
+        b"#![allow(improper_ctypes)]\n#![allow(non_upper_case_globals)]\n
         #![allow(non_camel_case_types)]\n
         #![allow(non_snake_case)]\n"
     ).expect("Could not write bindings prefix");
-
     bindings.write(Box::new(file)).expect("Couldn't write bindings!");
 }
 fn main() {

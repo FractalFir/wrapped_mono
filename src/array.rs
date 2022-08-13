@@ -12,9 +12,9 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> Array<T>{
     ///Function seting element at *index* to *value*
     pub fn set(&self,index:usize,value:T){
         let tmp = T::get_mono_rep(value);
-        let ptr =  unsafe{(crate::binds::mono_array_addr_with_size(
+        let ptr =  unsafe{crate::binds::mono_array_addr_with_size(
             self.arr_ptr,std::mem::size_of::<T::ReturnType>() as i32,index)
-            as *mut T::ReturnType)};
+            as *mut T::ReturnType};
         unsafe{(*ptr) = tmp};
     }
     ///Function returning length of the array.

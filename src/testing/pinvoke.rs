@@ -40,7 +40,7 @@ rusty_fork_test! {
         add_internal_call!("Test::PassArgCount", pass_arg_count);
         add_internal_call!("Test::PassDataArray",pass_data_array);
         
-        let res = jit::exec(dom,asm,args);
+        let _res = jit::exec(dom,asm,args);
 
     } 
 }
