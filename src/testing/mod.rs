@@ -3,8 +3,8 @@ mod pinvoke;
 mod object;
 mod method;
 use crate as wrapped_mono;
+use wrapped_mono::*;
 use macros::{invokable,add_internal_call};
-use rusty_fork::rusty_fork_test;
 use invokable::InvokePass;
 rusty_fork_test! {
     #[test]
@@ -14,7 +14,7 @@ rusty_fork_test! {
         let mut args:Vec<&str> = Vec::new();
         args.push("1");
         args.push("2");
-        let _res = jit::exec(dom,asm,args);
+        let _res = jit::exec(&dom,&asm,args);
     }
     #[test]
     fn jit_init(){
@@ -65,7 +65,7 @@ rusty_fork_test! {
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/local/Test.dll").unwrap();
         let img = asm.get_image();
-        let _class = Class::from_name(img,"","TestFunctions");
+        let _class = Class::from_name(&img,"","TestFunctions");
     }
 } 
 

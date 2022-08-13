@@ -53,7 +53,7 @@ use crate::assembly::{Assembly};
 /// let args = vec!["arg1","arg2","arg3"];
 /// let res = jit::exec(main_domain,asm,args);
 /// ```
-pub fn exec(domain:Domain,assembly:Assembly,args:Vec<&str>)->i32{
+pub fn exec(domain:&Domain,assembly:&Assembly,args:Vec<&str>)->i32{
     let argc:i32 = args.len() as i32 + 1;
     let mut cstr_args:Vec<CString> = Vec::new();
     let mut argv:Vec<*mut i8> = Vec::with_capacity(args.len() + 1);

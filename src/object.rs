@@ -15,7 +15,7 @@ pub trait ObjectTrait{
     ///returns class of this object
     fn get_class(&self)->crate::class::Class;
     ///returns Object *self* cast to *class* if Object *self* is derived from class.
-    fn is_inst(&self,class:crate::class::Class)->Option<Object>;
+    fn is_inst(&self,class:&crate::class::Class)->Option<Object>;
 }
 impl ObjectTrait for Object{
     fn hash(&self)->i32{
@@ -35,13 +35,13 @@ impl ObjectTrait for Object{
             crate::binds::mono_object_get_class(self.obj_ptr)
         ).expect("Could not get class of an object")};
     }
-    fn is_inst(&self,class:crate::class::Class)->Option<Object>{
+    fn is_inst(&self,class:&crate::class::Class)->Option<Object>{
         return unsafe{Self::from_ptr(crate::binds::mono_object_isinst(self.get_ptr(),class.get_ptr()))};
     }
 }
 impl Object{
     ///Allocates new object of Class class. **Does not call the constructor**
-    pub fn new(domain:crate::domain::Domain,class:crate::class::Class)->Self{
+    pub fn new(domain:&crate::domain::Domain,class:&crate::class::Class)->Self{
         return unsafe{Self::from_ptr(crate::binds::mono_object_new(domain.get_ptr(),class.get_ptr()))}.expect("Could not create new type from class!");
     }
     pub unsafe fn from_ptr(obj_ptr:*mut crate::binds::MonoObject)->Option<Self>{

@@ -15,7 +15,7 @@ impl Method{
     pub fn get_ptr(&self)->*mut crate::binds::MonoMethod{
         return self.met_ptr;
     }
-    pub fn get_method_from_name(class:crate::class::Class,name:&str,param_count:i32)->Option<Self>{
+    pub fn get_method_from_name(class:&crate::class::Class,name:&str,param_count:i32)->Option<Self>{
         let cstr = std::ffi::CString::new(name).expect("Could not crate CString");
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_class_get_method_from_name(class.get_ptr(),cstr.as_ptr(),param_count)

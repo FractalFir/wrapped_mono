@@ -26,7 +26,7 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> Array<T>{
         return Array{arr_ptr:ptr,pd:std::marker::PhantomData};
     }
     ///Alocate new array in *domain* holding *n* elements of type *class*. 
-    pub fn new(domain:crate::domain::Domain,class:crate::class::Class,n:usize)->Self{
+    pub fn new(domain:&crate::domain::Domain,class:&crate::class::Class,n:usize)->Self{
         return unsafe{Self::from_ptr(
             crate::binds::mono_array_new(domain.get_ptr(),class.get_ptr(),n)
         )};
@@ -66,7 +66,7 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::obj
             crate::binds::mono_object_get_class(self.arr_ptr as *mut MonoObject)
         ).expect("Could not get class of an object")};
     }
-    fn is_inst(&self,class:crate::class::Class)->Option<crate::object::Object>{
+    fn is_inst(&self,class:&crate::class::Class)->Option<crate::object::Object>{
         return unsafe{crate::object::Object::from_ptr(
             crate::binds::mono_object_isinst(self.get_ptr() as *mut crate::binds::MonoObject,class.get_ptr())
         )};

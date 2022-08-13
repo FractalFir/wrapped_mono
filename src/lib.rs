@@ -19,5 +19,13 @@ pub mod class;
 pub mod image;
 ///
 pub mod method;
-#[test]
+#[cfg(test)]
 mod testing;
+pub use macros;
+pub use object::{Object,ObjectTrait};
+pub use domain::Domain;
+pub use invokable::*;
+pub use array::Array;
+pub use class::Class;
+pub use image::Image;
+pub use method::Method;

@@ -9,9 +9,9 @@ rusty_fork_test! {
         let main = jit::init("main",None);
         let asm = main.assembly_open("test/local/Pinvoke.dll").unwrap();
         let img = asm.get_image();
-        let test_class = Class::from_name(img,"","Secondary").expect("Could not find class!");
+        let test_class = Class::from_name(&img,"","Secondary").expect("Could not find class!");
 
-        let obj = Object::new(main,test_class);
+        let obj = Object::new(&main,&test_class);
         let _hsh = obj.hash();
     }
 }
