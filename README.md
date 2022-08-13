@@ -18,12 +18,12 @@
 - [ ] Getting functions from image
 - [X] Getting functions from classes
 - [X] Reading data about functions(argument count,names)
-- [ ] Static CLR function execution
+- [X] Static CLR function execution
 - [X] Creating new class instaces
 - [ ] Constructing new class instances
 - [ ] Calling CLR function on class instance
-- [ ] Passing arguments to CLR functions
-- [ ] Reciving data from CLR functions
+- [X] Passing arguments to CLR functions
+- [X] Reciving data from CLR functions
 - [ ] Accesing instance variable fields 
 - [X] Exposing rust functions to CLR using internall calls **Not implemented yet for some basic types**
 - [X] Passing arrays from managed to unmanged code
