@@ -19,19 +19,5 @@ pub mod class;
 pub mod image;
 ///
 pub mod method;
+#[test]
 mod testing;
-use macros::{invokable,add_internal_call};
-use rusty_fork::rusty_fork_test;
-use invokable::InvokePass;
-rusty_fork_test! {
-    #[test]
-    fn jit_execution(){
-        let dom = jit::init("root",None);
-        let asm = dom.assembly_open("test/local/Jit.dll").unwrap();
-        let mut args:Vec<&str> = Vec::new();
-        args.push("1");
-        args.push("2");
-        let _res = jit::exec(dom,asm,args);
-    }
-    
-}
