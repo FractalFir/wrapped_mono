@@ -64,7 +64,7 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
     let res =  TokenStream::from_str(
         &format!("let cstr = std::ffi::CString::new({}).expect(\"Could note create cstring\");
         let fnc_ptr:*const core::ffi::c_void = unsafe{{ std::mem::transmute({}_invokable as {}_fn_type) }};
-        unsafe{{ binds::mono_add_internal_call(cstr.as_ptr(),fnc_ptr) }};
+        unsafe{{ wrapped_mono::binds::mono_add_internal_call(cstr.as_ptr(),fnc_ptr) }};
         drop(cstr);",&method,&fnc_name,&fnc_name)).expect("Could not create token stream");
     //println!("{}",res);
     return res;

@@ -2,6 +2,9 @@ pub struct Class{
     class_ptr:*mut crate::binds::MonoClass,
 } 
 impl Class{
+    pub unsafe fn get_ptr(&self)->*mut crate::binds::MonoClass{
+        return self.class_ptr;
+    }
     pub unsafe fn from_ptr(class_ptr:*mut crate::binds::MonoClass)->Option<Self>{
         if class_ptr == core::ptr::null_mut(){
             return None;

@@ -14,14 +14,16 @@
 - [x] Executing code contained in mono assembly
 - [x] Getting image from assembly
 - [x] Getting classes from image
+- [X] Full array support - getting,setting values, creating new arrays, etc.
 - [ ] Getting functions from image
 - [ ] Getting functions from classes
 - [ ] Static CLR function execution
+- [X] Creating new class instaces
 - [ ] Constructing new class instances
 - [ ] Calling CLR function on class instance
 - [ ] Passing arguments to CLR functions
 - [ ] Reciving data from CLR functions
-- [ ] Getting accesing instance variable fields 
+- [ ] Accesing instance variable fields 
 - [X] Exposing rust functions to CLR using internall calls **Not implemented yet for some basic types**
 - [X] Passing arrays from managed to unmanged code
 - [ ] Functions exposed as internal calls returning values to managed code

@@ -10,7 +10,7 @@ pub trait InvokePass{
 /// to ReturnType used by MonoRuntime.
 pub trait InvokeReturn{
     ///Type used by MonoRuntime, that type implementing InvokeReturn trait should be converted to when returnig it to MonoRuntime.
-    type ReturnType;
+    type ReturnType:Copy;
     ///Function converting type implementing InvokePass trait to type that should be returned to MonoRuntime.
     fn get_mono_rep(rust_arg:Self)->Self::ReturnType;
 }
@@ -38,5 +38,18 @@ impl InvokePass for f32{
     type SourceType = f32;
     fn get_rust_rep(mono_arg:Self::SourceType)->Self{
         return mono_arg;
+    }
+}
+//return section
+impl InvokeReturn for i32{
+    type ReturnType = i32;
+    fn get_mono_rep(rust_arg:Self)->Self::ReturnType{
+        return rust_arg;
+    }
+}
+impl InvokeReturn for f32{
+    type ReturnType = f32;
+    fn get_mono_rep(rust_arg:Self)->Self::ReturnType{
+        return rust_arg;
     }
 }

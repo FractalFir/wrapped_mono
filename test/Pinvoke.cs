@@ -1,6 +1,8 @@
 using System.Runtime.CompilerServices;
 class Test{
     [MethodImplAttribute(MethodImplOptions.InternalCall)]
+    public static extern void ConfoirmConstuctorCall(object self);
+    [MethodImplAttribute(MethodImplOptions.InternalCall)]
     public static extern void PassDataArray(int[] data);
     [MethodImplAttribute(MethodImplOptions.InternalCall)]
     public static extern void PassArgCount(int count);
@@ -16,4 +18,12 @@ class Test{
         SendTestString(tmp);
         System.Environment.Exit(0);
     }
+    public Test(){
+        ConfoirmConstuctorCall(this);
+    }
 } 
+class Secondary{
+    public Secondary(int a,int b){
+        Test.ConfoirmConstuctorCall(this);
+    }
+}

@@ -1,5 +1,6 @@
 use rusty_fork::rusty_fork_test;
 use macros::*;
+use crate as wrapped_mono;
 rusty_fork_test! {
     #[test]
     fn p_invoke(){
@@ -11,17 +12,21 @@ rusty_fork_test! {
         fn pass_arg_count(input:i32){
             assert!(input == 4);
         }
-        use crate::array::*;
+        use wrapped_mono::array::*;
+        use wrapped_mono::object::ObjectTrait;
         #[invokable]
         fn pass_data_array(input:Array<i32>){
             let len = input.len();
+            let size = input.get_size();
+            println!("size:{}",size);
+            assert!(size == 56);
             assert!(len == 6);
             for i in 0..len{
                 println!("i:{}",i);
                 assert!(input.get(i) == i as i32);
             }
         }
-        use crate::*;
+        use wrapped_mono::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/local/Pinvoke.dll").unwrap();
         let mut args:Vec<&str> = Vec::new();
