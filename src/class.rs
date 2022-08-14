@@ -56,8 +56,17 @@ impl ClassField{
     pub fn get_data(&self) -> *const ::std::os::raw::c_char{
         return unsafe{crate::binds::mono_field_get_data(self.get_ptr())};
     }
-    */
     pub fn get_parent(&self)->Class{
         return unsafe{Class::from_ptr(crate::binds:: mono_field_get_parent(self.get_ptr()))}.expect("Could not get ClassFiled of Class");
+    }
+    pub fn get_value_object(&self,obj:&crate::object::Object)->Option<crate::object::Object>{
+        use crate::object::ObjectTrait;
+        let dom = obj.get_domain();
+        return unsafe{crate::object::Object::from_ptr(
+            crate::binds::mono_field_get_value_object(dom.get_ptr(),self.get_ptr(),obj.get_ptr())
+        )};
+    }
+    unsafe fn set_value_unsafe(&self,obj:&crate::object::Object,value:*mut std::os::raw::c_void){
+        crate::binds::mono_field_set_value(obj.get_ptr(),self.get_ptr(),value);
     }
 }

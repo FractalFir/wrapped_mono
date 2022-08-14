@@ -40,6 +40,12 @@ impl InvokePass for f32{
         return mono_arg;
     }
 }
+impl<T> InvokePass for *mut T{
+    type SourceType = *mut T;
+    fn get_rust_rep(mono_arg:Self::SourceType)->Self{
+        return mono_arg;
+    }
+}
 //return section
 impl InvokeReturn for i32{
     type ReturnType = i32;
@@ -53,3 +59,10 @@ impl InvokeReturn for f32{
         return rust_arg;
     }
 }
+impl<T> InvokeReturn for *mut T{
+    type ReturnType = *mut T;
+    fn get_mono_rep(mono_arg:Self::ReturnType)->Self{
+        return mono_arg;
+    }
+}
+

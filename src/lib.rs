@@ -1,4 +1,10 @@
-//! Rust wrapper around mono runtime
+//! Rust wrapper around mono runtime. Allows embbeding mono runtime in rust projects using safe Rust API.
+//! # Features
+//! ## Automatic wrappers around functions
+//!
+//! # Definition of ceartain words used in documentation:<br>
+//! **Managed Code** - code which runs in the runtime(e.g. C# code)<br>
+//! **Unmanaged code** - code which runs outside runtime(in this case Rust code).<br>
 /// Autognerated, unsafe binds to mono library
 pub mod binds;
 /// Functions realted to Mono JIT Runtime

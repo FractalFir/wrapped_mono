@@ -21,14 +21,14 @@
 - [X] Static CLR function execution
 - [X] Creating new class instaces
 - [ ] Constructing new class instances
-- [ ] Calling CLR function on class instance
+- [X] Calling CLR function on class instance
 - [X] Passing arguments to CLR functions
 - [X] Reciving data from CLR functions
 - [ ] Accesing instance variable fields 
 - [X] Exposing rust functions to CLR using internall calls **Not implemented yet for some basic types**
 - [X] Passing arrays from managed to unmanged code
-- [ ] Functions exposed as internal calls returning values to managed code
-- [ ] Automplementation of InvokableArg trait using derive, supporting passing arbitrary types in functions expsed as internal calls functions
+- [X] Functions exposed as internal calls returning values to managed code
+- [ ] Automplementation of InvokableArg trait using derive, supporting passing arbitrary types in functions exposed as internal calls functions
 - [ ] Delegate Support
 ## Examples
 <p align = "center">

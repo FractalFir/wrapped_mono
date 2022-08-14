@@ -14,12 +14,10 @@ use fn_rep::*;
 use crate::tok_vec::{TokVec,TokVecTraits};
 use proc_macro::{TokenStream,TokenTree};
 use std::str::FromStr;
-/*
-    this function checks function "path"(e.g. some_crate::some_module::some_function) 
-    is valid (it contains only letters and  ':' signs), and returns the "path" in form of a string if it is.
-    NOTE: it will not check if given function exists! it only check if that function path is valid.
-    TODO: extend it to filter out such things as 
-*/
+///This function checks if function "path"(e.g. some_crate::some_module::some_function) 
+///is valid (it contains only letters and  ':' signs), and returns the "path" in form of a string if it is.
+///NOTE: it will not check if given function exists! it only check if that function path is valid.
+///TODO: extend it to filter out such things as 
 fn get_fn_path_string(input:TokVec)->Result<String,String>{
     let mut res:String = String::new();
     for tok in input{
@@ -40,10 +38,7 @@ fn get_fn_path_string(input:TokVec)->Result<String,String>{
     }
     return Ok(res);
 }
-/*
-makro equivalent of mono_add_internal_call
-*/
-#[macro_use]
+///macro equivalent of mono_add_internal_call with automatic support for type conversion
 #[proc_macro]
 pub fn add_internal_call(args: TokenStream) -> TokenStream {
     let mut tokens = TokVec::separate_by_separator(TokVec::from_stream(args),',');
@@ -69,7 +64,7 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
     //println!("{}",res);
     return res;
 }
-#[macro_use]
+///macro marking function as being able to be exposed as internal call
 #[proc_macro_attribute]
 pub fn invokable(_attr_ts: TokenStream, fn_ts: TokenStream) -> TokenStream{
     let fnc = FnRep::fn_rep_from_stream(fn_ts);

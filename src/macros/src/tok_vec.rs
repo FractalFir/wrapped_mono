@@ -25,7 +25,7 @@ impl TokVecTraits for TokVec{
         use std::fmt::Write;
         let mut res = String::new();
         for tok in self{
-            write!(&mut res,"{}",tok.to_string()).expect("formatting error!");
+            write!(&mut res,"{} ",tok.to_string()).expect("formatting error!");
         }
         return res;
     }

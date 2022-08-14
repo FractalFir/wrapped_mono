@@ -5,8 +5,9 @@ rusty_fork_test! {
     #[test]
     fn p_invoke(){
         #[invokable]
-        fn string_test(s:String){
+        fn string_test(s:String) -> i32{
             assert!(s == "|one,two,three,four,");
+            return 5;
         }
         #[invokable]
         fn pass_arg_count(input:i32){

@@ -11,7 +11,7 @@ use std::fmt;
 use proc_macro::{TokenStream,TokenTree};
 pub struct FnRep{
     pub tok_backup:TokenStream,
-    ret:Option<TokVec>,
+    ret:Option<TokenTree>,
     args:Vec<ArgRep>,
     name:String,
 }
@@ -20,8 +20,7 @@ impl fmt::Display for FnRep{
         write!(f,"FnRep{{name:{}",self.name)?;
         match &self.ret{
             Some(s)=>{
-                write!(f,",ret:")?;
-                TokVec::fmt_tok_vec(f,s)?;
+                write!(f,",ret:{}",s)?;
             },
             None=>{},
         }
@@ -33,18 +32,47 @@ impl fmt::Display for FnRep{
         return fmt::Result::Ok(());
     }
 }
+//TODO: invert tv, to make this work
+fn tok_vec_pop_return(tv:&mut TokVec)->TokenTree{
+    //let mut tvm = Vec:: Vec::with_capacity(tv.len());
+    let mut is_last_arrow = false;
+    let mut res:Vec<TokenTree> = Vec::with_capacity(tv.len());
+    while let Some(tok) = tv.pop(){
+        match &tok{
+            TokenTree::Punct(p)=>{
+                if p.as_char() == '>'{
+                    is_last_arrow = true;
+                    res.push(tok.clone());
+                }
+                else if p.as_char() == '-'{
+                    if is_last_arrow{
+                        res.pop();
+                        res.pop();
+                        let mut tmp = TokenStream::new();
+                        tmp.extend(res);
+                        return TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,tmp));
+                    }
+                }
+                res.push(tok.clone());
+            },
+            _=>res.push(tok.clone()),
+        }
+    }
+    //println!("res:{}",res.to_string());
+    //println!("ila:{}",is_last_arrow);
+    panic!("Could not find return");
+}
 use std::str::FromStr;
 impl FnRep{
     pub fn fn_rep_from_stream(fn_ts:TokenStream) -> FnRep{
         let tok_backup = fn_ts.clone();
-        let mut tokens = TokVec::from_stream(fn_ts);
+        let mut tokens = TokVec::from_stream(fn_ts);        
         //body
         tokens.pop();
         //return type
         //TODO:fix this to allow for return values
         let ret = if tokens.len() > 3{
-            let tmp = TokVec::from_stream(match tokens.pop().unwrap(){TokenTree::Group(g)=>g.stream(),_=>panic!("unexpected token in place of functionreturn")});
-            tokens.pop();tokens.pop(); Some(tmp)
+            Some(tok_vec_pop_return(&mut tokens))
         }else{None};
         //arguments
         let args_tok = tokens.pop().expect("not enough tokens to form a function");
@@ -87,7 +115,15 @@ impl FnRep{
             TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,inner))
         ));
         //return value place:res.extend("->");res.extend.(type);
-        res.extend( TokenStream::from_str(";"));
+        match &self.ret{
+            Some(ret)=>{
+                res.extend(TokenStream::from_str("-><"));
+                res.extend(TokenStream::from(ret.clone()));
+                res.extend(TokenStream::from_str("as InvokeReturn>::ReturnType"));
+            }
+            None=>(),
+        }
+        res.extend(TokenStream::from_str(";"));
         return res;
     }
     /*
@@ -98,13 +134,22 @@ impl FnRep{
         let mut stream:TokenStream = TokenStream::from_str(&format!("pub extern \"C\" fn {}_invokable",&self.name)).expect("Could not create token stream!");
         //function args
         stream.extend(self.create_in_arg_list());
+        match &self.ret{
+            Some(ret)=>{
+                stream.extend(TokenStream::from_str("-><"));
+                stream.extend(TokenStream::from(ret.clone()));
+                stream.extend(TokenStream::from_str("as InvokeReturn>::ReturnType"));
+            },
+            None=>(),
+        }
         //argument handlers
         let mut inner:TokenStream = TokenStream::new();
         for arg in &self.args{
             inner.extend(arg.create_handler());
         }
         //inner function call
-        inner.extend(TokenStream::from_str(&format!("{}",&self.name)));
+        //result if needed.
+        inner.extend(TokenStream::from_str(&format!("let fnc_call_res_val = {}",&self.name)));
         let mut call_args = TokenStream::new();
         let curr = 0;
         let arg_count = self.args.len();
@@ -116,6 +161,7 @@ impl FnRep{
             TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,call_args))
         ));
         inner.extend(TokenStream::from_str(&format!(";")));
+        inner.extend(TokenStream::from_str("return fnc_call_res_val;"));
         stream.extend(TokenStream::from(
             TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner))
         ));

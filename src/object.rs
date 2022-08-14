@@ -1,4 +1,6 @@
-///Safe representation of MonoObject.
+///Safe representation of a manged Object. Is **not nullable** when passed between managed and unmanged code(e.g when added as an argument to function exposed as an interna call). 
+///It means that while it may represent a nullable type, wrapped-mono will automaticly panic when recived null value.
+///For nullable support use Option<Object>.
 pub struct Object{
     obj_ptr:*mut crate::binds::MonoObject,
 }
@@ -83,10 +85,29 @@ impl Object{
 impl crate::invokable::InvokePass for Object{
     type SourceType = *mut  crate::binds::MonoObject;
     fn get_rust_rep(arg:Self::SourceType)->Self{
-        return unsafe{Self::from_ptr(arg)}.expect("passed MonoObject argument is invalid");
+        return unsafe{Self::from_ptr(arg)}.expect("Passed null reference to not nullable type! For nullable use Option<Object>!");
     }
 }
-impl Clone for Object{
+impl crate::invokable::InvokeReturn for Object{
+    type ReturnType = *mut  crate::binds::MonoObject;
+    fn get_mono_rep(arg:Self)->Self::ReturnType{
+        return unsafe{arg.get_ptr()};
+    }
+}
+impl crate::invokable::InvokePass for Option<Object>{
+    type SourceType = *mut  crate::binds::MonoObject;
+    fn get_rust_rep(arg:Self::SourceType)->Self{
+        return unsafe{Object::from_ptr(arg)};
+    }
+}
+impl crate::invokable::InvokeReturn for Option<Object>{
+    type ReturnType = *mut  crate::binds::MonoObject;
+    fn get_mono_rep(arg:Self)->Self::ReturnType{
+        return match arg { Some(arg)=>unsafe{arg.get_ptr()},None=>core::ptr::null_mut()};
+    }
+}
+impl Object{
+    ///Clones MonoObject *not* reference to this object.
     fn clone(&self)->Self{
         //if clone fails, it means that there is a much bigger problem with mono runtime, so we jus
         return unsafe{Self::from_ptr(crate::binds::mono_object_clone(self.obj_ptr))}.expect("MonoRuntime could not clone object!");

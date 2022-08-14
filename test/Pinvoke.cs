@@ -7,7 +7,7 @@ class Test{
     [MethodImplAttribute(MethodImplOptions.InternalCall)]
     public static extern void PassArgCount(int count);
     [MethodImplAttribute(MethodImplOptions.InternalCall)]
-    public static extern void SendTestString(string s);
+    public static extern int SendTestString(string s);
     public static void Main(string[] args){
         string tmp = "|";
         foreach(string arg in args){
@@ -15,7 +15,10 @@ class Test{
         }
         PassArgCount(args.Length);
         PassDataArray(new int[]{0,1,2,3,4,5});
-        SendTestString(tmp);
+        int STRes = SendTestString(tmp);
+        if(STRes!= 5){
+            throw new System.Exception($"Recived wrong value!:{STRes}");
+        }
         System.Environment.Exit(0);
     }
     public Test(){
