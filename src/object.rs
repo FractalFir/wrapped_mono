@@ -1,6 +1,9 @@
+use crate::class::Class;
+use crate::binds::MonoObject;
+use crate::method::Method;
 ///Safe representation of a manged Object. Is **not nullable** when passed between managed and unmanged code(e.g when added as an argument to function exposed as an interna call). 
 ///It means that while it may represent a nullable type, wrapped-mono will automaticly panic when recived null value.
-///For nullable support use Option<Object>.
+///For nullable support use `Option<Object>`.
 pub struct Object{
     obj_ptr:*mut crate::binds::MonoObject,
 }
@@ -15,9 +18,9 @@ pub trait ObjectTrait{
     ///get reflection token TODO:extend this description to make it more clear
     fn reflection_get_token(&self)->u32;
     ///returns class of this object
-    fn get_class(&self)->crate::class::Class;
-    ///returns Object *self* cast to *class* if Object *self* is derived from class.
-    fn is_inst(&self,class:&crate::class::Class)->Option<Object>;
+    fn get_class(&self)->Class;
+    ///returns [`Object`] *self* cast to *class* if *self* is derived from class. Does not affect original object.
+    fn is_inst(&self,class:&Class)->Option<Object>;
 }
 impl ObjectTrait for Object{
     fn hash(&self)->i32{
@@ -32,20 +35,21 @@ impl ObjectTrait for Object{
     fn reflection_get_token(&self)->u32{
         return unsafe{crate::binds::mono_reflection_get_token(self.obj_ptr)};
     }
-    fn get_class(&self)->crate::class::Class{
-        return unsafe{crate::class::Class::from_ptr(
+    fn get_class(&self)->Class{
+        return unsafe{Class::from_ptr(
             crate::binds::mono_object_get_class(self.obj_ptr)
         ).expect("Could not get class of an object")};
     }
-    fn is_inst(&self,class:&crate::class::Class)->Option<Object>{
+    fn is_inst(&self,class:&Class)->Option<Object>{
         return unsafe{Self::from_ptr(crate::binds::mono_object_isinst(self.get_ptr(),class.get_ptr()))};
     }
 }
-impl Object{
-    ///Allocates new object of Class class. **Does not call the constructor**
-    pub fn new(domain:&crate::domain::Domain,class:&crate::class::Class)->Self{
+impl Object{ 
+    ///Allocates new object of [`Class`] class. **Does not call the constructor**
+    pub fn new(domain:&crate::domain::Domain,class:&Class)->Self{
         return unsafe{Self::from_ptr(crate::binds::mono_object_new(domain.get_ptr(),class.get_ptr()))}.expect("Could not create new type from class!");
     }
+    ///Creates new [`Object`] from pointer *obj_ptr*. Checks if it is null, and returns [`None`] if so.
     pub unsafe fn from_ptr(obj_ptr:*mut crate::binds::MonoObject)->Option<Self>{
         if obj_ptr == core::ptr::null_mut(){
             return None;
@@ -70,14 +74,37 @@ impl Object{
     pub unsafe fn unbox(&self)->*mut std::ffi::c_void{
         return crate::binds::mono_object_unbox(self.obj_ptr);
     }
-    pub unsafe fn box_val(domain:crate::domain::Domain,class:crate::class::Class,val:*mut std::ffi::c_void)->crate::object::Object{
+    ///Boxes value into an object.
+    /// # Examples
+    ///```
+    /// let mut val:i32 = 0;
+    /// let obj = unsafe{Object::box_val(&domain,&int_class,&mut val as *mut i32)};
+    ///```
+    pub unsafe fn box_val(&domain:crate::domain::Domain,class:&Class,val:*mut std::ffi::c_void)->crate::object::Object{
         return crate::object::Object::from_ptr(crate::binds::mono_value_box(domain.get_ptr(),class.get_ptr(),val)).expect("Could not box value");
     }
-    pub unsafe fn get_ptr(&self)->*mut crate::binds::MonoObject{
+    ///Gets internal [`MonoObject`] pointer.
+    pub unsafe fn get_ptr(&self)->*mut MonoObject{
         return self.obj_ptr;
     }
-    pub fn get_virtual_method(obj:Object,method:&crate::method::Method)->Option<crate::method::Method>{
-        return unsafe{crate::method::Method::from_ptr(crate::binds::mono_object_get_virtual_method(
+    ///Gets an implenentation virtual [`Method`] *method* for a specific [`Object`] *obj*.<br>
+    /// **Example:**<br>
+    /// with given C# code
+    ///```csharp
+    /// class ParrentClass{
+    ///     virtual void SomeMehod(){
+    ///         //SomeFunction
+    ///     } 
+    /// }
+    /// class ChildClass : ParrentClass{
+    ///     override void SomeMehod(){
+    ///         ///SomeOtherFunction
+    ///     }
+    /// }
+    ///```
+    /// When you call get_vitual_method on object that is instance of *ChildClass* and method *ParrentClass::SomeMethod* you will get return value of *ChildClass::SomeMethod*.
+    pub fn get_virtual_method(obj:Object,method:&Method)->Option<Method>{
+        return unsafe{Method::from_ptr(crate::binds::mono_object_get_virtual_method(
             obj.get_ptr(),method.get_ptr()
         ))};
     }

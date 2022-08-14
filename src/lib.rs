@@ -1,10 +1,22 @@
 //! Rust wrapper around mono runtime. Allows embbeding mono runtime in rust projects using safe Rust API.
-//! # Features
-//! ## Automatic wrappers around functions
-//!
 //! # Definition of ceartain words used in documentation:<br>
 //! **Managed Code** - code which runs in the runtime(e.g. C# code)<br>
 //! **Unmanaged code** - code which runs outside runtime(in this case Rust code).<br>
+//! # Features
+//! ## Automatic wrappers around functions
+//! Wrapped_mono provides automatic function wrapper creating functionality using #[[invokable]] and add_internall_call! macros. 
+//! They allow easy exposing of rust functions to managed code.
+//! For example function 
+//! ```rust
+//!#[invokable]
+//!fn get_string_length(input:String)->i32{
+//!     return input.len();
+//!}
+//! ```
+//! Takes as it's input Rust's String type, which stores data in a diffrent way than MonoString type used by MonoRuntime.
+//! It means that it needs converting. This is exacly what #[[invokable]] macro does. It creates a special wrapper function
+//! which converts arguments from type used in manged code to type used by unmanged code(In this example, MonoString* to String)
+//! This macro also converts return values of functions.
 /// Autognerated, unsafe binds to mono library
 pub mod binds;
 /// Functions realted to Mono JIT Runtime
