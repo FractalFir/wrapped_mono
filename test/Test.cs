@@ -7,6 +7,10 @@ class TestFunctions{
     public static int GetTwo(){
         return 2;
     }
+    //function returning null.
+    public static int? GetObject(){
+        return null;
+    }
     //function used to test if argument passing works
     public static int GetArg(int arg){
         return arg;

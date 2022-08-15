@@ -1,10 +1,12 @@
 ///Safe representation of MonoArray. Reqiures it's generic argument to implement InvokePass in order to automaticaly convert value from managed type to rust type.
+/// # Safety
+/// It is possible to use wrong type Array (e.g. casting float[] to Array<String>) and either cause a crash or read a garbage value.
 pub struct Array<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn>{
     arr_ptr:*mut crate::binds::MonoArray,
     pd:std::marker::PhantomData<T>,
 } 
 impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> Array<T>{
-    ///Function returning element at *index*.
+    ///Function returning element at *index*
     pub fn get(&self,index:usize)->T{
         let src:T::SourceType = unsafe{*(crate::binds::mono_array_addr_with_size(self.arr_ptr,std::mem::size_of::<T::SourceType>() as i32,index) as *const T::SourceType)};
         return T::get_rust_rep(src);

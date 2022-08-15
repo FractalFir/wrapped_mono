@@ -65,4 +65,11 @@ impl<T> InvokeReturn for *mut T{
         return mono_arg;
     }
 }
-
+/*
+pub trait<T> FromMonoPtr{
+    type PtrType = *mut T;
+    fn from_ptr(ptr:PtrType)->Self{
+        return *
+    }
+}
+*/

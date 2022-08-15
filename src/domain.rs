@@ -2,6 +2,7 @@ use crate::binds::{MonoDomain, mono_domain_create,mono_domain_assembly_open};
 use crate::assembly::{Assembly};
 use core::ptr::null_mut;
 /// Safe representation of MonoDoamin type.
+#[derive(Eq)]
 pub struct Domain{
     ptr:*mut MonoDomain,
 } 
@@ -37,5 +38,10 @@ impl Domain{
     /// Function returning internal pointer
     pub unsafe fn get_ptr(&self)->*mut MonoDomain{
         return self.ptr;
+    }
+}
+impl std::cmp::PartialEq for Domain{
+    fn eq(&self, other: &Self) -> bool {
+        return self.ptr == other.ptr;
     }
 }

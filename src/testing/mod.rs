@@ -67,5 +67,18 @@ rusty_fork_test! {
         let img = asm.get_image();
         let _class = Class::from_name(&img,"","TestFunctions");
     }
+    #[test]
+    fn test_object_size(){
+        use crate::binds::MonoObject;
+        use wrapped_mono::{jit,class::Class,method::Method,object::{Object,ObjectTrait}};
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/local/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let obj = Object::new(&dom,&class);
+        let size = obj.get_size();
+        //println!("{}",size);
+        assert!(size == std::mem::size_of::<MonoObject>() as u32);
+    }
 } 
 

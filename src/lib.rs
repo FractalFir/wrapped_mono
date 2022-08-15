@@ -2,6 +2,7 @@
 //! # Definition of ceartain words used in documentation:<br>
 //! **Managed Code** - code which runs in the runtime(e.g. C# code)<br>
 //! **Unmanaged code** - code which runs outside runtime(in this case Rust code).<br>
+//! More precise explanation: <a href = "https://docs.microsoft.com/en-us/dotnet/standard/managed-code">Explanation</a>
 //! # Features
 //! ## Automatic wrappers around functions
 //! Wrapped_mono provides automatic function wrapper creating functionality using #[[invokable]] and add_internall_call! macros. 
