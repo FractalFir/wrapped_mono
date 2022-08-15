@@ -1,10 +1,4 @@
-// fn
-// %name%
-// (%args%)
-// -            optional
-// >            optional
-// %ret%        optional
-// {%body%} 
+//TODO: while makro system works, it is not a good written piece of software. It needs a complete rewrite.
 use crate::tok_vec::*;
 use crate::arg_rep::*;
 use std::fmt;
@@ -32,9 +26,8 @@ impl fmt::Display for FnRep{
         return fmt::Result::Ok(());
     }
 }
-//TODO: invert tv, to make this work
+//TODO: Rewrite this function to make it more sensible
 fn tok_vec_pop_return(tv:&mut TokVec)->TokenTree{
-    //let mut tvm = Vec:: Vec::with_capacity(tv.len());
     let mut is_last_arrow = false;
     let mut res:Vec<TokenTree> = Vec::with_capacity(tv.len());
     while let Some(tok) = tv.pop(){
@@ -48,8 +41,21 @@ fn tok_vec_pop_return(tv:&mut TokVec)->TokenTree{
                     if is_last_arrow{
                         res.pop();
                         res.pop();
+                        let mut ser  = Vec::with_capacity(res.len()); //iverted res
+                        while let Some(tok) = res.pop(){
+                            ser.push(tok);
+                        }
+                        let val = ser.pop().unwrap();
+                        match val{
+                            TokenTree::Punct(ref p)=>{
+                                if p.as_char() != '>'{
+                                    ser.push(val);
+                                }    
+                            },
+                            _=>ser.push(val),
+                        }
                         let mut tmp = TokenStream::new();
-                        tmp.extend(res);
+                        tmp.extend(ser);
                         return TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,tmp));
                     }
                 }
@@ -115,11 +121,13 @@ impl FnRep{
             TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,inner))
         ));
         //return value place:res.extend("->");res.extend.(type);
+
         match &self.ret{
             Some(ret)=>{
                 res.extend(TokenStream::from_str("-><"));
                 res.extend(TokenStream::from(ret.clone()));
                 res.extend(TokenStream::from_str("as InvokeReturn>::ReturnType"));
+                
             }
             None=>(),
         }
@@ -136,6 +144,7 @@ impl FnRep{
         stream.extend(self.create_in_arg_list());
         match &self.ret{
             Some(ret)=>{
+                println!("#|#\n{}\n#|#",ret);
                 stream.extend(TokenStream::from_str("-><"));
                 stream.extend(TokenStream::from(ret.clone()));
                 stream.extend(TokenStream::from_str("as InvokeReturn>::ReturnType"));
@@ -161,12 +170,17 @@ impl FnRep{
             TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,call_args))
         ));
         inner.extend(TokenStream::from_str(&format!(";")));
-        inner.extend(TokenStream::from_str("return fnc_call_res_val;"));
+        match &self.ret{
+            Some(ret)=>{inner.extend(TokenStream::from_str(
+                &format!("return <{} as InvokeReturn>::get_mono_rep(fnc_call_res_val);",ret)
+            ));},
+            _=>(),
+        }
         stream.extend(TokenStream::from(
             TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner))
         ));
         stream.extend(self.create_function_type());
-        //println!("{}",stream);
+        println!("{}",stream);
         return stream;
     }
 }

@@ -8,6 +8,9 @@ class Test{
     public static extern void PassArgCount(int count);
     [MethodImplAttribute(MethodImplOptions.InternalCall)]
     public static extern int SendTestString(string s);
+    ///Gets a null object
+    [MethodImplAttribute(MethodImplOptions.InternalCall)]
+    public static extern object GetObject();
     public static void Main(string[] args){
         string tmp = "|";
         foreach(string arg in args){
@@ -18,6 +21,10 @@ class Test{
         int STRes = SendTestString(tmp);
         if(STRes!= 5){
             throw new System.Exception($"Recived wrong value!:{STRes}");
+        }
+        object obj = GetObject();
+        if(obj != null){
+            throw new System.Exception($"Recived something else than null!");
         }
         System.Environment.Exit(0);
     }

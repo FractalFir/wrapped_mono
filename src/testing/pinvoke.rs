@@ -15,6 +15,7 @@ rusty_fork_test! {
         }
         use wrapped_mono::array::*;
         use wrapped_mono::object::ObjectTrait;
+        use wrapped_mono::object::Object;
         #[invokable]
         fn pass_data_array(input:Array<i32>){
             let len = input.len();
@@ -27,6 +28,13 @@ rusty_fork_test! {
                 assert!(input.get(i) == i as i32);
             }
         }
+        ///invokable macro does not work with <>
+        #[invokable]
+        fn get_object()->Option<Object>{
+            return None;
+        }
+
+
         use wrapped_mono::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/local/Pinvoke.dll").unwrap();
@@ -40,7 +48,8 @@ rusty_fork_test! {
         add_internal_call!("Test::SendTestString",string_test);
         add_internal_call!("Test::PassArgCount", pass_arg_count);
         add_internal_call!("Test::PassDataArray",pass_data_array);
-        
+        add_internal_call!("Test::GetObject",get_object);
+
         let _res = jit::exec(&dom,&asm,args);
 
     } 
