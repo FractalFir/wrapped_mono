@@ -8,9 +8,9 @@ pub struct Domain{
 } 
 use std::ffi::CString;
 impl Domain{ 
-    ///Loads Assembly at path into domain, returns **None** if assembly could not be loaded(is missing or broken), and **Some(Assembly)** if it was succesfuly loaded. 
+    ///Loads [`Assembly`] at path into domain, returns **None** if assembly could not be loaded(is missing or broken), and **Some(Assembly)** if it was succesfuly loaded. 
     pub fn assembly_open(&self,path:&str)->Option<Assembly>{
-        //! <br>**Example:**<br>
+        //! # Example
         //!```rust
         //! let asm = domain.assembly_open("SomeAssembly.dll").expect("Could not load assembly!");
         //!```
@@ -24,20 +24,38 @@ impl Domain{
     }
     /// Creates new empty domain
     pub fn create()->Domain{
-        //! <br>**Example:**<br>
+        //! # Example
         //!```rust
         //! let domain1 = jit::init();
         //! let domain2 = Domain::create();
         //!```
         return unsafe{Self::from_ptr(mono_domain_create())};
     }
+    // Sets domain confing to one loade from file *filename* in directory *base_directory*.
+    pub fn set_config(&self,base_directory:&str,filename:&str){
+        let bd_cstr = CString::new(base_directory).expect("Could not create CString");
+        let fnme_cstr =CString::new(filename).expect("Could not create CString");
+        unsafe{crate::binds::mono_domain_set_config(self.ptr,bd_cstr.as_ptr(),fnme_cstr.as_ptr())};
+        drop(bd_cstr);
+        drop(fnme_cstr);
+    }
     /// Function creating MonoDomain type from a pointer.
+    /// #Safety
+    /// Pointer must be a valid pointer to MonoDomain.
     pub unsafe fn from_ptr(ptr:*mut MonoDomain)->Domain{
         return Self{ptr:ptr};
     }
-    /// Function returning internal pointer
+    /// Function returning internal pointer to MonoDomain
     pub unsafe fn get_ptr(&self)->*mut MonoDomain{
         return self.ptr;
+    }
+    /// Releases resources realted to a specific domain. If *force* is true, allows realesing of the root domain. Used during shutdown.
+    /// # Safety
+    /// Since this function releases all resurces realated to given domain, it means that all references to objects inside it will become invalid.
+    /// 
+    pub fn free(&self,force:bool){
+        unsafe{crate::binds::mono_domain_free(self.ptr,force as i32)};
+        drop(self);
     }
 }
 impl std::cmp::PartialEq for Domain{

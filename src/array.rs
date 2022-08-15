@@ -1,4 +1,4 @@
-///Safe representation of MonoArray. Reqiures it's generic argument to implement InvokePass in order to automaticaly convert value from managed type to rust type.
+/// Safe representation of MonoArray(a reference to a managed array). Reqiures it's generic argument to implement InvokePass in order to automaticaly convert value from managed type to rust type.
 /// # Safety
 /// It is possible to use wrong type Array (e.g. casting float[] to Array<String>) and either cause a crash or read a garbage value.
 /// # Nullable support
