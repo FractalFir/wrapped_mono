@@ -3,11 +3,11 @@ name = "wrapped_mono"
 version = "0.1.0"
 edition = "2021"
 [build-dependencies]
-
+#bindgen = "0.60.1" #uncoment to enable bind regeneration
 [dependencies]
 macros = {path = "src/macros"}
+
 [dev-dependencies]
-bindgen = "0.60.1"
 rusty-fork = "0.3.0"
 [workspace]
 members = ["src/macros"]

@@ -1,4 +1,5 @@
 use crate::binds::MonoClass;
+use crate::Image;
 #[derive(Eq)]
 pub struct Class{
     class_ptr:*mut crate::binds::MonoClass,
@@ -55,6 +56,9 @@ impl Class{
         drop(cstr);
         return res;
     }
+    pub fn get_image(&self)->Image{
+        return unsafe{Image::from_ptr(crate::binds:: mono_class_get_image(self.class_ptr))};
+    }
 }
 impl std::cmp::PartialEq for Class{
     fn eq(&self,other:&Self)->bool{
@@ -65,13 +69,18 @@ pub struct ClassField{
     cf_ptr:*mut crate::binds::MonoClassField,
 }
 use crate::object::Object;
+use crate::binds::MonoClassField;
 impl ClassField{
+    /// Creates [`ClassField`] form *cf_ptr*. Returns [`Some(ClassField)`] if pointer is not null, and [`None`] if it is.
+    /// # Safety
+    /// *cf_ptr* must be either a valid pointer to [`MonoClassField`] or null pointer.
     pub fn from_ptr(cf_ptr:*mut crate::binds::MonoClassField)->Option<Self>{
         if cf_ptr == core::ptr::null_mut(){
             return None;
         }
         return Some(Self{cf_ptr:cf_ptr});
     }
+    /// Gets internal [`MonoClassField`] pointer.
     pub fn get_ptr(&self)->*mut crate::binds::MonoClassField{
         return self.cf_ptr;
     }
@@ -105,8 +114,8 @@ impl ClassField{
     }
     ///Gets value of a field on [`Object`] *obj*. For boxable types this value is in boxed form. 
     ///In this case call [`Object`].unbox() to retrive pointer to unboxed version of this value.
-    /// #Example
-     /// ## C#
+    /// # Example
+    /// ## C#
     ///```csharp
     /// class SomeClass{
     ///     int someField;    
@@ -128,8 +137,8 @@ impl ClassField{
         )};
     }
     ///Sets value of the object field on [`Object`] to value pointed to by *value*
-     /// # Example
-     /// ## C#
+    /// # Example
+    /// ## C#
     ///```csharp
     /// class SomeClass{
     ///     int someField;    
@@ -141,7 +150,7 @@ impl ClassField{
     /// let some_field_value_object = some_field.set_value_unsafe(&instance_of_some_class,&mut value_to_set as *mut i32 as *mut  std::os::raw::c_void);
     /// ```
     /// # Safety
-    /// Ponter must be valid and have correct type.
+    /// *value_ptr* pointer must be valid and have correct type.
     pub unsafe fn set_value_unsafe(&self,obj:&crate::object::Object,value_ptr:*mut std::os::raw::c_void){
         crate::binds::mono_field_set_value(obj.get_ptr(),self.get_ptr(),value_ptr);
     }

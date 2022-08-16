@@ -2,9 +2,14 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::fs::File;
 use std::io::Write;
+// comment out all #[cfg(test)] and bindgen dependency to renable bind generation
 #[cfg(test)]
 mod binds{
-    fn gen_binds(){
+    extern crate bindgen;
+    use crate::PathBuf;
+    use crate::File;
+    use std::io::Write;
+    pub fn gen_binds(){
         let hdr_path = "src/cbinds/binds.h";
         let res_path = "src/binds/mod.rs";
         if std::path::Path::new(&res_path).exists(){
@@ -75,7 +80,7 @@ fn main() {
     std::fs::create_dir_all("test/local");
     println!("cargo:rustc-link-lib=mono-2.0");
     #[cfg(test)]
-    gen_binds();
+    binds::gen_binds();
     compile_assembly("test/Test.cs","test/local/Pinvoke.dll");
     compile_pinvoke_test_assembly();
     compile_jit_test_assembly();

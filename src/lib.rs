@@ -1,3 +1,4 @@
+#![cfg(not(doctest))] 
 //! Rust wrapper around mono runtime. Allows embbeding mono runtime in rust projects using safe Rust API.
 //! # Definition of ceartain words used in documentation:<br>
 //! **Managed Code** - code which runs in the runtime(e.g. C# code)<br>
@@ -38,6 +39,8 @@ pub mod class;
 pub mod image;
 ///
 pub mod method;
+///Utilities realted to Exceptions in managed code. 
+pub mod exception;
 #[cfg(test)]
 mod testing;
 pub use macros;

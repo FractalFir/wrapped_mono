@@ -1,9 +1,12 @@
-///
+/// Safe representation of a managed method.
 pub struct Method{
     met_ptr:*mut crate::binds::MonoMethod,
 } 
 // 1213
+use crate::array::Array;
 use crate::object::Object;
+use crate::class::Class;
+use crate::exception::Exception;
 use crate::binds::{MonoObject};
 impl Method{
     pub unsafe fn from_ptr(met_ptr:*mut crate::binds::MonoMethod)->Option<Self>{
@@ -15,6 +18,20 @@ impl Method{
     pub fn get_ptr(&self)->*mut crate::binds::MonoMethod{
         return self.met_ptr;
     }
+    ///Get's method named *name* in [`Class`] *class* with *param_count* parameters.
+    /// # Example
+    /// ## C#
+    ///```csharp
+    /// class SomeClass{
+    ///     void SomeMethod(){}
+    ///     void OtherMethod(int arg1, int arg2){}
+    /// }
+    ///```
+    /// # Rust
+    ///```rust
+    /// let some_method = get_method_from_name(&some_class,"SomeMethod",0);
+    /// let other_method = get_method_from_name(&some_class,"OtherMethod",2);
+    ///```
     pub fn get_method_from_name(class:&crate::class::Class,name:&str,param_count:i32)->Option<Self>{
         let cstr = std::ffi::CString::new(name).expect("Could not crate CString");
         let res = unsafe{Self::from_ptr(
@@ -45,6 +62,10 @@ impl Method{
         cstr.into_raw();
         return s;
     }
+    ///TODO:finish this function
+    fn invoke_array(&self,obj:Option<Object>,arr:Array<Option<Object>>)->Result<Object,Exception>{
+        unimplemented!("Not done yet");
+    }
     pub fn get_class(&self)->crate::class::Class{
         return unsafe{crate::class::Class::from_ptr(
             crate::binds::mono_method_get_class(self.get_ptr())
@@ -67,8 +88,8 @@ impl Method{
         return res;
     }
     //TODO: return exception instead of () && write macro for auto params conversion.
-    ///Simple, fast(does not convert types) version of method_invoke! macro. **Doesn't** handle virtual methods, calls 
-    pub unsafe fn invoke_unsafe(&self,obj:Option<&Object>,params:&mut Vec<*mut std::os::raw::c_void>)->Result<Object,()>{
+    ///Simple, fast(does not convert types) version of method_invoke! macro(It does not exist yet, but is planned). **Doesn't** handle virtual methods, calls 
+    pub unsafe fn invoke_unsafe(&self,obj:Option<&Object>,params:&mut Vec<*mut std::os::raw::c_void>)->Result<Option<Object>,Option<Exception>>{
         use core::ffi::c_void;
         use crate::binds::MonoException;
         use std::ptr::null_mut;
@@ -84,9 +105,12 @@ impl Method{
             &mut expect as *mut *mut MonoException as *mut *mut MonoObject,
         );
         let res = unsafe{Object::from_ptr(res_ptr)};
-        match res{
-            Some(obj)=>return Ok(obj),
-            None=>return Err(()),//TODO: return new Exceprtion type instead of ().
+        if expect != null_mut(){
+            return Ok(res);
+        }
+        else {
+            let e = Exception::from_ptr(expect);
+            return Err(e);
         }
     }
 }
