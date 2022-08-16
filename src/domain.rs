@@ -23,15 +23,16 @@ impl Domain{
         return Some(unsafe{Assembly::from_ptr(ptr)});
     }
     /// Creates new empty domain
+    /// # Example
+    /// ```rust
+    /// let domain1 = jit::init();
+    /// let domain2 = Domain::create();
+    /// ```
     pub fn create()->Domain{
-        //! # Example
-        //!```rust
-        //! let domain1 = jit::init();
-        //! let domain2 = Domain::create();
-        //!```
+        
         return unsafe{Self::from_ptr(mono_domain_create())};
     }
-    // Sets domain confing to one loade from file *filename* in directory *base_directory*.
+    /// Sets domain confing to one loaded from file *filename* in directory *base_directory*.
     pub fn set_config(&self,base_directory:&str,filename:&str){
         let bd_cstr = CString::new(base_directory).expect("Could not create CString");
         let fnme_cstr =CString::new(filename).expect("Could not create CString");

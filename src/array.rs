@@ -39,7 +39,7 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> Array<T>{
     ///Function returning length of the array.
     /// # Example
     ///```rust
-    /// fn get_avg(input:&Array<f32>)->f32
+    /// fn get_avg(input:&Array<f32>)->f32{
     ///     let mut sum = 0.0;
     ///     for i in 0..input.len{
     ///         sum+=input.get(i);
