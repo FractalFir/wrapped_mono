@@ -41,7 +41,6 @@ pub mod image;
 pub mod method;
 ///Utilities realted to Exceptions in managed code. 
 pub mod exception;
-#[cfg(test)]
 mod testing;
 pub use macros;
 pub use object::{Object,ObjectTrait};
@@ -49,5 +48,7 @@ pub use domain::Domain;
 pub use invokable::*;
 pub use array::Array;
 pub use class::Class;
+pub use class::ClassField;
 pub use image::Image;
 pub use method::Method;
+pub use exception::Exception;

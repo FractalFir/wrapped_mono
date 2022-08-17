@@ -1,7 +1,9 @@
+#![cfg(test)]
 use rusty_fork::rusty_fork_test;
 mod pinvoke;
 mod object;
 mod method;
+mod exception;
 use crate as wrapped_mono;
 use wrapped_mono::*;
 use macros::{invokable,add_internal_call};

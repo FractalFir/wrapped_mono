@@ -89,7 +89,7 @@ impl Method{
     }
     //TODO: return exception instead of () && write macro for auto params conversion.
     ///Simple, fast(does not convert types) version of method_invoke! macro(It does not exist yet, but is planned). **Doesn't** handle virtual methods, calls 
-    pub unsafe fn invoke_unsafe(&self,obj:Option<&Object>,params:&mut Vec<*mut std::os::raw::c_void>)->Result<Option<Object>,Option<Exception>>{
+    pub unsafe fn invoke_unsafe(&self,obj:Option<&Object>,params:&mut Vec<*mut std::os::raw::c_void>)->Result<Option<Object>,Exception>{
         use core::ffi::c_void;
         use crate::binds::MonoException;
         use std::ptr::null_mut;
@@ -105,12 +105,12 @@ impl Method{
             &mut expect as *mut *mut MonoException as *mut *mut MonoObject,
         );
         let res = unsafe{Object::from_ptr(res_ptr)};
-        if expect != null_mut(){
+        if expect == null_mut(){
             return Ok(res);
         }
         else {
-            let e = Exception::from_ptr(expect);
-            return Err(e);
+            let e = Exception::from_ptr(expect).expect("Imposible: pointer is null and not null at the same time.");
+            return Err(e); 
         }
     }
 }
