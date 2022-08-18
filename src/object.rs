@@ -2,6 +2,7 @@ use crate::class::Class;
 use crate::binds::MonoObject;
 use crate::method::Method;
 use crate::domain::Domain;
+use crate::exception::ExceptManaged;
 ///Safe representation of a refernece to a manged Object. Is **not nullable** when passed between managed and unmanged code(e.g when added as an argument to function exposed as an interna call). 
 ///It means that while it may represent a nullable type, wrapped-mono will automaticly panic when recived null value.
 ///For nullable support use `Option<Object>`.
@@ -161,7 +162,8 @@ impl Object{
 impl crate::invokable::InvokePass for Object{
     type SourceType = *mut  crate::binds::MonoObject;
     fn get_rust_rep(arg:Self::SourceType)->Self{
-        return unsafe{Self::from_ptr(arg)}.expect("Passed null reference to not nullable type! For nullable use Option<Object>!");
+        let opt = unsafe{Self::from_ptr(arg)};
+        return <Object as ExceptManaged<Object>>::expect_managed_arg(opt,"Passed null reference to not nullable type! For nullable use Option<Object>!");
     }
 }
 impl crate::invokable::InvokeReturn for Object{

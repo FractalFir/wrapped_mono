@@ -52,7 +52,9 @@ impl MString{
 impl InvokePass for MString{
     type SourceType = *mut MonoString;
     fn get_rust_rep(src:Self::SourceType)->Self{
-        return unsafe{Self::from_ptr(src)}.expect("got null in a non-nullable string. For nullabe support use Option<MString>");
+        use crate::exception::ExceptManaged;
+        let opt = unsafe{Self::from_ptr(src)};
+        return <MString as ExceptManaged<MString>>::expect_managed_arg(opt,"got null in a non-nullable string. For nullabe support use Option<MString>");
     }
 }
 impl InvokePass for Option<MString>{
@@ -70,9 +72,6 @@ impl InvokeReturn for MString{
 impl InvokeReturn for Option<MString>{
     type ReturnType = *mut MonoString;
     fn get_mono_rep(src:Self)->Self::ReturnType{
-        match src{
-            Some(src)=>return src.s_ptr,
-            None=>return null_mut(),
-        }
+        return match src{Some(src)=>src.s_ptr,None=>null_mut()};
     }
 }

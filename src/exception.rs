@@ -324,6 +324,22 @@ impl Exception{
         return self.exc_ptr;
     }
 }
+pub trait ExceptManaged<T:Sized>{
+    fn expect_managed_arg(option:Option<T>,msg:&str)->T;
+}
+impl<T:Sized> ExceptManaged<T> for T{
+    fn expect_managed_arg(option:Option<T>,msg:&str)->T{
+        match option{
+            Some(t)=>return t,
+            None=>{
+                let msg = format!("Got null on argument of type {} when expected some value:{}",std::any::type_name::<T>(),msg);
+                let exc = Exception::argument_null(&msg);
+                exc.raise();
+                panic!("Impoosible condtion reached. Code exceuted after exception thrown.");
+            }
+        }
+    }
+}
 use core::fmt::Formatter;
 impl core::fmt::Debug for Exception{
     fn fmt(&self, _: &mut Formatter<'_>) -> Result<(), std::fmt::Error> { 

@@ -83,7 +83,9 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> Array<T>{
 impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::invokable::InvokePass for Array<T>{
     type SourceType = *mut crate::binds::MonoArray;
     fn get_rust_rep(arg:Self::SourceType)->Self{
-        return unsafe{Self::from_ptr(arg)}.expect("Got null in an not nullable type. For nullable support use Option<Array>");
+        use crate::exception::ExceptManaged;
+        let opt = unsafe{Self::from_ptr(arg)};
+        return <Array<T> as ExceptManaged<Array<T>>>::expect_managed_arg(opt,"Got null in an not nullable type. For nullable support use Option<Array>");
     }
 }
 impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::invokable::InvokeReturn for Array<T>{
