@@ -7,7 +7,9 @@ mod exception;
 use crate as wrapped_mono;
 use wrapped_mono::*;
 use macros::{invokable,add_internal_call};
+use mstring::MString;
 use invokable::InvokePass;
+use crate::assembly::Assembly;
 rusty_fork_test! {
     #[test]
     fn jit_execution(){
@@ -55,11 +57,49 @@ rusty_fork_test! {
         jit::cleanup(dom);
     }
     #[test]
+    fn create_mstring(){
+        use wrapped_mono::jit;
+        let dom = jit::init("root",None);
+        let str_txt = "Test";
+        let ms = MString::new(&dom,str_txt);
+    }
+    #[test]
+    fn mstring_hash(){
+        use wrapped_mono::jit;
+        let dom = jit::init("root",None);
+        let s = MString::new(&dom,"Test");
+        let s2 = MString::new(&dom,"Test");
+        assert!(s.hash() == s2.hash());
+    }
+    #[test]
+    fn get_mstring_content(){
+        use wrapped_mono::jit;
+        let dom = jit::init("root",None);
+        let str_txt = "Test";
+        let ms = MString::new(&dom,str_txt);
+        assert!(str_txt == &ms.to_string());
+    }
+    #[test]
     fn getting_image_from_assembly(){
         use wrapped_mono::jit;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/local/Test.dll").unwrap();
         let _img = asm.get_image();
+    }
+    #[test]
+    fn getting_assembly_from_name(){
+        use wrapped_mono::jit;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/local/Test.dll").unwrap();
+        let asm2 = Assembly::assembly_loaded("Test").expect("Could not get assembly!");
+    }
+    #[should_panic]
+    #[test]
+    fn getting_assembly_from_wrong_name(){
+        use wrapped_mono::jit;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/local/Test.dll").unwrap();
+        let asm2 = Assembly::assembly_loaded("Tost").expect("Could not get assembly!");
     }
     #[test]
     fn gettig_class_from_image(){

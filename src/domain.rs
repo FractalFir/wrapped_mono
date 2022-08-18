@@ -28,8 +28,7 @@ impl Domain{
     /// let domain1 = jit::init();
     /// let domain2 = Domain::create();
     /// ```
-    pub fn create()->Domain{
-        
+    pub fn create()->Domain{      
         return unsafe{Self::from_ptr(mono_domain_create())};
     }
     /// Sets domain confing to one loaded from file *filename* in directory *base_directory*.
@@ -53,10 +52,17 @@ impl Domain{
     /// Releases resources realted to a specific domain. If *force* is true, allows realesing of the root domain. Used during shutdown.
     /// # Safety
     /// Since this function releases all resurces realated to given domain, it means that all references to objects inside it will become invalid.
-    /// 
     pub fn free(&self,force:bool){
         unsafe{crate::binds::mono_domain_free(self.ptr,force as i32)};
         drop(self);
+    }
+    ///returns current domain
+    pub fn get_curr()->Option<Domain>{
+        let ptr = unsafe{crate::binds::mono_domain_get()};
+        if ptr == null_mut(){
+            return None;
+        }
+        else {return unsafe{Some(Self::from_ptr(ptr))}};
     }
 }
 impl std::cmp::PartialEq for Domain{

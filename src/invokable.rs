@@ -30,8 +30,10 @@ impl InvokePass for String{
     type SourceType = *mut crate::binds::MonoString;
     fn get_rust_rep(mono_arg:Self::SourceType)->Self{
         use std::ffi::CString;
-        let cstr = unsafe{let sptr = crate::binds::mono_string_to_utf8(mono_arg); CString::from_raw(sptr)};  
-        return cstr.into_string().expect("Could not convert MonoString to String!");
+        let cstr = unsafe{CString::from_raw(crate::binds::mono_string_to_utf8(mono_arg))};  
+        let res = cstr.to_str().expect("Could not convert MonoString to String!").to_owned();
+        unsafe{crate::binds::mono_free(cstr.into_raw() as *mut std::os::raw::c_void)};
+        return res;
     }
 }
 impl InvokePass for f32{

@@ -39,6 +39,10 @@ pub mod class;
 pub mod image;
 ///
 pub mod method;
+///
+pub mod mstring;
+///
+pub mod runtime;
 ///Utilities realted to Exceptions in managed code. 
 pub mod exception;
 mod testing;
