@@ -56,8 +56,129 @@ impl Class{
         drop(cstr);
         return res;
     }
+    ///Gets the image this type exists in.
     pub fn get_image(&self)->Image{
         return unsafe{Image::from_ptr(crate::binds:: mono_class_get_image(self.class_ptr))};
+    }
+    ///Returns [`Class`] representing `System.Object` type.
+    pub fn get_object()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds::mono_get_object_class()
+        )}.expect("Could not get calls representing System.Object!");
+    }
+    ///Returns [`Class`] representing `System.Int16` type ([i16]).
+    pub fn get_int_16()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds::mono_get_int16_class()
+        )}.expect("Could not get calls representing System.Int16!");
+    }
+    ///Returns [`Class`] representing `System.Int32` type ([i32]). 
+    pub fn get_int_32()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds::mono_get_int32_class()
+        )}.expect("Could not get calls representing System.Int32!");
+    }
+    ///Returns [`Class`] representing `System.Int64` type ([i64]). 
+    pub fn get_int_64()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds::mono_get_int64_class()
+        )}.expect("Could not get calls representing System.Int64!");
+    }
+    ///Returns [`Class`] representing `System.Double` type ([f64]).
+    pub fn get_double()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_double_class()
+        )}.expect("Could not get calls representing System.Double!");
+    }
+    ///Returns [`Class`] representing `System.Enum` type. 
+    pub fn get_enum()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_enum_class()
+        )}.expect("Could not get calls representing System.Enum!");
+    }
+    ///Returns [`Class`] representing `System.IntPtr` type ([isize]). 
+    pub fn get_int_ptr()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_intptr_class()
+        )}.expect("Could not get calls representing System.IntPtr!");
+    }
+    ///Returns [`Class`] representing `System.SByte` type ([i8]). 
+    pub fn get_sbyte()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_sbyte_class()
+        )}.expect("Could not get calls representing System.IntPtr!");
+    }
+    ///Returns [`Class`] representing `System.Single` type ([f32]).
+    pub fn get_single()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_single_class()
+        )}.expect("Could not get calls representing System.Single!");
+    }
+    ///Returns [`Class`] representing `System.String` type.
+    pub fn get_string()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_string_class()
+        )}.expect("Could not get calls representing System.String!");
+    }
+    ///Returns [`Class`] representing `System.Threading.Thread` type.
+    pub fn get_thread()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_thread_class()
+        )}.expect("Could not get calls representing System.Threading.Thread!");
+    }
+    ///Returns [`Class`] representing `System.UInt16` type([u16]).
+    pub fn get_uint16()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_uint16_class()
+        )}.expect("Could not get calls representing System.UInt16!");
+    }
+    ///Returns [`Class`] representing `System.UInt32` type([u32]).
+    pub fn get_uint32()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_uint32_class()
+        )}.expect("Could not get calls representing System.UInt32!");
+    }
+    ///Returns [`Class`] representing `System.UInt64` type([u64]).
+    pub fn get_uint64()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_uint64_class()
+        )}.expect("Could not get calls representing System.UInt64!");
+    }
+    ///Returns [`Class`] representing `System.UIntPtr` type ([usize]). 
+    pub fn get_uint_ptr()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_uintptr_class()
+        )}.expect("Could not get calls representing System.IntPtr!");
+    }
+    ///Returns [`Class`] representing `System.Void` type. 
+    pub fn get_void()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_void_class()
+        )}.expect("Could not get calls representing System.Void!");
+    }
+    ///Returns [`Class`] representing `System.Array` type. 
+    pub fn get_array()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_array_class()
+        )}.expect("Could not get calls representing System.Array!");
+    }
+    ///Returns [`Class`] representing `System.Boolean` type ([bool]). 
+    pub fn get_boolean()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_boolean_class()
+        )}.expect("Could not get calls representing System.Boolean!");
+    }
+    ///Returns [`Class`] representing `System.Byte` type ([u8]). 
+    pub fn get_byte()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_byte_class()
+        )}.expect("Could not get calls representing System.Byte!");
+    }
+    ///Returns [`Class`] representing `System.Char` type ([char]). 
+    pub fn get_char()->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds:: mono_get_char_class()
+        )}.expect("Could not get calls representing System.Char!");
     }
 }
 impl std::cmp::PartialEq for Class{
