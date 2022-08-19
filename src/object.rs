@@ -206,3 +206,4 @@ impl Object{
         return unsafe{Self::from_ptr(crate::binds::mono_object_clone(self.obj_ptr))}.expect("MonoRuntime could not clone object!");
     }
 }
+//for 0.2 TODO:extend functionalities relating to properites.
