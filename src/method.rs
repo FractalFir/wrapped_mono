@@ -116,4 +116,15 @@ impl Method{
             return Err(e); 
         }
     }
+    /*
+    ///Searches for method at *path* in *image*
+    pub fn search_in_image(path:&str,image:&Image)->Option<Method>{
+        let cstr = CString::new(path);
+        let md = unsafe{crate::binds::mono_method_desc_new(cstr.as_ptr())};
+        drop(cstr);
+        let res = unsafe{Self::from_ptr(
+            crate::binds::mono_method_search_in_image(image.get_ptr())
+        )}
+    } 
+    */
 }

@@ -150,7 +150,7 @@ pub const __STDC_IEC_60559_COMPLEX__: u32 = 201404;
 pub const __STDC_ISO_10646__: u32 = 201706;
 pub const __GNU_LIBRARY__: u32 = 6;
 pub const __GLIBC__: u32 = 2;
-pub const __GLIBC_MINOR__: u32 = 35;
+pub const __GLIBC_MINOR__: u32 = 36;
 pub const _SYS_CDEFS_H: u32 = 1;
 pub const __glibc_c99_flexarr_available: u32 = 1;
 pub const __LDOUBLE_REDIRECTS_TO_FLOAT128_ABI: u32 = 0;
@@ -2601,6 +2601,15 @@ extern "C" {
         __param: *mut ::std::os::raw::c_ushort,
         __buffer: *mut drand48_data,
     ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn arc4random() -> __uint32_t;
+}
+extern "C" {
+    pub fn arc4random_buf(__buf: *mut ::std::os::raw::c_void, __size: size_t);
+}
+extern "C" {
+    pub fn arc4random_uniform(__upper_bound: __uint32_t) -> __uint32_t;
 }
 extern "C" {
     pub fn malloc(__size: ::std::os::raw::c_ulong) -> *mut ::std::os::raw::c_void;
@@ -9319,6 +9328,76 @@ extern "C" {
 }
 extern "C" {
     pub fn mono_invoke_unhandled_exception_hook(exc: *mut MonoObject);
+}
+pub type MonoGCReferences = ::std::option::Option<
+    unsafe extern "C" fn(
+        obj: *mut MonoObject,
+        klass: *mut MonoClass,
+        size: usize,
+        num: usize,
+        refs: *mut *mut MonoObject,
+        offsets: *mut usize,
+        data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int,
+>;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_EXTERNAL: MonoGCRootSource = 0;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_STACK: MonoGCRootSource = 1;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_FINALIZER_QUEUE: MonoGCRootSource = 2;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_STATIC: MonoGCRootSource = 3;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_THREAD_STATIC: MonoGCRootSource = 4;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_CONTEXT_STATIC: MonoGCRootSource = 5;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_GC_HANDLE: MonoGCRootSource = 6;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_JIT: MonoGCRootSource = 7;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_THREADING: MonoGCRootSource = 8;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_DOMAIN: MonoGCRootSource = 9;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_REFLECTION: MonoGCRootSource = 10;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_MARSHAL: MonoGCRootSource = 11;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_THREAD_POOL: MonoGCRootSource = 12;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_DEBUGGER: MonoGCRootSource = 13;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_HANDLE: MonoGCRootSource = 14;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_EPHEMERON: MonoGCRootSource = 15;
+pub const MonoGCRootSource_MONO_ROOT_SOURCE_TOGGLEREF: MonoGCRootSource = 16;
+pub type MonoGCRootSource = ::std::os::raw::c_uint;
+pub const MonoGCHandleType_MONO_GC_HANDLE_TYPE_MIN: MonoGCHandleType = 0;
+pub const MonoGCHandleType_MONO_GC_HANDLE_WEAK: MonoGCHandleType = 0;
+pub const MonoGCHandleType_MONO_GC_HANDLE_WEAK_TRACK_RESURRECTION: MonoGCHandleType = 1;
+pub const MonoGCHandleType_MONO_GC_HANDLE_NORMAL: MonoGCHandleType = 2;
+pub const MonoGCHandleType_MONO_GC_HANDLE_PINNED: MonoGCHandleType = 3;
+pub const MonoGCHandleType_MONO_GC_HANDLE_TYPE_MAX: MonoGCHandleType = 4;
+pub type MonoGCHandleType = ::std::os::raw::c_uint;
+extern "C" {
+    pub fn mono_gc_collect(generation: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn mono_gc_max_generation() -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn mono_gc_get_generation(object: *mut MonoObject) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn mono_gc_collection_count(generation: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn mono_gc_get_used_size() -> i64;
+}
+extern "C" {
+    pub fn mono_gc_get_heap_size() -> i64;
+}
+extern "C" {
+    pub fn mono_gc_pending_finalizers() -> MonoBoolean;
+}
+extern "C" {
+    pub fn mono_gc_finalize_notify();
+}
+extern "C" {
+    pub fn mono_gc_invoke_finalizers() -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn mono_gc_walk_heap(
+        flags: ::std::os::raw::c_int,
+        callback: MonoGCReferences,
+        data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn mono_domain_create_appdomain_checked(

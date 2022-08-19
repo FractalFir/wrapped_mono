@@ -96,6 +96,8 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::inv
 }
 use core::ptr::null_mut;
 use crate::binds::MonoObject;
+use crate::mstring::MString;
+use crate::Exception;
 impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::object::ObjectTrait for Array<T>{
     fn hash(&self)->i32{
         return unsafe{crate::binds::mono_object_hash(self.arr_ptr as *mut MonoObject)};
@@ -118,6 +120,17 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::obj
         return unsafe{crate::object::Object::from_ptr(
             crate::binds::mono_object_isinst(self.get_ptr() as *mut crate::binds::MonoObject,class.get_ptr())
         )};
+    }
+    fn to_string(&self)->Result<Option<MString>,Exception>{
+        let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
+        let res = unsafe{MString::from_ptr(
+            crate::binds::mono_object_to_string(self.arr_ptr as *mut crate::binds::MonoObject,&mut exc as *mut *mut crate::binds::MonoException as *mut *mut crate::binds::MonoObject)
+        )};
+        let exc = unsafe{Exception::from_ptr(exc)};
+        match exc{
+            Some(e)=>return Err(e),
+            None=>return Ok(res),
+        }
     }
 }
 impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::invokable::InvokePass for Option<Array<T>>{

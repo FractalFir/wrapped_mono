@@ -2,13 +2,9 @@
 // comment out all #[cfg(test)] and bindgen dependency to renable bind generation
 #[cfg(test)]
 mod binds{
-    use std::path::PathBuf;
-
-    use std::fs::File;
-    use std::io::Write;
     extern crate bindgen;
-    use crate::PathBuf;
-    use crate::File;
+    use std::path::PathBuf;
+    use std::fs::File;
     use std::io::Write;
     pub fn gen_binds(){
         let hdr_path = "src/cbinds/binds.h";

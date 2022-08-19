@@ -9,6 +9,7 @@ use crate::exception::ExceptManaged;
 pub struct Object{
     obj_ptr:*mut crate::binds::MonoObject,
 }
+use crate::mstring::MString;
 ///Trait contining functions common for all types of manged objects.
 pub trait ObjectTrait{
     ///get hash of this object: This hash is **not** based on values of objects fields, and differs from result of calling object.GetHash()
@@ -55,7 +56,10 @@ pub trait ObjectTrait{
     fn get_class(&self)->Class;
     ///returns [`Object`] *self* cast to *class* if *self* is derived from [`Class`]class. Does not affect original reference to object nor the object itself.
     fn is_inst(&self,class:&Class)->Option<Object>;
+    ///Convert [`Object`] to [`MString`]. Returns [`Exception`] if raised, and [`Option<MString>`] if not. Function returns [`Option<MString>`] ro allow for null value to be returned. 
+    fn to_string(&self)->Result<Option<MString>,Exception>;
 }
+use crate::exception::Exception;
 impl ObjectTrait for Object{
     fn hash(&self)->i32{
         return unsafe{crate::binds::mono_object_hash(self.obj_ptr)};
@@ -76,6 +80,17 @@ impl ObjectTrait for Object{
     }
     fn is_inst(&self,class:&Class)->Option<Object>{
         return unsafe{Self::from_ptr(crate::binds::mono_object_isinst(self.get_ptr(),class.get_ptr()))};
+    }
+    fn to_string(&self)->Result<Option<MString>,Exception>{
+        let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
+        let res = unsafe{MString::from_ptr(
+            crate::binds::mono_object_to_string(self.obj_ptr,&mut exc as *mut *mut crate::binds::MonoException as *mut *mut crate::binds::MonoObject)
+        )};
+        let exc = unsafe{Exception::from_ptr(exc)};
+        match exc{
+            Some(e)=>return Err(e),
+            None=>return Ok(res),
+        }
     }
 }
 impl Object{ 
