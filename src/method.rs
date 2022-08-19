@@ -2,12 +2,14 @@
 pub struct Method{
     met_ptr:*mut crate::binds::MonoMethod,
 } 
-// 1213
 use crate::array::Array;
 use crate::object::Object;
-use crate::class::Class;
 use crate::exception::Exception;
 use crate::binds::{MonoObject};
+//necesary for docs
+#[allow(unused_imports)]
+use crate::class::Class;
+#[warn(unused_imports)]
 impl Method{
     pub unsafe fn from_ptr(met_ptr:*mut crate::binds::MonoMethod)->Option<Self>{
         if met_ptr == core::ptr::null_mut(){
@@ -52,6 +54,7 @@ impl Method{
     pub fn get_index(&self)->u32{
         return unsafe{crate::binds::mono_method_get_index(self.get_ptr())};
     }
+    ///Get ammount of parameters of this [`Method`]
     pub fn get_param_count(&self)->u32{
         let sig = unsafe{crate::binds::mono_method_signature(self.get_ptr())};
         return unsafe{crate::binds::mono_signature_get_param_count(sig)};
@@ -59,11 +62,11 @@ impl Method{
     pub fn get_name(&self)->String{
         let cstr = unsafe{std::ffi::CString::from_raw(crate::binds::mono_method_get_name(self.get_ptr()) as *mut i8)};
         let s = cstr.to_str().expect("Could not converted ptr to String!").to_owned();
-        cstr.into_raw();
+        let _ = cstr.into_raw();
         return s;
     }
     ///TODO:finish this function
-    fn invoke_array(&self,obj:Option<Object>,arr:Array<Option<Object>>)->Result<Object,Exception>{
+    fn invoke_array(&self,_obj:Option<Object>,_arr:Array<Option<Object>>)->Result<Object,Exception>{
         unimplemented!("Not done yet");
     }
     pub fn get_class(&self)->crate::class::Class{
@@ -82,7 +85,7 @@ impl Method{
         for ptr in &ptrs{
             let cstr = unsafe{CString::from_raw(*ptr as *mut i8)};
             res.push(cstr.to_str().expect("Could not create String from ptr").to_owned());
-            cstr.into_raw();
+            let _ = cstr.into_raw();
         }
         drop(ptrs);
         return res;
@@ -104,7 +107,7 @@ impl Method{
             params.as_ptr() as *mut *mut c_void,
             &mut expect as *mut *mut MonoException as *mut *mut MonoObject,
         );
-        let res = unsafe{Object::from_ptr(res_ptr)};
+        let res = Object::from_ptr(res_ptr);
         if expect == null_mut(){
             return Ok(res);
         }

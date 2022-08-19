@@ -24,7 +24,7 @@ impl Image{
         use std::ffi::CString;
         let cstr = unsafe{CString::from_raw(ptr as *mut i8)};
         let s = cstr.to_str().expect("Could not create string grom  CString").to_owned();
-        cstr.into_raw();
+        let _ = cstr.into_raw();
         return s;
     }
     ///Closes this image. 

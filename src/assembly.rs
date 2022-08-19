@@ -26,7 +26,7 @@ impl Assembly{
     }
     ///Gets name of assembly.
     pub fn get_name(&self)->String{
-        /// aname does not have to be freed, because it lives as long as the assembly.
+        // aname does not have to be freed, because it lives as long as the assembly.
         let aname_ptr = unsafe{crate::binds::mono_assembly_get_name(self.ptr)};
         let cstr_name = unsafe{CString::from_raw(crate::binds::mono_assembly_name_get_name(aname_ptr) as *mut i8)};
         let s = cstr_name.to_str().expect("Could not create String!").to_owned();

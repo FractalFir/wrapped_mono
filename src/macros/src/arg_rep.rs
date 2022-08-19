@@ -48,7 +48,7 @@ impl ArgRep{
         return self.arg_type.to_string();
     }
     pub fn create_handler(&self)->TokenStream{
-        let mut s_type:String = self.arg_type.to_string();
+        let s_type:String = self.arg_type.to_string();
         return TokenStream::from_str(&format!("let {} = <{}>::get_rust_rep({}_in);",&self.name,s_type,&self.name)).expect("Could not create token stream!");
     }
 } 

@@ -2,17 +2,17 @@ use crate::binds::MonoClass;
 use crate::Image;
 #[derive(Eq)]
 pub struct Class{
-    class_ptr:*mut crate::binds::MonoClass,
+    class_ptr:*mut MonoClass,
 } 
 impl Class{
     ///Returns copy of internal pointer to [`MonoClass`].
-    pub fn get_ptr(&self)->*mut crate::binds::MonoClass{
+    pub fn get_ptr(&self)->*mut MonoClass{
         return self.class_ptr;
     }
     /// Creates [`Class`] from *class_ptr*. If it is not null, returns [`Some`], otherwise [`None`].
     /// # Safety
     /// *class_ptr* must me either a valid pointer to [`MonoClass`] or null pointer.
-    pub unsafe fn from_ptr(class_ptr:*mut crate::binds::MonoClass)->Option<Self>{
+    pub unsafe fn from_ptr(class_ptr:*mut MonoClass)->Option<Self>{
         if class_ptr == core::ptr::null_mut(){
             return None;
         }
@@ -186,23 +186,24 @@ impl std::cmp::PartialEq for Class{
         return self.class_ptr == other.class_ptr;
     }
 }
-pub struct ClassField{
-    cf_ptr:*mut crate::binds::MonoClassField,
-}
 use crate::object::Object;
 use crate::binds::MonoClassField;
+pub struct ClassField{
+    cf_ptr:*mut MonoClassField,
+}
+
 impl ClassField{
     /// Creates [`ClassField`] form *cf_ptr*. Returns [`Some(ClassField)`] if pointer is not null, and [`None`] if it is.
     /// # Safety
     /// *cf_ptr* must be either a valid pointer to [`MonoClassField`] or null pointer.
-    pub fn from_ptr(cf_ptr:*mut crate::binds::MonoClassField)->Option<Self>{
+    pub fn from_ptr(cf_ptr:*mut MonoClassField)->Option<Self>{
         if cf_ptr == core::ptr::null_mut(){
             return None;
         }
         return Some(Self{cf_ptr:cf_ptr});
     }
     /// Gets internal [`MonoClassField`] pointer.
-    pub fn get_ptr(&self)->*mut crate::binds::MonoClassField{
+    pub fn get_ptr(&self)->*mut MonoClassField{
         return self.cf_ptr;
     }
     ///Gets the name of [`ClassField`]

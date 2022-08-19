@@ -2,8 +2,11 @@ use crate::binds::MonoString;
 use crate::domain::Domain;
 use core::ptr::null_mut;
 use std::ffi::CString;
-use crate::object::Object;
 use crate::invokable::{InvokePass,InvokeReturn};
+///needed for docs
+#[allow(unused_imports)]
+use crate::object::Object;
+#[warn(unused_imports)]
 ///Representaiton of [`Object`] of type **System.String**. 
 pub struct MString{
     s_ptr:*mut MonoString,
@@ -37,7 +40,7 @@ impl MString{
     //Cretes [`MString`] form pointer , or returns None if pointer equal to null.
     /// # Safety
     /// *ptr* must be either a valid [`MonoString`] pointer or null. Pasing any other value will lead to undefined behaviour.
-    pub fn from_ptr(ptr:*mut MonoString)->Option<Self>{
+    pub unsafe fn from_ptr(ptr:*mut MonoString)->Option<Self>{
         if ptr == null_mut(){
             return None;
         }

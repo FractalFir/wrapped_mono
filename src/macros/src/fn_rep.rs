@@ -109,10 +109,10 @@ impl FnRep{
     pub fn create_function_type(&self)->TokenStream{
         //function type inner arg types
         let mut inner = TokenStream::new();
-        let curr = 0;
-        let arg_count = self.args.len();
+        //let curr = 0;
+        //let arg_count = self.args.len();
         for arg in &self.args{
-            let c = if curr < arg_count - 1{','}else{' '};
+            //let c = if curr < arg_count - 1{','}else{' '};
             inner.extend(TokenStream::from_str(&format!("<{} as InvokePass>::SourceType",&arg.get_type_string())));
         }
         let mut res = TokenStream::from_str(&format!("pub type {}_fn_type = extern \"C\" fn",&self.name)).expect("Could not create token stream!");
@@ -144,7 +144,7 @@ impl FnRep{
         stream.extend(self.create_in_arg_list());
         match &self.ret{
             Some(ret)=>{
-                println!("#|#\n{}\n#|#",ret);
+                //println!("#|#\n{}\n#|#",ret);
                 stream.extend(TokenStream::from_str("-><"));
                 stream.extend(TokenStream::from(ret.clone()));
                 stream.extend(TokenStream::from_str("as InvokeReturn>::ReturnType"));
@@ -160,10 +160,10 @@ impl FnRep{
         //result if needed.
         inner.extend(TokenStream::from_str(&format!("let fnc_call_res_val = {}",&self.name)));
         let mut call_args = TokenStream::new();
-        let curr = 0;
-        let arg_count = self.args.len();
+        //let curr = 0;
+        //let arg_count = self.args.len();
         for arg in &self.args{
-            let c = if curr < arg_count - 1{','}else{' '};
+            //let c = if curr < arg_count - 1{','}else{' '};
             call_args.extend(TokenStream::from_str(&format!("{}",&arg.name)));
         }
         inner.extend(TokenStream::from(
@@ -180,7 +180,7 @@ impl FnRep{
             TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner))
         ));
         stream.extend(self.create_function_type());
-        println!("{}",stream);
+        //println!("{}",stream);
         return stream;
     }
 }

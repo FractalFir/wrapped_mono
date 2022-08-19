@@ -27,24 +27,26 @@ pub mod jit;
 pub mod domain;
 /// Functions and types related to MonoAssemblt type.
 pub mod assembly;
-/// Trait related to converting Rust's types and MonoRuntime's types when exposing rust functios to managed code
+/// Traits related to passing data between managed and unmanaged classes.
 pub mod invokable;
-/// Utilities related to arrays.
+/// Utilities related to managed arrays.
 pub mod array;
-///
+/// Utilities related to managed objects.
 pub mod object;
-///
+/// Representaion of managed classes and utilities related to them.
 pub mod class;
-///
+/// 
 pub mod image;
 ///
 pub mod method;
-///
+/// 
 pub mod mstring;
 ///
 pub mod runtime;
 ///Utilities realted to Exceptions in managed code. 
 pub mod exception;
+///
+pub mod gc;
 mod testing;
 pub use macros;
 pub use object::{Object,ObjectTrait};

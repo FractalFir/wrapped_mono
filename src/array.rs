@@ -76,7 +76,7 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> Array<T>{
         return self.arr_ptr;
     }
     ///Clones managed array, **not** the refernece to it.
-    fn clone_managed_array(&self)->Self{
+    pub fn clone_managed_array(&self)->Self{
         return unsafe{Self::from_ptr(crate::binds::mono_array_clone(self.arr_ptr))}.expect("coud not create copy of an array!");
     }
 }
@@ -91,7 +91,7 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::inv
 impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::invokable::InvokeReturn for Array<T>{
     type ReturnType = *mut crate::binds::MonoArray;
     fn get_mono_rep(arg:Self)->Self::ReturnType{
-        return unsafe{arg.get_ptr()};
+        return arg.get_ptr();
     }
 }
 use core::ptr::null_mut;
@@ -129,6 +129,6 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::inv
 impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::invokable::InvokeReturn for Option<Array<T>>{
     type ReturnType = *mut crate::binds::MonoArray;
     fn get_mono_rep(arg:Self)->Self::ReturnType{
-        return match arg{ Some(arg)=>unsafe{arg.get_ptr()},None=>null_mut()};
+        return match arg{ Some(arg)=>arg.get_ptr(),None=>null_mut()};
     }
 }

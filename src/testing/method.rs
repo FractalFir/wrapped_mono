@@ -21,7 +21,7 @@ rusty_fork_test! {
         let met = Method::get_method_from_name(&class,"GetObject",0).unwrap();
         let mut params:Vec<*mut std::os::raw::c_void> = Vec::new();
         let obj = unsafe{met.invoke_unsafe(None,&mut params)}.expect("Got exception").expect("Got null as expected!");
-        let res = unsafe{(obj.unbox())};
+        let res = unsafe{obj.unbox()};
         assert!(res == core::ptr::null_mut());
     }
     #[test]

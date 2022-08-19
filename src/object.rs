@@ -60,8 +60,8 @@ impl ObjectTrait for Object{
     fn hash(&self)->i32{
         return unsafe{crate::binds::mono_object_hash(self.obj_ptr)};
     }
-    fn get_domain(&self)->crate::domain::Domain{
-        return unsafe{crate::domain::Domain::from_ptr(crate::binds::mono_object_get_domain(self.obj_ptr))};
+    fn get_domain(&self)->Domain{
+        return unsafe{Domain::from_ptr(crate::binds::mono_object_get_domain(self.obj_ptr))};
     }
     fn get_size(&self)->u32{
         return unsafe{crate::binds:: mono_object_get_size(self.obj_ptr)};
@@ -169,7 +169,7 @@ impl crate::invokable::InvokePass for Object{
 impl crate::invokable::InvokeReturn for Object{
     type ReturnType = *mut  crate::binds::MonoObject;
     fn get_mono_rep(arg:Self)->Self::ReturnType{
-        return unsafe{arg.get_ptr()};
+        return arg.get_ptr();
     }
 }
 impl crate::invokable::InvokePass for Option<Object>{
@@ -181,12 +181,12 @@ impl crate::invokable::InvokePass for Option<Object>{
 impl crate::invokable::InvokeReturn for Option<Object>{
     type ReturnType = *mut  crate::binds::MonoObject;
     fn get_mono_rep(arg:Self)->Self::ReturnType{
-        return match arg { Some(arg)=>unsafe{arg.get_ptr()},None=>core::ptr::null_mut()};
+        return match arg { Some(arg)=>arg.get_ptr(),None=>core::ptr::null_mut()};
     }
 }
 impl Object{
     ///**Caution**: Clones MonoObject *not* reference to this object. (e.g when called on a referece to managed object A will create second object B, not another refernece to object A).
-    fn clone_managed_object(&self)->Self{
+    pub fn clone_managed_object(&self)->Self{
         //if clone fails, it means that there is a much bigger problem somewhere down the line, so it can be just ignored.
         return unsafe{Self::from_ptr(crate::binds::mono_object_clone(self.obj_ptr))}.expect("MonoRuntime could not clone object!");
     }

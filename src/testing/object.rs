@@ -18,14 +18,11 @@ rusty_fork_test! {
     fn closing_image(){
         use crate as wrapped_mono;
         use wrapped_mono::jit;
-        use wrapped_mono::object::*;
         use wrapped_mono::class::Class;
         let main = jit::init("main",None);
         let asm = main.assembly_open("test/local/Pinvoke.dll").unwrap();
         let mut img = asm.get_image();
-        let test_class = Class::from_name(&img,"","Secondary").expect("Could not find class!");
+        let _test_class = Class::from_name(&img,"","Secondary").expect("Could not find class!");
         img.close();
-        //let obj = Object::new(&main,&test_class);
-        //let _hsh = obj.hash();
     }
 }
