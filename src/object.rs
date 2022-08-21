@@ -135,6 +135,7 @@ impl Object{
     ///}
     ///```
     pub fn unbox<T: InteropBox + Copy>(&self)->T{
+        assert!(self.get_class() == <T as InteropBox>::get_mono_class(),"Tried to unbox value as diffrent type than it was.");
         let ptr = unsafe{(crate::binds::mono_object_unbox(self.obj_ptr) as *mut <T as InteropRecive>::SourceType)};
         return T::get_rust_rep(unsafe{*ptr});
     }
