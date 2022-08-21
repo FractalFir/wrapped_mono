@@ -15,14 +15,13 @@ rusty_fork_test! {
         let _hsh = obj.hash();
     }
     #[test]
-    fn closing_image(){
+    fn object_box(){
         use crate as wrapped_mono;
         use wrapped_mono::jit;
+        use wrapped_mono::object::*;
         use wrapped_mono::class::Class;
         let main = jit::init("main",None);
-        let asm = main.assembly_open("test/local/Pinvoke.dll").unwrap();
-        let mut img = asm.get_image();
-        let _test_class = Class::from_name(&img,"","Secondary").expect("Could not find class!");
-        img.close();
+
+        let obj = Object::box_val(&main,128);
     }
 }

@@ -6,7 +6,7 @@
 </p>
 
 ## About
-**wrapped-mono** is a wrapper around mono library, allowing for safe interreaction between rust code and mono runtime. **wrapped-mono** is WIP and does not support most of mono functionalities yet.
+**wrapped-mono** is a wrapper around mono library, allowing for safe interreaction between rust code and mono runtime. **wrapped-mono** is WIP and does not support all of mono functionalities yet.
 ## Features
 - [x] Mono JIT initalization  
 - [x] Mono Domain creation

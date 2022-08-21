@@ -56,7 +56,7 @@ impl Domain{
         unsafe{crate::binds::mono_domain_free(self.ptr,force as i32)};
         drop(self);
     }
-    ///returns current domain
+    ///Returns current domain or None if jit not initialized yet.
     pub fn get_curr()->Option<Domain>{
         let ptr = unsafe{crate::binds::mono_domain_get()};
         if ptr == null_mut(){

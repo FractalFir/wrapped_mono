@@ -3,6 +3,7 @@ use crate::binds::MonoObject;
 use crate::method::Method;
 use crate::domain::Domain;
 use crate::exception::ExceptManaged;
+use core::ptr::null_mut;
 ///Safe representation of a refernece to a manged Object. Is **not nullable** when passed between managed and unmanged code(e.g when added as an argument to function exposed as an interna call). 
 ///It means that while it may represent a nullable type, wrapped-mono will automaticly panic when recived null value.
 ///For nullable support use `Option<Object>`.
@@ -56,7 +57,7 @@ pub trait ObjectTrait{
     fn get_class(&self)->Class;
     ///returns [`Object`] *self* cast to *class* if *self* is derived from [`Class`]class. Does not affect original reference to object nor the object itself.
     fn is_inst(&self,class:&Class)->Option<Object>;
-    ///Convert [`Object`] to [`MString`]. Returns [`Exception`] if raised, and [`Option<MString>`] if not. Function returns [`Option<MString>`] ro allow for null value to be returned. 
+    ///Convert [`Object`] to [`MString`]. Returns [`Exception`] if raised, and [`Option<MString>`] if not. Function returns [`Option<MString>`] to allow for null value to be returned. 
     fn to_string(&self)->Result<Option<MString>,Exception>;
 }
 use crate::exception::Exception;
@@ -93,6 +94,7 @@ impl ObjectTrait for Object{
         }
     }
 }
+use crate::interop::InteropBox;
 impl Object{ 
     ///Allocates new object of [`Class`] class. **Does not call the constructor**
     /// # Examples
@@ -132,20 +134,25 @@ impl Object{
     ///    unsafe{let val = *(o.unbox() as *mut i32)};
     ///}
     ///```
-    pub unsafe fn unbox(&self)->*mut std::ffi::c_void{
-        return crate::binds::mono_object_unbox(self.obj_ptr);
+    pub fn unbox<T: InteropBox + Copy>(&self)->T{
+        let ptr = unsafe{(crate::binds::mono_object_unbox(self.obj_ptr) as *mut <T as InteropRecive>::SourceType)};
+        return T::get_rust_rep(unsafe{*ptr});
+    }
+    unsafe fn box_val_unsafe(domain:&crate::domain::Domain,class:&Class,val:*mut std::ffi::c_void)->crate::object::Object{
+        return crate::object::Object::from_ptr(crate::binds::mono_value_box(domain.get_ptr(),class.get_ptr(),val)).expect("Could not box value");
     }
     ///Boxes value into an object.
-    /// # Safety
-    /// Type of value *val* must match managed type represented by *class*, otherwise this function may either crash or read a garbage value.
-    /// Managed type **must** be boxable, otherwise a crash will ocur.
     /// # Examples
     ///```
     /// let mut val:i32 = 0;
-    /// let obj = unsafe{Object::box_val(&domain,&int_class,&mut val as *mut i32)};
+    /// let obj = Object::box_val(&domain,&int_class,val);
     ///```
-    pub unsafe fn box_val(domain:&crate::domain::Domain,class:&Class,val:*mut std::ffi::c_void)->crate::object::Object{
-        return crate::object::Object::from_ptr(crate::binds::mono_value_box(domain.get_ptr(),class.get_ptr(),val)).expect("Could not box value");
+    pub fn box_val<T: InteropBox>(domain:&Domain,data:T)->crate::object::Object{
+        let mut data = <T as InteropSend>::get_mono_rep(data); 
+        let class = T::get_mono_class();
+        return unsafe{Self::box_val_unsafe(
+            domain,&class,&mut data as *mut <T as InteropSend>::TargetType as *mut std::ffi::c_void
+        )};
     }
     ///Gets internal [`MonoObject`] pointer.
     pub fn get_ptr(&self)->*mut MonoObject{
@@ -174,28 +181,29 @@ impl Object{
         ))};
     }
 }
-impl crate::invokable::InvokePass for Object{
+use crate::interop::{InteropRecive,InteropSend};
+impl InteropRecive for Object{
     type SourceType = *mut  crate::binds::MonoObject;
     fn get_rust_rep(arg:Self::SourceType)->Self{
         let opt = unsafe{Self::from_ptr(arg)};
         return <Object as ExceptManaged<Object>>::expect_managed_arg(opt,"Passed null reference to not nullable type! For nullable use Option<Object>!");
     }
 }
-impl crate::invokable::InvokeReturn for Object{
-    type ReturnType = *mut  crate::binds::MonoObject;
-    fn get_mono_rep(arg:Self)->Self::ReturnType{
+impl InteropSend for Object{
+    type TargetType = *mut  crate::binds::MonoObject;
+    fn get_mono_rep(arg:Self)->Self::TargetType{
         return arg.get_ptr();
     }
 }
-impl crate::invokable::InvokePass for Option<Object>{
+impl InteropRecive for Option<Object>{
     type SourceType = *mut  crate::binds::MonoObject;
     fn get_rust_rep(arg:Self::SourceType)->Self{
         return unsafe{Object::from_ptr(arg)};
     }
 }
-impl crate::invokable::InvokeReturn for Option<Object>{
-    type ReturnType = *mut  crate::binds::MonoObject;
-    fn get_mono_rep(arg:Self)->Self::ReturnType{
+impl InteropSend for Option<Object>{
+    type TargetType = *mut  crate::binds::MonoObject;
+    fn get_mono_rep(arg:Self)->Self::TargetType{
         return match arg { Some(arg)=>arg.get_ptr(),None=>core::ptr::null_mut()};
     }
 }

@@ -1,13 +1,14 @@
+use crate::interop::{InteropRecive,InteropSend};
 /// Safe representation of MonoArray(a reference to a managed array). Reqiures it's generic argument to implement InvokePass in order to automaticaly convert value from managed type to rust type.
 /// # Safety
 /// It is possible to use wrong type Array (e.g. casting float[] to Array<String>) and either cause a crash or read a garbage value.
 /// # Nullable support
 /// [`Array<T>`] is non-nullable on defult and will panic when null passed as argument form managed code. For nullable support use [`Option<Array<T>>`].
-pub struct Array<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn>{
+pub struct Array<T:InteropRecive + InteropSend>{
     arr_ptr:*mut crate::binds::MonoArray,
     pd:std::marker::PhantomData<T>,
 } 
-impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> Array<T>{
+impl<T:InteropRecive + InteropSend> Array<T>{
     ///Function returning element at *index*
     /// # Example
     ///```rust
@@ -32,8 +33,8 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> Array<T>{
     pub fn set(&mut self,index:usize,value:T){
         let tmp = T::get_mono_rep(value);
         let ptr =  unsafe{crate::binds::mono_array_addr_with_size(
-            self.arr_ptr,std::mem::size_of::<T::ReturnType>() as i32,index)
-            as *mut T::ReturnType};
+            self.arr_ptr,std::mem::size_of::<T::TargetType>() as i32,index)
+            as *mut T::TargetType};
         unsafe{(*ptr) = tmp};
     }
     ///Function returning length of the array.
@@ -80,7 +81,7 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> Array<T>{
         return unsafe{Self::from_ptr(crate::binds::mono_array_clone(self.arr_ptr))}.expect("coud not create copy of an array!");
     }
 }
-impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::invokable::InvokePass for Array<T>{
+impl<T:InteropRecive + InteropSend> InteropRecive for Array<T>{
     type SourceType = *mut crate::binds::MonoArray;
     fn get_rust_rep(arg:Self::SourceType)->Self{
         use crate::exception::ExceptManaged;
@@ -88,9 +89,9 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::inv
         return <Array<T> as ExceptManaged<Array<T>>>::expect_managed_arg(opt,"Got null in an not nullable type. For nullable support use Option<Array>");
     }
 }
-impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::invokable::InvokeReturn for Array<T>{
-    type ReturnType = *mut crate::binds::MonoArray;
-    fn get_mono_rep(arg:Self)->Self::ReturnType{
+impl<T:InteropRecive + InteropSend> InteropSend for Array<T>{
+    type TargetType = *mut crate::binds::MonoArray;
+    fn get_mono_rep(arg:Self)->Self::TargetType{
         return arg.get_ptr();
     }
 }
@@ -98,7 +99,7 @@ use core::ptr::null_mut;
 use crate::binds::MonoObject;
 use crate::mstring::MString;
 use crate::Exception;
-impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::object::ObjectTrait for Array<T>{
+impl<T:InteropRecive + InteropSend> crate::object::ObjectTrait for Array<T>{
     fn hash(&self)->i32{
         return unsafe{crate::binds::mono_object_hash(self.arr_ptr as *mut MonoObject)};
     }
@@ -133,15 +134,15 @@ impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::obj
         }
     }
 }
-impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::invokable::InvokePass for Option<Array<T>>{
+impl<T:InteropRecive + InteropSend> InteropRecive for Option<Array<T>>{
     type SourceType = *mut crate::binds::MonoArray;
     fn get_rust_rep(arg:Self::SourceType)->Self{
         return unsafe{Array::<T>::from_ptr(arg)};
     }
 }
-impl<T:crate::invokable::InvokePass + crate::invokable::InvokeReturn> crate::invokable::InvokeReturn for Option<Array<T>>{
-    type ReturnType = *mut crate::binds::MonoArray;
-    fn get_mono_rep(arg:Self)->Self::ReturnType{
+impl<T:InteropRecive + InteropSend> InteropSend for Option<Array<T>>{
+    type TargetType = *mut crate::binds::MonoArray;
+    fn get_mono_rep(arg:Self)->Self::TargetType{
         return match arg{ Some(arg)=>arg.get_ptr(),None=>null_mut()};
     }
 }

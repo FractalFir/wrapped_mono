@@ -56,6 +56,17 @@ rusty_fork_test! {
         jit::cleanup(dom);
     }
     #[test]
+    fn closing_image(){
+        use crate as wrapped_mono;
+        use wrapped_mono::jit;
+        use wrapped_mono::class::Class;
+        let main = jit::init("main",None);
+        let asm = main.assembly_open("test/local/Pinvoke.dll").unwrap();
+        let mut img = asm.get_image();
+        let _test_class = Class::from_name(&img,"","Secondary").expect("Could not find class!");
+        img.close();
+    }
+    #[test]
     fn create_mstring(){
         use wrapped_mono::jit;
         let dom = jit::init("root",None);

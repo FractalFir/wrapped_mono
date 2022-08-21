@@ -2,7 +2,7 @@ use crate::binds::MonoString;
 use crate::domain::Domain;
 use core::ptr::null_mut;
 use std::ffi::CString;
-use crate::invokable::{InvokePass,InvokeReturn};
+use crate::interop::{InteropRecive,InteropSend};
 ///needed for docs
 #[allow(unused_imports)]
 use crate::object::Object;
@@ -52,7 +52,7 @@ impl MString{
         return self.s_ptr;
     }
 }
-impl InvokePass for MString{
+impl InteropRecive for MString{
     type SourceType = *mut MonoString;
     fn get_rust_rep(src:Self::SourceType)->Self{
         use crate::exception::ExceptManaged;
@@ -60,21 +60,21 @@ impl InvokePass for MString{
         return <MString as ExceptManaged<MString>>::expect_managed_arg(opt,"got null in a non-nullable string. For nullabe support use Option<MString>");
     }
 }
-impl InvokePass for Option<MString>{
+impl InteropRecive for Option<MString>{
     type SourceType = *mut MonoString;
     fn get_rust_rep(src:Self::SourceType)->Self{
         return unsafe{MString::from_ptr(src)};
     }
 }
-impl InvokeReturn for MString{
-    type ReturnType = *mut MonoString;
-    fn get_mono_rep(src:Self)->Self::ReturnType{
+impl InteropSend for MString{
+    type TargetType = *mut MonoString;
+    fn get_mono_rep(src:Self)->Self::TargetType{
         return src.s_ptr;
     }
 }
-impl InvokeReturn for Option<MString>{
-    type ReturnType = *mut MonoString;
-    fn get_mono_rep(src:Self)->Self::ReturnType{
+impl InteropSend for Option<MString>{
+    type TargetType = *mut MonoString;
+    fn get_mono_rep(src:Self)->Self::TargetType{
         return match src{Some(src)=>src.s_ptr,None=>null_mut()};
     }
 }

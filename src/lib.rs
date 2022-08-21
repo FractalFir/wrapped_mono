@@ -1,15 +1,15 @@
 //doctest are dissabled, because they do not work with rusty_fork! whcich is required for testing mono runtime
 #![cfg(not(doctest))] 
-//! Lightweight Rust wrapper around mono runtime. Allows embbeding mono runtime in rust projects using safe Rust API, with minimal overhead.
+//! Lightweight Rust wrapper around mono runtime. Allows embedding mono runtime in rust projects using safe Rust API, with minimal overhead.
 //! # Reqiurements
-//! Wrapped_mono is as the name suggest, a wrapper around another library. This means, that it needs this library to be installed in order to be built.
+//! `wrapped_mono` is, as the name suggest, a wrapper around the mono library. This means, that it needs this library to be installed in order to be compiled.
 //! If you do not have mono installed yet, you can download it from <a href="https://www.mono-project.com/download/stable/">here</a>
 //! # W.I.P
 //! This crate is work in progress. While it support most common features, some more obscure ones do not have a safe API yet.
 //! ## Finished fetures
-//! * Runtime initalization/shutdown
-//Some methods of domain creation do not work yet
-//! * Creating mutltpile domains
+//! * Runtime initialization/shutdown
+//Some methods of domain creation do not have wrappers yet
+//! * Creating multpile domains
 //! * Loading assemblies from disk
 //! * Searching for a specific class in assembly
 //! * Creating new object of a given type
@@ -24,14 +24,17 @@
 //! * Getting/Setting array at index
 //! * Exception creating
 //! * Raising Exceptions
-//! * Cathing Exceptions
+//! * Catching Exceptions
 //! * Getting common type classes
-//! TODO:finsish filling this list 
-//! ## Potential issues
-//! Even tough a lot of tests are run to enssure the API works as expected, some functions may have hidden issues uncaught by the tests.
-//! As this crate matures, those shuld be caugth and fixed over time. 
+//! * Loading config files
+//! * Signal chaining
 //!
-//! API exposed by this crate sholud not have major changes, because it tries to stay close to C mono api.
+//! TODO:finnish filling this list 
+//! ## Potential issues
+//! Even tough a lot of tests are run to ensure the API works as expected, some functions may have hidden issues uncaught by the tests.
+//! As this crate matures, those should be caught and fixed over time. 
+//!
+//! API exposed by this crate sholud not have major changes, because it tries to stay close to C mono API.
 //! ## Lacking features
 //! There are not a lot of features missing. Large portion of those lacking features are niche and their documentaion is sparse,
 //! making developing them challenging and time consuming. Because of that, they have been postponed.
@@ -54,21 +57,6 @@
 //! **Managed Code** - code which runs in the runtime(e.g. C# code)<br>
 //! **Unmanaged code** - code which runs outside runtime(in this case Rust code).<br>
 //! More precise explanation: <a href = "https://docs.microsoft.com/en-us/dotnet/standard/managed-code">Explanation</a>
-//! # Features
-//! ## Automatic wrappers around functions
-//! Wrapped_mono provides automatic function wrapper creating functionality using #[[invokable]] and add_internall_call! macros. 
-//! They allow easy exposing of rust functions to managed code.
-//! For example function 
-//! ```rust
-//!#[invokable]
-//!fn get_string_length(input:String)->i32{
-//!     return input.len();
-//!}
-//! ```
-//! Takes as it's input Rust's String type, which stores data in a diffrent way than MonoString type used by MonoRuntime.
-//! It means that it needs converting. This is exacly what #[[invokable]] macro does. It creates a special wrapper function
-//! which converts arguments from type used in manged code to type used by unmanged code(In this example, MonoString* to String)
-//! This macro also converts return values of functions.
 /// Autognerated, unsafe binds to mono library
 pub mod binds;
 /// Functions realted to Mono JIT Runtime
@@ -78,7 +66,7 @@ pub mod domain;
 /// Functions and types related to MonoAssemblt type.
 pub mod assembly;
 /// Traits related to passing data between managed and unmanaged classes.
-pub mod invokable;
+pub mod interop;
 /// Utilities related to managed arrays.
 pub mod array;
 /// Utilities related to managed objects.
@@ -104,7 +92,7 @@ pub use object::{Object,ObjectTrait};
 #[doc(inline)]
 pub use domain::Domain;
 #[doc(inline)]
-pub use invokable::{InvokePass,InvokeReturn};
+pub use interop::{InteropRecive,InteropSend};
 #[doc(inline)]
 pub use array::Array;
 #[doc(inline)]
