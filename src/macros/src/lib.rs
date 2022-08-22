@@ -38,7 +38,29 @@ fn get_fn_path_string(input:TokVec)->Result<String,String>{
     }
     return Ok(res);
 }
-///macro equivalent of mono_add_internal_call with automatic support for type conversion
+/// Macro equivalent of mono_add_internal_call with automatic support for type conversion. 
+/// Allows you to expose a function as an internal call
+/// # Example
+/// ## CSharp
+/// ```csharp
+/// using System.CompilerServices;
+/// namespace SomeNamespace{
+///     class SomeClass{
+///         [MethodImpl(MehodImplOption.InternalCall)]
+///         void DoSomething(String arg1);
+///     }
+/// }
+/// ```
+/// ## Rust
+/// ```rust
+/// #[invokable]
+/// fn do_something(input:String){
+///     println!("done something:{}",input);  
+/// }
+/// fn expose_do_something(){
+///     add_internal_call!("SomeNamespace.SomeClass::DoSomething()")   
+/// }
+/// ```
 #[proc_macro]
 pub fn add_internal_call(args: TokenStream) -> TokenStream {
     let mut tokens = TokVec::separate_by_separator(TokVec::from_stream(args),',');
@@ -64,7 +86,26 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
     //println!("{}",res);
     return res;
 }
-///macro marking function as being able to be exposed as internal call
+///Macro creating a wrapper around a function making it able to be exposed as internal call.
+/// # Restrictions
+/// Arguments of function with [`macro@invokable`] atribute must be of types that implement InteropRecive trait.
+/// Return type of the function must implement InvokeSend trait.
+/// # Example
+// Function:
+/// ```rust
+/// #[invokable]
+/// fn print_message(message:String){
+///     println!("{}",message); 
+/// }
+/// ```
+/// Will create a wrapper and a function type needed to expose it it mono runtime
+/// ```rust
+/// extern "C" fn print_message_invokable(message:*mut <String as InteropRecive>::SourceType){
+///     let message = <String>::get_rust_rep(message);
+///     let res = print_message(message);
+/// }
+/// pub type extern fn print_message_fn_type = extern "C" fn (<String as InteropRecive>::SourceType); 
+/// ```
 #[proc_macro_attribute]
 pub fn invokable(_attr_ts: TokenStream, fn_ts: TokenStream) -> TokenStream{
     let fnc = FnRep::fn_rep_from_stream(fn_ts);

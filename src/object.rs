@@ -113,14 +113,10 @@ impl Object{
         }
         return Some(Self{obj_ptr:obj_ptr});
     }
-    ///Retrives pointer to unboxed value. 
+    ///Retrives and unboxed value. 
     /// # Safety 
-    /// Does not guarante type safety and calling it on a type which can't be unboxed **will lead to a crash**.
-    /// ## Type safety
-    /// Since this function returns the same pointer type for any type,it is possible to unbox one type
-    /// and convert the pointer type which points to another type(e.g.to *mut f32 instead of *mut u8)
-    /// and then dereference this pointer, which will result in eiher a crash or reading a garbage value.
-    /// # Examples
+    /// Calling it on a type which can't be unboxed **will lead to a crash**.
+    /// Unboxing type 
     ///C#<br>
     ///```cs
     ///int num = 123;
@@ -131,11 +127,18 @@ impl Object{
     ///```rust 
     ///#[invokable]
     ///fn rust_function(o:Object){
-    ///    unsafe{let val = *(o.unbox() as *mut i32)};
+    ///    let val = o.unbox::<i32>();
     ///}
     ///```
     pub fn unbox<T: InteropBox + Copy>(&self)->T{
-        assert!(self.get_class() == <T as InteropBox>::get_mono_class(),"Tried to unbox value as diffrent type than it was.");
+        #[cfg(not(feature = "unsafe_unboxing"))]
+        {
+            let self_class = self.get_class();
+            let t_class = <T as InteropBox>::get_mono_class();
+            if self_class != t_class{
+                panic!("tried to unbox class of type `{}` as type `{}`",&self_class.get_name(),&t_class.get_name());
+            }
+        }
         let ptr = unsafe{(crate::binds::mono_object_unbox(self.obj_ptr) as *mut <T as InteropRecive>::SourceType)};
         return T::get_rust_rep(unsafe{*ptr});
     }
@@ -146,7 +149,7 @@ impl Object{
     /// # Examples
     ///```
     /// let mut val:i32 = 0;
-    /// let obj = Object::box_val(&domain,&int_class,val);
+    /// let obj = Object::box_val(&domain,&int_class,val); //New object of type `Int32?`
     ///```
     pub fn box_val<T: InteropBox>(domain:&Domain,data:T)->crate::object::Object{
         let mut data = <T as InteropSend>::get_mono_rep(data); 

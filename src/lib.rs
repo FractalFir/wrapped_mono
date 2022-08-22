@@ -51,12 +51,15 @@
 //! but it cold be made more safe and convinient to use. Currently, it requires creating and passing to it pointers. A macro could abstract that away,
 //! allowing for less hard and error-prone usage of that feature, but it is a hard, not necesary feature, and there is little harm in comming latter.
 //! 
-//! Another planned but not implemented feature is ability for structs to derive [`InvokePass`] and [`InvokeReturn`] traits. Those traits allowing for easy
+//! Another planned but not implemented feature is ability for structs to derive `InvokePass` and `InvokeReturn` traits. Those traits allowing for easy
 //! passing of values between managed and unamanged code currently have to be implemented manualy, but could be automated in the futute.
 //! # Definition of ceartain words used in documentation:<br>
 //! **Managed Code** - code which runs in the runtime(e.g. C# code)<br>
 //! **Unmanaged code** - code which runs outside runtime(in this case Rust code).<br>
 //! More precise explanation: <a href = "https://docs.microsoft.com/en-us/dotnet/standard/managed-code">Explanation</a>
+//! ## Feature flags
+#![doc = document_features::document_features!()]
+
 /// Autognerated, unsafe binds to mono library
 pub mod binds;
 /// Functions realted to Mono JIT Runtime
@@ -117,3 +120,5 @@ pub use mstring::MString;
     1: tests are run using rusty-fork - they are separate proceses an thus may or may not be superivsed by valgrind(depending on how spawning another process is handled - is it checked to or not?)
     2: memory may be freed by mono when runtime stops? But that depends on mono runtime "sensing" that application is closing and automaticaly cleaning-up
 */
+#[doc(hide)]
+static could_not_create_cstring:&str = "Cold not create CString!";

@@ -27,6 +27,7 @@ mod binds{
     }
 }
 #[cfg(test)]
+#[test]
 mod tests{
     use std::process::Command;
     /*
@@ -86,12 +87,15 @@ fn main() {
     println!("cargo:rustc-link-lib=mono-2.0");
     #[cfg(test)]
     binds::gen_binds();
-    //compile_assembly("test/Test.cs","test/local/Pinvoke.dll");
     #[cfg(test)]
-    tests::compile_pinvoke_test_assembly();
-    #[cfg(test)]
-    tests::compile_jit_test_assembly();
-    #[cfg(test)]
-    tests::compile_test_lib();
+    {
+        tests::compile_pinvoke_test_assembly();
+        tests::compile_jit_test_assembly();
+        tests::compile_test_lib();
+    }
 }
+
+  
+  
+
 

@@ -24,4 +24,35 @@ rusty_fork_test! {
 
         let obj = Object::box_val(&main,128);
     }
+    #[test]
+    fn object_unbox(){
+        use crate as wrapped_mono;
+        use wrapped_mono::jit;
+        use wrapped_mono::object::*;
+        use wrapped_mono::class::Class;
+        let main = jit::init("main",None);
+
+        let val:i32 = 128; 
+        let obj = Object::box_val(&main,128);
+        
+        let unboxed = Object::unbox::<i32>(&obj);
+
+        assert!(unboxed == val);
+    }
+    #[should_panic]
+    #[test]
+    fn object_unbox_wrong_type(){
+        use crate as wrapped_mono;
+        use wrapped_mono::jit;
+        use wrapped_mono::object::*;
+        use wrapped_mono::class::Class;
+        let main = jit::init("main",None);
+
+        let val:i32 = 128; 
+        let obj = Object::box_val(&main,128);
+        
+        let unboxed = Object::unbox::<i64>(&obj);
+        #[cfg(feature = "unsafe_unboxing")]
+        panic!("With unsafe unbocing enabled, unboxed types are assumed to be correct and not checked, thus this test would not panic.");
+    }
 }

@@ -4,6 +4,7 @@ mod pinvoke;
 mod object;
 mod method;
 mod exception;
+mod class;
 use crate as wrapped_mono;
 use wrapped_mono::*;
 use mstring::MString;

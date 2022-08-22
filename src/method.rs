@@ -20,7 +20,7 @@ impl Method{
     pub fn get_ptr(&self)->*mut crate::binds::MonoMethod{
         return self.met_ptr;
     }
-    ///Get's method named *name* in [`Class`] *class* with *param_count* parameters.
+    ///Get's method named *name* in [`Class`] *class* with *param_count* parameters. If *param_count* is -1, function with any number of parameters is returned.
     /// # Example
     /// ## C#
     ///```csharp

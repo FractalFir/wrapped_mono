@@ -1,4 +1,10 @@
-class TestFunctions{
+interface IInterfaceOne{
+    void SomeInterfaceFunction();
+}
+class TestFunctions : IInterfaceOne{
+    public void SomeInterfaceFunction(){
+
+    }
     //function used to test if basic static function call works
     public static int GetOne(){
         return 1;

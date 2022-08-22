@@ -97,7 +97,7 @@ impl FnRep{
         for arg in &self.args{
             let separator = if curr < len - 1{','}else{' '};
             inner.extend(
-                TokenStream::from_str(&format!("{}_in:<{} as InteropRecive>::SourceType{}",arg.name,arg.get_type_string(),separator)));
+                TokenStream::from_str(&format!("{}:<{} as InteropRecive>::SourceType{}",arg.name,arg.get_type_string(),separator)));
             curr+=1;
         }
         let group = TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,inner));
@@ -120,7 +120,6 @@ impl FnRep{
         res.extend(TokenStream::from(
             TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,inner))
         ));
-        //return value place:res.extend("->");res.extend.(type);
 
         match &self.ret{
             Some(ret)=>{

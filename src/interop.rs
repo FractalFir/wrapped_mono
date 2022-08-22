@@ -126,17 +126,17 @@ impl InteropBox for i64{
 }
 impl InteropBox for i32{
     fn get_mono_class()->Class{
-        return Class::get_int_64();
+        return Class::get_int_32();
     }
 }
 impl InteropBox for f32{
     fn get_mono_class()->Class{
-        return Class::get_int_64();
+        return Class::get_single();
     }
 }
 impl InteropBox for f64{
     fn get_mono_class()->Class{
-        return Class::get_int_64();
+        return Class::get_double();
     }
 }
 impl InteropBox for isize{

@@ -49,7 +49,7 @@ impl ArgRep{
     }
     pub fn create_handler(&self)->TokenStream{
         let s_type:String = self.arg_type.to_string();
-        return TokenStream::from_str(&format!("let {} = <{}>::get_rust_rep({}_in);",&self.name,s_type,&self.name)).expect("Could not create token stream!");
+        return TokenStream::from_str(&format!("let {} = <{}>::get_rust_rep({});",&self.name,s_type,&self.name)).expect("Could not create token stream!");
     }
 } 
 use std::fmt;

@@ -1,5 +1,10 @@
 use crate::binds::MonoClass;
 use crate::Image;
+use crate::Method;
+
+use std::ffi::CString;
+use core::ffi::c_void;
+
 #[derive(Eq)]
 pub struct Class{
     class_ptr:*mut MonoClass,
@@ -24,7 +29,6 @@ impl Class{
     /// let some_class = Class::from_name(&some_image,"SomeNamespace","SomeClass").expect("Could not find a class!");
     ///```
     pub fn from_name(image:&crate::image::Image,namespace:&str,name:&str)->Option<Self>{
-        use std::ffi::CString;
         let cstr_nspace = CString::new(namespace).expect("Could not create CString");
         let cstr_name = CString::new(name).expect("Could not create CString");
         let res = unsafe{crate::binds::mono_class_from_name(image.to_ptr(),cstr_nspace.as_ptr(),cstr_name.as_ptr())};
@@ -32,7 +36,6 @@ impl Class{
     } 
     ///Case sensitve version of Class::from_name.
     pub fn from_name_case(image:&crate::image::Image,namespace:&str,name:&str)->Option<Self>{
-        use std::ffi::CString;
         let cstr_nspace = CString::new(namespace).expect("Could not create CString");
         let cstr_name = CString::new(name).expect("Could not create CString");
         let res = unsafe{crate::binds::mono_class_from_name_case(image.to_ptr(),cstr_nspace.as_ptr(),cstr_name.as_ptr())};
@@ -51,15 +54,126 @@ impl Class{
     /// let some_field = some_class.get_field_from_name("someField").expect("Could not find field!");
     ///```
     pub fn get_field_from_name(&self,name:&str)->Option<ClassField>{
-        let cstr = std::ffi::CString::new(name).expect("Could not create CString");
+        let cstr = CString::new(name).expect("Could not create CString");
         let res = unsafe{ClassField::from_ptr(crate::binds::mono_class_get_field_from_name(self.get_ptr(),cstr.as_ptr()))};
         drop(cstr);
+        return res;
+    }
+    ///Returns name of this class
+    pub fn get_name(&self)->String{
+        let cstr = unsafe{CString::from_raw(crate::binds::mono_class_get_name(self.class_ptr) as *mut i8)};
+        let res = cstr.to_str().expect("Could not covert CString to String!").to_owned();
+        //pointer does not have to be released
+        let _ = unsafe{cstr.into_raw()};
         return res;
     }
     ///Gets the image this type exists in.
     pub fn get_image(&self)->Image{
         return unsafe{Image::from_ptr(crate::binds:: mono_class_get_image(self.class_ptr))};
     }
+    ///Returns ammount of memory occupied by object when inside array.
+    pub fn array_element_size(&self)->i32{
+        return unsafe{crate::binds:: mono_class_array_element_size(self.class_ptr)};
+    }
+    ///Gets a [`Vec`] contining interafces this class implements.
+    pub fn get_interfaces(&self)->Vec<Class>{
+        let mut gptr = 0 as *mut i32;
+        let mut res = Vec::new();
+        while let Some(class) = unsafe{Self::from_ptr(
+            crate::binds::mono_class_get_interfaces(self.class_ptr,&mut gptr as *mut *mut  i32 as *mut *mut std::os::raw::c_void)
+        )}{
+            res.push(class);
+        }
+        return res;
+    }
+    ///Gets namespace this class is in, or "" string if it is not in any namespace.
+    pub fn get_namespace(&self)->String{
+        let cstr = unsafe{CString::from_raw(crate::binds::mono_class_get_namespace(self.class_ptr) as *mut i8)};
+        let res = cstr.to_str().expect("Could not create CString!").to_owned();
+        //got const pointer that does not have to be released.
+        let _ = cstr.into_raw();
+        return res;
+    }
+    ///Gets class this class is nested in, or None if it is not nested in any type.
+    pub fn get_nesting_type(&self)->Option<Class>{
+        return unsafe{Self::from_ptr(
+            crate::binds::mono_class_get_nesting_type(self.class_ptr)
+        )};
+    }
+    ///Gets type this class derives from or None if it does not derive any type.
+    /// # Example
+    /// For a class `SomeClass`
+    /// # C#
+    ///```csharp
+    /// class SomeClass:SomeParrentClass{
+    ///    
+    /// }
+    ///```
+    ///
+    /// Function will return `SomeParrentClass`
+    pub fn get_parent(&self)->Option<Class>{
+        return unsafe{Self::from_ptr(
+            crate::binds::mono_class_get_parent(self.class_ptr)
+        )};
+    }
+    ///Gets number of dimmension of array.
+    /// # Constrins 
+    /// *self* must be an array type.
+    pub fn get_rank(&self)->i32{
+        return unsafe{crate::binds::mono_class_get_rank(self.class_ptr)};
+    }
+    ///Return size of static data of this class
+    pub fn data_size(&self)->i32{
+        return unsafe{crate::binds::mono_class_data_size(self.class_ptr)};
+    }
+    ///Get element class of an array. *self* **must** be an array type.
+    pub fn get_element_class(&self)->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds::mono_class_get_element_class(self.class_ptr))
+        }.expect("Colud not get array element class!");
+    }
+    //Returns wenether if class implements interface `iface`.
+    pub fn implements_interface(&self,iface:&Self)->bool{
+        return unsafe{crate::binds::mono_class_implements_interface(self.class_ptr,iface.class_ptr)} != 0;
+    } 
+    /// Returns true if object of type *other* can be assigned to class *self*.
+    pub fn is_assignable_from(&self,other:&Self)->bool{
+        return unsafe{crate::binds::mono_class_is_assignable_from(self.class_ptr,self.class_ptr)} != 0;
+    }
+    ///Checks if *self* represents a delegate type.
+    pub fn is_delegate(&self)->bool{
+        return unsafe{crate::binds::mono_class_is_delegate(self.class_ptr)} != 0;
+    }
+    ///Checks if *self* represents an enumeration type.
+    pub fn is_enum(&self)->bool{
+        return unsafe{crate::binds::mono_class_is_enum(self.class_ptr)} != 0;
+    }
+    //TODO: consider implementing mono_class_is_subclass_of(it seems mostly redundant, but it may be useful)
+    //TODO: figure out what exacly mono_class_num_events is supposed to do, and implement it.
+    ///Gets ammount of **static and instace** files of class
+    pub fn num_fields(&self)->i32{
+        return unsafe{crate::binds::mono_class_num_fields(self.class_ptr)};
+    }
+    ///Gets ammount of methods in the class *self*
+    pub fn num_methods(&self)->i32{
+        return unsafe{crate::binds::mono_class_num_methods(self.class_ptr)};
+    }
+    //TODO: expand this description, sice it does not seam to be fully clear.
+    ///Gets number of properties in the class
+    pub fn num_properties(&self)->i32{
+        return unsafe{crate::binds::mono_class_num_properties(self.class_ptr)};
+    }
+    ///Checks if *self* represents a value type.
+    pub fn is_valuetype(&self)->bool{
+        return unsafe{crate::binds::mono_class_is_valuetype(self.class_ptr)} != 0;
+    }
+    /*
+    TODO:figure out how this function works and fix it.
+    ///Gets size of a value of type *self*
+    pub fn value_size(&self)->i32{
+        return unsafe{crate::binds::mono_class_value_size(self.class_ptr)};
+    }
+    */
     ///Returns [`Class`] representing `System.Object` type.
     pub fn get_object()->Class{
         return unsafe{Self::from_ptr(
@@ -180,6 +294,41 @@ impl Class{
             crate::binds:: mono_get_char_class()
         )}.expect("Could not get calls representing System.Char!");
     }
+    ///Returns all fields of a class
+    pub fn get_fields(&self)->Vec<ClassField>{
+        let mut gptr = 0 as *mut std::os::raw::c_void;
+        let mut res = Vec::new();
+        while let Some(cf) = unsafe{ClassField::from_ptr(
+            crate::binds::mono_class_get_fields(self.class_ptr,&mut gptr as *mut *mut c_void)
+        )}{
+            res.push(cf);
+        }
+        return res;
+    }
+    ///Returns all methods of a class
+    pub fn get_methods(&self)->Vec<Method>{
+        let mut gptr = 0 as *mut std::os::raw::c_void;
+        let mut res = Vec::new();
+        while let Some(cf) = unsafe{Method::from_ptr(
+            crate::binds::mono_class_get_methods(self.class_ptr,&mut gptr as *mut *mut c_void)
+        )}{
+            res.push(cf);
+        }
+        return res;
+    }
+    //Gets all types nested inside this class.
+    ///Returns all methods of a class
+    pub fn get_nested_types(&self)->Vec<Class>{
+        let mut gptr = 0 as *mut std::os::raw::c_void;
+        let mut res = Vec::new();
+        while let Some(cf) = unsafe{Class::from_ptr(
+            crate::binds::mono_class_get_nested_types(self.class_ptr,&mut gptr as *mut *mut c_void)
+        )}{
+            res.push(cf);
+        }
+        return res;
+    }
+    //TODO:mono_class_get_property_from_name && mono_class_get_properties ASAP
 }
 impl std::cmp::PartialEq for Class{
     fn eq(&self,other:&Self)->bool{

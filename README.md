@@ -6,7 +6,7 @@
 </p>
 
 ## About
-**wrapped-mono** is a wrapper around mono library, allowing for safe interreaction between rust code and mono runtime. **wrapped-mono** is WIP and does not support all of mono functionalities yet.
+**wrapped-mono** is a lightweight wrapper around mono library, allowing for safe interreaction between rust code and mono runtime. **wrapped-mono** is WIP and does not support all of mono functionalities yet.
 ## Features
 - [x] Mono JIT initalization  
 - [x] Mono Domain creation
@@ -15,16 +15,14 @@
 - [x] Getting image from assembly
 - [x] Getting classes from image
 - [X] Full array support - getting,setting values, creating new arrays, etc.
-- [ ] Getting functions from image
 - [X] Getting functions from classes
 - [X] Reading data about functions(argument count,names)
 - [X] Static CLR function execution
 - [X] Creating new class instaces
-- [ ] Constructing new class instances
 - [X] Calling CLR function on class instance
 - [X] Passing arguments to CLR functions
 - [X] Reciving data from CLR functions
-- [ ] Accesing instance variable fields 
+- [X] Accesing instance variable fields 
 - [X] Exposing rust functions to CLR using internall calls **Not implemented yet for some basic types**
 - [X] Passing arrays from managed to unmanged code
 - [X] Functions exposed as internal calls returning values to managed code
