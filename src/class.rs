@@ -29,15 +29,15 @@ impl Class{
     /// let some_class = Class::from_name(&some_image,"SomeNamespace","SomeClass").expect("Could not find a class!");
     ///```
     pub fn from_name(image:&crate::image::Image,namespace:&str,name:&str)->Option<Self>{
-        let cstr_nspace = CString::new(namespace).expect("Could not create CString");
-        let cstr_name = CString::new(name).expect("Could not create CString");
+        let cstr_nspace = CString::new(namespace).expect(crate::STR2CSTR_ERR);
+        let cstr_name = CString::new(name).expect(crate::STR2CSTR_ERR);
         let res = unsafe{crate::binds::mono_class_from_name(image.to_ptr(),cstr_nspace.as_ptr(),cstr_name.as_ptr())};
         return unsafe{Self::from_ptr(res)};
     } 
     ///Case sensitve version of Class::from_name.
     pub fn from_name_case(image:&crate::image::Image,namespace:&str,name:&str)->Option<Self>{
-        let cstr_nspace = CString::new(namespace).expect("Could not create CString");
-        let cstr_name = CString::new(name).expect("Could not create CString");
+        let cstr_nspace = CString::new(namespace).expect(crate::STR2CSTR_ERR);
+        let cstr_name = CString::new(name).expect(crate::STR2CSTR_ERR);
         let res = unsafe{crate::binds::mono_class_from_name_case(image.to_ptr(),cstr_nspace.as_ptr(),cstr_name.as_ptr())};
         return unsafe{Self::from_ptr(res)};
     } 
@@ -54,7 +54,7 @@ impl Class{
     /// let some_field = some_class.get_field_from_name("someField").expect("Could not find field!");
     ///```
     pub fn get_field_from_name(&self,name:&str)->Option<ClassField>{
-        let cstr = CString::new(name).expect("Could not create CString");
+        let cstr = CString::new(name).expect(crate::STR2CSTR_ERR);
         let res = unsafe{ClassField::from_ptr(crate::binds::mono_class_get_field_from_name(self.get_ptr(),cstr.as_ptr()))};
         drop(cstr);
         return res;
@@ -64,7 +64,7 @@ impl Class{
         let cstr = unsafe{CString::from_raw(crate::binds::mono_class_get_name(self.class_ptr) as *mut i8)};
         let res = cstr.to_str().expect("Could not covert CString to String!").to_owned();
         //pointer does not have to be released
-        let _ = unsafe{cstr.into_raw()};
+        let _ = cstr.into_raw();
         return res;
     }
     ///Gets the image this type exists in.
@@ -116,9 +116,9 @@ impl Class{
             crate::binds::mono_class_get_parent(self.class_ptr)
         )};
     }
-    ///Gets number of dimmension of array.
-    /// # Constrins 
-    /// *self* must be an array type.
+    /// Gets number of dimmension of array.
+    /// # Constrains 
+    /// *self* must be an array type, otherwise returns 0.
     pub fn get_rank(&self)->i32{
         return unsafe{crate::binds::mono_class_get_rank(self.class_ptr)};
     }
@@ -126,19 +126,19 @@ impl Class{
     pub fn data_size(&self)->i32{
         return unsafe{crate::binds::mono_class_data_size(self.class_ptr)};
     }
-    ///Get element class of an array. *self* **must** be an array type.
+    ///Get element class of an array. *self* **must** be an array type, otherwise returns *self*.
     pub fn get_element_class(&self)->Class{
         return unsafe{Self::from_ptr(
             crate::binds::mono_class_get_element_class(self.class_ptr))
         }.expect("Colud not get array element class!");
     }
-    //Returns wenether if class implements interface `iface`.
+    ///Returns if class implements interface `iface`.
     pub fn implements_interface(&self,iface:&Self)->bool{
         return unsafe{crate::binds::mono_class_implements_interface(self.class_ptr,iface.class_ptr)} != 0;
     } 
     /// Returns true if object of type *other* can be assigned to class *self*.
     pub fn is_assignable_from(&self,other:&Self)->bool{
-        return unsafe{crate::binds::mono_class_is_assignable_from(self.class_ptr,self.class_ptr)} != 0;
+        return unsafe{crate::binds::mono_class_is_assignable_from(self.class_ptr,other.class_ptr)} != 0;
     }
     ///Checks if *self* represents a delegate type.
     pub fn is_delegate(&self)->bool{
@@ -241,19 +241,19 @@ impl Class{
         )}.expect("Could not get calls representing System.Threading.Thread!");
     }
     ///Returns [`Class`] representing `System.UInt16` type([u16]).
-    pub fn get_uint16()->Class{
+    pub fn get_uint_16()->Class{
         return unsafe{Self::from_ptr(
             crate::binds:: mono_get_uint16_class()
         )}.expect("Could not get calls representing System.UInt16!");
     }
     ///Returns [`Class`] representing `System.UInt32` type([u32]).
-    pub fn get_uint32()->Class{
+    pub fn get_uint_32()->Class{
         return unsafe{Self::from_ptr(
             crate::binds:: mono_get_uint32_class()
         )}.expect("Could not get calls representing System.UInt32!");
     }
     ///Returns [`Class`] representing `System.UInt64` type([u64]).
-    pub fn get_uint64()->Class{
+    pub fn get_uint_64()->Class{
         return unsafe{Self::from_ptr(
             crate::binds:: mono_get_uint64_class()
         )}.expect("Could not get calls representing System.UInt64!");
@@ -293,6 +293,12 @@ impl Class{
         return unsafe{Self::from_ptr(
             crate::binds:: mono_get_char_class()
         )}.expect("Could not get calls representing System.Char!");
+    }
+    ///Gets class of an array of class *self* with rank (for int and rank 1, returns int[], for byte and rank 3 returns byte[][][],etc.)
+    pub fn get_array_class(&self,rank:u32)->Class{
+        return unsafe{Self::from_ptr(
+            crate::binds::mono_array_class_get(self.class_ptr,rank)
+        )}.expect("Impossible condition reached");
     }
     ///Returns all fields of a class
     pub fn get_fields(&self)->Vec<ClassField>{

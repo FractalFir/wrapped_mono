@@ -1,34 +1,48 @@
-# wrapped-mono
-<p align = "center">
-     <a href="#About">About<a> 
-     <a href="#Features">Features<a> 
-     <a href="#Examples">Examples<a> 
-</p>
-
-## About
-**wrapped-mono** is a lightweight wrapper around mono library, allowing for safe interreaction between rust code and mono runtime. **wrapped-mono** is WIP and does not support all of mono functionalities yet.
-## Features
-- [x] Mono JIT initalization  
-- [x] Mono Domain creation
-- [x] Loading mono assemblies
-- [x] Executing code contained in mono assembly
-- [x] Getting image from assembly
-- [x] Getting classes from image
-- [X] Full array support - getting,setting values, creating new arrays, etc.
-- [X] Getting functions from classes
-- [X] Reading data about functions(argument count,names)
-- [X] Static CLR function execution
-- [X] Creating new class instaces
-- [X] Calling CLR function on class instance
-- [X] Passing arguments to CLR functions
-- [X] Reciving data from CLR functions
-- [X] Accesing instance variable fields 
-- [X] Exposing rust functions to CLR using internall calls **Not implemented yet for some basic types**
-- [X] Passing arrays from managed to unmanged code
-- [X] Functions exposed as internal calls returning values to managed code
-- [ ] Automplementation of InvokableArg trait using derive, supporting passing arbitrary types in functions exposed as internal calls functions
-- [ ] Delegate Support
-## Examples
+# wrapped_mono
+ `wrapped_mono` is a safe lightweight wrapper around the mono library. It allows embeding the mono runtime(an open-source .NET runtime) inside rust code, and running code written in languges from the .NET framework. `wrapped_mono` allows for easy interop between managed and unmanaged code. Built-in macros automaticaly convert types when passing data between native code and code run inside the runtime.
+## W.I.P
+ While `wrapped_mono` is mostly finished, there are still few rough edges that need some polish. Some more obscure features do not have safe wrappers yet.
+## What `wrapped_mono` **is not**
+ `wrapped_mono` aims to be as lightweight as possible while still providing a safe and convnient API. While there are checks to ensure `wrapped_mono` works propely and in case of undefined behavior or crashes proper error messages will be printed,**not every mistake can be caught without a substantial effect on preformance**. That kinds of errors are **not handled**, and handling errors that can be caught relativly easily but still have some preformance impact can be disabled to gain even more preformance. It means that it is still possible to make certain kinds of mistakes (accesing objects after deleting them by deleting domain there are in, e.t.c).
+# Fetures and planned features
+Version 0.1
+[x] Runtime initialization/shutdown
+[x] Creating multpile domains
+[x] Loading assemblies from disk
+[x] Searching for a specific class in assembly
+[x] Creating new object of a given type
+[x] Getting method of a class
+[x] Calling a method - both static and not static
+[x] Utilities related to objects (getting their size, converting them to strings)
+[x] Boxing and unboxing values
+[x] Getting/Setting object field
+[x] Cloning objects
+[x] Managed string support
+[x] Array creation
+[x] Getting/Setting array at index
+[x] Exception creating
+[x] Raising Exceptions
+[x] Catching Exceptions
+[x] Getting common type classes
+[x] Loading config files
+[x] Signal chaining
+[x] Exposing unmanged functions as internal calls in managed code
+[x] Passing data between managed and unmanaged code
+[ ] Support for properities (getters,setters, e.t.c)
+[ ] Implementation of Inertop Traits for all simple types.
+[ ] Full documentaion for all features - 90% done
+Version 0.2
+[ ] Arrays with more than one dimension. (Altough there is no support for multidimensional arrays, they can be still used by enabling unsafe_arrays fetures and indexing into them like into an 1 - dimensional array(they can't be created yet too))
+[ ] Autoimplementation of some Interop traits (Interop Send,InteropRevive) for structs.
+Version 0.3
+[ ] Debugging API
+[ ] Dynamic code generation
+[ ] Certain fetures of mono JIT(mostly debugging)
+[ ] Reading of assembly meatdata
+[ ] Profilier (Data about preformance)
+[ ] Seciurity API
+[ ] Features related to threads
+# Examples
 <p align = "center">
     <a href="#Loading">Loading basic assembly<a>&nbsp;
     <a href="#Creating new domains">Creating new domains<a>&nbsp;
@@ -36,7 +50,7 @@
     <a href="# Exposing rust functions as internal calls">Exposing rust functions using internal calls<a>&nbsp;
 </p>
 
-### Loading basic assembly
+## Loading basic assembly
 **WARNING** Mono JIT can only be initialized once, and calling Domain::init_jit more times will lead to crash.
 ```rust
 use wraped_mono::*;
@@ -47,7 +61,7 @@ fn main(){
     let assembly = domain.asembly_open("Test.dll").unwrap();
 }
 ```
-### Creating new domains
+## Creating new domains
 **WARNING**!<br> creating root domain and initializing JIT is a necessary step that must be done before creating other domains.
 ```rust
 fn main(){
@@ -56,7 +70,7 @@ fn main(){
     let domain = Domain::create();
 }
 ```
-### Executing manged code
+## Executing manged code
 ```rust
 fn main(){
     //initalizing jit
@@ -69,11 +83,19 @@ fn main(){
     jit::exec(dom,assembly,args);
 }
 ```
-### Exposing rust functions as internal calls
+## Exposing rust functions as internal calls
 ```cs
     class SomeClass{
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         void SomeFunction(string arg);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        void OtherFunction(int arg);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        int ArrayFunction(int[] arg);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        void PointerFunction(System.IntPtr arg);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        void CharFunction(char arg);
     }
 ```
 ```rust
@@ -86,11 +108,20 @@ fn main(){
         println!("recived arg:'{}'!",arg);
     }
     #[invokable]
-    fn array_function(arg:Array<i32>){
+    fn pointer_function(arg:*mut i64){
+        println!("recived pointer:'{}'!",arg);
+    }
+     #[invokable]
+    fn char_function(arg:char){
+        println!("recived UTF-8 char!(supports symbols like ó ö ❤️)",arg);
+    }
+    #[invokable]
+    fn array_function(arg:Array<i32>)->i32{
         let len = arg.len();
         for i in 0..len{
             println!("element number {} is :'{}'!",arg.get(i));
         }
+        return len;
     }
     fn main(){
         /*
@@ -99,8 +130,9 @@ fn main(){
         add_internal_call!("SomeClass::SomeFunction",some_function);
         add_internal_call!("SomeClass::OtherFunction",some_function);
         add_internal_call!("SomeClass::ArrayFunction",array_function);
+        add_internal_call!("SomeClass::PointerFunction",pointer_function);
+        add_internal_call!("SomeClass::CharFunction",char_function);
         /*
-            executing managed code that calls functions exposed as internal calls
+            managed code executed afer this point will call rust code when functions exposed as interall calls will be called
         */
     }
-```

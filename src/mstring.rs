@@ -14,11 +14,11 @@ pub struct MString{
 impl MString{
     ///Creates new managed **String** in *domain* with content of *string*.
     pub fn new(domain:&Domain,string:&str)->Self{
-        let cstr = CString::new(string).expect("Could not create CString!");
+        let cstr = CString::new(string).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_string_new(domain.get_ptr(),cstr.as_ptr())
 
-        )}.expect("Could not create a new CString!");
+        )}.expect(crate::STR2CSTR_ERR);
         drop(cstr);
         return res;
     }

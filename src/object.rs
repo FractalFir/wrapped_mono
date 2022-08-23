@@ -55,7 +55,7 @@ pub trait ObjectTrait{
     /// assert!(class == object_class);
     /// ```
     fn get_class(&self)->Class;
-    ///returns [`Object`] *self* cast to *class* if *self* is derived from [`Class`]class. Does not affect original reference to object nor the object itself.
+    ///returns [`Object`] *self* cast to *class* if *self* is derived from [`Class`] class. Does not affect original reference to object nor the object itself.
     fn is_inst(&self,class:&Class)->Option<Object>;
     ///Convert [`Object`] to [`MString`]. Returns [`Exception`] if raised, and [`Option<MString>`] if not. Function returns [`Option<MString>`] to allow for null value to be returned. 
     fn to_string(&self)->Result<Option<MString>,Exception>;
@@ -134,7 +134,7 @@ impl Object{
         #[cfg(not(feature = "unsafe_unboxing"))]
         {
             let self_class = self.get_class();
-            let t_class = <T as InteropBox>::get_mono_class();
+            let t_class = <T as InteropClass>::get_mono_class();
             if self_class != t_class{
                 panic!("tried to unbox class of type `{}` as type `{}`",&self_class.get_name(),&t_class.get_name());
             }
@@ -219,3 +219,15 @@ impl Object{
     }
 }
 //for 0.2 TODO:extend functionalities relating to properites.
+use crate::interop::InteropClass;
+
+impl InteropClass for Object{
+    fn get_mono_class()->Class{
+        return Class::get_object();
+    }
+}
+impl InteropClass for Option<Object>{
+    fn get_mono_class()->Class{
+        return Class::get_object();
+    }
+}

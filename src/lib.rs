@@ -76,13 +76,13 @@ pub mod array;
 pub mod object;
 /// Representaion of managed classes and utilities related to them.
 pub mod class;
-/// 
+/// Part of assembly holding the executable code.
 pub mod image;
-/// 
+/// Safe representaion of Methods(functions) form managed code an utilities related to managing and calling them.
 pub mod method;
 /// Managed string utilities.
 pub mod mstring;
-///
+///Functions related to getting data about and configuring mono runtime.
 pub mod runtime;
 ///Utilities realted to Exceptions. 
 pub mod exception;
@@ -121,4 +121,6 @@ pub use mstring::MString;
     2: memory may be freed by mono when runtime stops? But that depends on mono runtime "sensing" that application is closing and automaticaly cleaning-up
 */
 #[doc(hide)]
-static could_not_create_cstring:&str = "Cold not create CString!";
+static STR2CSTR_ERR:&str = "Cold not create CString!";
+#[doc(hide)]
+static CSTR2STR_ERR:&str = "Could not convert CString to String";

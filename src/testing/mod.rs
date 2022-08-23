@@ -14,7 +14,7 @@ rusty_fork_test! {
     #[test]
     fn jit_execution(){
         let dom = jit::init("root",None);
-        let asm = dom.assembly_open("test/local/Jit.dll").unwrap();
+        let asm = dom.assembly_open("test/dlls/Jit.dll").unwrap();
         let mut args:Vec<&str> = Vec::new();
         args.push("1");
         args.push("2");
@@ -24,6 +24,13 @@ rusty_fork_test! {
     fn jit_init(){
         use wrapped_mono::jit;
         let _dom = jit::init("root",None);
+    }
+    #[should_panic]
+    #[test]
+    fn jit_init_twice(){
+        use wrapped_mono::jit;
+        let _dom = jit::init("root",None);
+        let _dom2 = jit::init("root",None);
     }
     #[test]
     fn jit_init_version(){
@@ -41,14 +48,14 @@ rusty_fork_test! {
     fn assembly_loading(){
         use wrapped_mono::jit;
         let dom = jit::init("root",None);
-        dom.assembly_open("test/local/Test.dll").unwrap();
+        dom.assembly_open("test/dlls/Test.dll").unwrap();
     }
     #[should_panic]
     #[test]
     fn missing_assembly_loading(){
         use wrapped_mono::jit;
         let dom = jit::init("root",None);
-        dom.assembly_open("test/local/Missing.dll").unwrap();
+        dom.assembly_open("test/dlls/Missing.dll").unwrap();
     }
     #[test]
     fn stop_jit(){
@@ -62,7 +69,7 @@ rusty_fork_test! {
         use wrapped_mono::jit;
         use wrapped_mono::class::Class;
         let main = jit::init("main",None);
-        let asm = main.assembly_open("test/local/Pinvoke.dll").unwrap();
+        let asm = main.assembly_open("test/dlls/Pinvoke.dll").unwrap();
         let mut img = asm.get_image();
         let _test_class = Class::from_name(&img,"","Secondary").expect("Could not find class!");
         img.close();
@@ -94,14 +101,14 @@ rusty_fork_test! {
     fn getting_image_from_assembly(){
         use wrapped_mono::jit;
         let dom = jit::init("root",None);
-        let asm = dom.assembly_open("test/local/Test.dll").unwrap();
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let _img = asm.get_image();
     }
     #[test]
     fn getting_assembly_from_name(){
         use wrapped_mono::jit;
         let dom = jit::init("root",None);
-        let _asm = dom.assembly_open("test/local/Test.dll").unwrap();
+        let _asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let _asm2 = Assembly::assembly_loaded("Test").expect("Could not get assembly!");
     }
     #[should_panic]
@@ -109,14 +116,14 @@ rusty_fork_test! {
     fn getting_assembly_from_wrong_name(){
         use wrapped_mono::jit;
         let dom = jit::init("root",None);
-        let _asm = dom.assembly_open("test/local/Test.dll").unwrap();
+        let _asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let _asm2 = Assembly::assembly_loaded("Tost").expect("Could not get assembly!");
     }
     #[test]
     fn gettig_class_from_image(){
         use wrapped_mono::{jit,class::Class};
         let dom = jit::init("root",None);
-        let asm = dom.assembly_open("test/local/Test.dll").unwrap();
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let _class = Class::from_name(&img,"","TestFunctions");
     }
@@ -125,7 +132,7 @@ rusty_fork_test! {
         use crate::binds::MonoObject;
         use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
         let dom = jit::init("root",None);
-        let asm = dom.assembly_open("test/local/Test.dll").unwrap();
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
         let obj = Object::new(&dom,&class);

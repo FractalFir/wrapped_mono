@@ -7,7 +7,7 @@ rusty_fork_test! {
         use wrapped_mono::object::*;
         use wrapped_mono::class::Class;
         let main = jit::init("main",None);
-        let asm = main.assembly_open("test/local/Pinvoke.dll").unwrap();
+        let asm = main.assembly_open("test/dlls/Pinvoke.dll").unwrap();
         let img = asm.get_image();
         let test_class = Class::from_name(&img,"","Secondary").expect("Could not find class!");
 
@@ -19,17 +19,15 @@ rusty_fork_test! {
         use crate as wrapped_mono;
         use wrapped_mono::jit;
         use wrapped_mono::object::*;
-        use wrapped_mono::class::Class;
         let main = jit::init("main",None);
 
-        let obj = Object::box_val(&main,128);
+        let _obj = Object::box_val(&main,128);
     }
     #[test]
     fn object_unbox(){
         use crate as wrapped_mono;
         use wrapped_mono::jit;
         use wrapped_mono::object::*;
-        use wrapped_mono::class::Class;
         let main = jit::init("main",None);
 
         let val:i32 = 128; 
@@ -39,20 +37,17 @@ rusty_fork_test! {
 
         assert!(unboxed == val);
     }
+    #[cfg(not(feature = "unsafe_unboxing"))]
     #[should_panic]
     #[test]
     fn object_unbox_wrong_type(){
         use crate as wrapped_mono;
         use wrapped_mono::jit;
         use wrapped_mono::object::*;
-        use wrapped_mono::class::Class;
         let main = jit::init("main",None);
 
         let val:i32 = 128; 
-        let obj = Object::box_val(&main,128);
-        
-        let unboxed = Object::unbox::<i64>(&obj);
-        #[cfg(feature = "unsafe_unboxing")]
-        panic!("With unsafe unbocing enabled, unboxed types are assumed to be correct and not checked, thus this test would not panic.");
+        let obj = Object::box_val(&main,val);
+        let _unboxed = Object::unbox::<i64>(&obj);
     }
 }

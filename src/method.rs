@@ -35,7 +35,7 @@ impl Method{
     /// let other_method = get_method_from_name(&some_class,"OtherMethod",2);
     ///```
     pub fn get_method_from_name(class:&crate::class::Class,name:&str,param_count:i32)->Option<Self>{
-        let cstr = std::ffi::CString::new(name).expect("Could not crate CString");
+        let cstr = std::ffi::CString::new(name).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_class_get_method_from_name(class.get_ptr(),cstr.as_ptr(),param_count)
         )};
@@ -51,6 +51,7 @@ impl Method{
     pub fn get_token(&self)->u32{
         return unsafe{crate::binds::mono_method_get_token(self.get_ptr())};
     }
+    //TODO:finish this documentaion
     pub fn get_index(&self)->u32{
         return unsafe{crate::binds::mono_method_get_index(self.get_ptr())};
     }
@@ -59,6 +60,7 @@ impl Method{
         let sig = unsafe{crate::binds::mono_method_signature(self.get_ptr())};
         return unsafe{crate::binds::mono_signature_get_param_count(sig)};
     }
+    ///Returns the name of this method
     pub fn get_name(&self)->String{
         let cstr = unsafe{std::ffi::CString::from_raw(crate::binds::mono_method_get_name(self.get_ptr()) as *mut i8)};
         let s = cstr.to_str().expect("Could not converted ptr to String!").to_owned();
@@ -69,12 +71,14 @@ impl Method{
     fn invoke_array(&self,_obj:Option<Object>,_arr:Array<Option<Object>>)->Result<Object,Exception>{
         unimplemented!("Not done yet");
     }
+    ///Gets class this method is attached to
     pub fn get_class(&self)->crate::class::Class{
         return unsafe{crate::class::Class::from_ptr(
             crate::binds::mono_method_get_class(self.get_ptr())
         ).expect("Could not get class of a method")};
     }
     //mono_signature_get_return_type(sig: *mut MonoMethodSignature) -> *mut MonoType;
+    ///Gets names of all parameters this function accepts.
     pub fn get_param_names(&self)->Vec<String>{
         use std::ffi::CString;
         let pcount = self.get_param_count() as usize;
@@ -90,8 +94,8 @@ impl Method{
         drop(ptrs);
         return res;
     }
-    //TODO: return exception instead of () && write macro for auto params conversion.
-    ///Simple, fast(does not convert types) version of method_invoke! macro(It does not exist yet, but is planned). **Doesn't** handle virtual methods, calls 
+    //TODO: Make this sligtly safer
+    ///**Doesn't** handle virtual methods, calls the method passed. To handle virtual methods, first get virtual method from object it is called on
     pub unsafe fn invoke_unsafe(&self,obj:Option<&Object>,params:&mut Vec<*mut std::os::raw::c_void>)->Result<Option<Object>,Exception>{
         use core::ffi::c_void;
         use crate::binds::MonoException;

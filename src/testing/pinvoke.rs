@@ -13,6 +13,10 @@ rusty_fork_test! {
         fn pass_arg_count(input:i32){
             assert!(input == 4);
         }
+        #[invokable]
+        fn pass_test_char(input:char){
+            assert!(input == 'ó');
+        }
         use wrapped_mono::array::*;
         use wrapped_mono::object::ObjectTrait;
         use wrapped_mono::object::Object;
@@ -37,7 +41,7 @@ rusty_fork_test! {
 
         use wrapped_mono::*;
         let dom = jit::init("root",None);
-        let asm = dom.assembly_open("test/local/Pinvoke.dll").unwrap();
+        let asm = dom.assembly_open("test/dlls/Pinvoke.dll").unwrap();
         let mut args:Vec<&str> = Vec::new();
 
         args.push("one");
@@ -49,6 +53,7 @@ rusty_fork_test! {
         add_internal_call!("Test::PassArgCount", pass_arg_count);
         add_internal_call!("Test::PassDataArray",pass_data_array);
         add_internal_call!("Test::GetObject",get_object);
+        add_internal_call!("Test::PassTestChar",pass_test_char);
 
         let _res = jit::exec(&dom,&asm,args);
 

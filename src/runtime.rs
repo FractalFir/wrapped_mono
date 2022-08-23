@@ -9,10 +9,10 @@ use crate::jit;
 pub fn set_dirs(assembly_dir:Option<&str>,config_dir:Option<&str>){
     match assembly_dir{
         Some(assembly_dir)=>{
-            let asm_cstr = CString::new(assembly_dir).expect("Could not create CString");
+            let asm_cstr = CString::new(assembly_dir).expect(crate::STR2CSTR_ERR);
             match config_dir{
                 Some(config_dir)=>{
-                    let cfg_cstr = CString::new(config_dir).expect("Could not create CString");
+                    let cfg_cstr = CString::new(config_dir).expect(crate::STR2CSTR_ERR);
                     unsafe{crate::binds::mono_set_dirs(asm_cstr.as_ptr(),cfg_cstr.as_ptr())};
                     drop(cfg_cstr);
                 }
@@ -25,7 +25,7 @@ pub fn set_dirs(assembly_dir:Option<&str>,config_dir:Option<&str>){
         None=>{
             match config_dir{
                 Some(config_dir)=>{
-                    let cfg_cstr = CString::new(config_dir).expect("Could not create CString");
+                    let cfg_cstr = CString::new(config_dir).expect(crate::STR2CSTR_ERR);
                     unsafe{crate::binds::mono_set_dirs(null_mut(),cfg_cstr.as_ptr())};
                     drop(cfg_cstr);
                 }
@@ -41,7 +41,7 @@ pub fn set_dirs(assembly_dir:Option<&str>,config_dir:Option<&str>){
 pub fn config_parse(fname:Option<&str>){
     match fname{
         Some(fname)=>{
-            let cstr = CString::new(fname).expect("Could not create CString");
+            let cstr = CString::new(fname).expect(crate::STR2CSTR_ERR);
             unsafe{crate::binds::mono_config_parse(cstr.as_ptr())};
             drop(cstr);
         },
@@ -50,7 +50,7 @@ pub fn config_parse(fname:Option<&str>){
 }
 ///Load config from string in memory. *config* must be an string representing XML configuration.
 pub fn config_parse_memory(config:&str){
-    let cstr = CString::new(config).expect("Could not create CString");
+    let cstr = CString::new(config).expect(crate::STR2CSTR_ERR);
     unsafe{crate::binds::mono_config_parse_memory(config.as_ptr() as *const i8)};
     drop(cstr);
 }

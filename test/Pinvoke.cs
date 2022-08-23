@@ -7,6 +7,8 @@ class Test{
     [MethodImplAttribute(MethodImplOptions.InternalCall)]
     public static extern void PassArgCount(int count);
     [MethodImplAttribute(MethodImplOptions.InternalCall)]
+    public static extern void PassTestChar(char c);
+    [MethodImplAttribute(MethodImplOptions.InternalCall)]
     public static extern int SendTestString(string s);
     ///Gets a null object
     [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -16,6 +18,7 @@ class Test{
         foreach(string arg in args){
             tmp += arg + ",";
         }
+        PassTestChar('ó');
         PassArgCount(args.Length);
         PassDataArray(new int[]{0,1,2,3,4,5});
         int STRes = SendTestString(tmp);

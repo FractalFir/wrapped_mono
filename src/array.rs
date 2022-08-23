@@ -1,14 +1,16 @@
-use crate::interop::{InteropRecive,InteropSend};
+use crate::interop::{InteropRecive,InteropSend,InteropClass};
+use crate::Class;
+use crate::Object;
 /// Safe representation of MonoArray(a reference to a managed array). Reqiures it's generic argument to implement InvokePass in order to automaticaly convert value from managed type to rust type.
 /// # Safety
 /// It is possible to use wrong type Array (e.g. casting float[] to Array<String>) and either cause a crash or read a garbage value.
 /// # Nullable support
 /// [`Array<T>`] is non-nullable on defult and will panic when null passed as argument form managed code. For nullable support use [`Option<Array<T>>`].
-pub struct Array<T:InteropRecive + InteropSend>{
+pub struct Array<T:InteropSend + InteropRecive + InteropClass>{
     arr_ptr:*mut crate::binds::MonoArray,
     pd:std::marker::PhantomData<T>,
 } 
-impl<T:InteropRecive + InteropSend> Array<T>{
+impl<T:InteropSend + InteropRecive + InteropClass> Array<T>{
     ///Function returning element at *index*
     /// # Example
     ///```rust
@@ -58,8 +60,22 @@ impl<T:InteropRecive + InteropSend> Array<T>{
         if ptr == null_mut(){
             return None;
         }
-        return Some(Array{arr_ptr:ptr,pd:std::marker::PhantomData});
+        let res = Array{arr_ptr:ptr,pd:std::marker::PhantomData};
+        #[cfg(not(feature = "unsafe_arrays"))]
+        {
+            use crate::object::ObjectTrait;
+            let sclass = res.to_object().get_class(); 
+            let tclass = <Self as InteropClass>::get_mono_class();
+            if sclass != tclass{
+                panic!("tried to create array of type `{}` from object of type `{}`",&tclass.get_name(),&sclass.get_name());
+            }
+        }
+        return Some(res);
     }
+    ///Converts [`Array`] to [`Object`]
+    pub fn to_object(&self)->Object{
+        return unsafe{Object::from_ptr(self.arr_ptr as *mut crate::binds::MonoObject)}.expect("Could not create object from array!");
+    } 
     ///Alocate new array in *domain* holding *n* elements of type *class*. 
     /// # Example
     ///```rust
@@ -67,9 +83,9 @@ impl<T:InteropRecive + InteropSend> Array<T>{
     /// let arr = Array<i32>::new(&domain,&int_managed_class,arr_len);
     /// assert!(arr.len() == arr_len);
     ///```
-    pub fn new(domain:&crate::domain::Domain,class:&crate::class::Class,n:usize)->Self{
+    pub fn new(domain:&crate::domain::Domain,n:usize)->Self{
         return unsafe{Self::from_ptr(
-            crate::binds::mono_array_new(domain.get_ptr(),class.get_ptr(),n)
+            crate::binds::mono_array_new(domain.get_ptr(),<T as InteropClass>::get_mono_class().get_ptr(),n)
         )}.expect("could not create a new array!");
     }
     ///Function returning a copy of internal pointer to MonoArray
@@ -80,8 +96,13 @@ impl<T:InteropRecive + InteropSend> Array<T>{
     pub fn clone_managed_array(&self)->Self{
         return unsafe{Self::from_ptr(crate::binds::mono_array_clone(self.arr_ptr))}.expect("coud not create copy of an array!");
     }
+    ///returns class of the type
+    pub fn get_class()->Class{
+        //TDOD: change array to support multidimensional arrays.
+        return Class::get_array_class(&<T as InteropClass>::get_mono_class(),1);
+    }
 }
-impl<T:InteropRecive + InteropSend> InteropRecive for Array<T>{
+impl<T:InteropSend + InteropRecive + InteropClass> InteropRecive for Array<T>{
     type SourceType = *mut crate::binds::MonoArray;
     fn get_rust_rep(arg:Self::SourceType)->Self{
         use crate::exception::ExceptManaged;
@@ -89,17 +110,22 @@ impl<T:InteropRecive + InteropSend> InteropRecive for Array<T>{
         return <Array<T> as ExceptManaged<Array<T>>>::expect_managed_arg(opt,"Got null in an not nullable type. For nullable support use Option<Array>");
     }
 }
-impl<T:InteropRecive + InteropSend> InteropSend for Array<T>{
+impl<T:InteropSend + InteropRecive + InteropClass> InteropSend for Array<T>{
     type TargetType = *mut crate::binds::MonoArray;
     fn get_mono_rep(arg:Self)->Self::TargetType{
         return arg.get_ptr();
+    }
+}
+impl<T:InteropSend + InteropRecive + InteropClass> InteropClass for Array<T>{
+    fn get_mono_class()->Class{
+        return Self::get_class();
     }
 }
 use core::ptr::null_mut;
 use crate::binds::MonoObject;
 use crate::mstring::MString;
 use crate::Exception;
-impl<T:InteropRecive + InteropSend> crate::object::ObjectTrait for Array<T>{
+impl<T:InteropSend + InteropRecive + InteropClass> crate::object::ObjectTrait for Array<T>{
     fn hash(&self)->i32{
         return unsafe{crate::binds::mono_object_hash(self.arr_ptr as *mut MonoObject)};
     }
@@ -134,13 +160,13 @@ impl<T:InteropRecive + InteropSend> crate::object::ObjectTrait for Array<T>{
         }
     }
 }
-impl<T:InteropRecive + InteropSend> InteropRecive for Option<Array<T>>{
+impl<T:InteropSend + InteropRecive + InteropClass> InteropRecive for Option<Array<T>>{
     type SourceType = *mut crate::binds::MonoArray;
     fn get_rust_rep(arg:Self::SourceType)->Self{
         return unsafe{Array::<T>::from_ptr(arg)};
     }
 }
-impl<T:InteropRecive + InteropSend> InteropSend for Option<Array<T>>{
+impl<T:InteropSend + InteropRecive + InteropClass> InteropSend for Option<Array<T>>{
     type TargetType = *mut crate::binds::MonoArray;
     fn get_mono_rep(arg:Self)->Self::TargetType{
         return match arg{ Some(arg)=>arg.get_ptr(),None=>null_mut()};

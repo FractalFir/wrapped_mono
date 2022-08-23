@@ -26,8 +26,7 @@ mod binds{
         bindings.write(Box::new(file)).expect("Couldn't write bindings!");
     }
 }
-#[cfg(test)]
-#[test]
+//#[cfg(test)]
 mod tests{
     use std::process::Command;
     /*
@@ -46,7 +45,7 @@ mod tests{
     */
     pub fn compile_jit_test_assembly(){
         let output = Command::new("mcs") 
-        .arg("-out:test/local/Jit.dll")
+        .arg("-out:test/dlls/Jit.dll")
         .arg("test/Jit.cs")
         .output()
         .expect("Failed to execute command");
@@ -57,7 +56,7 @@ mod tests{
     }
     pub fn compile_pinvoke_test_assembly(){
         let output = Command::new("mcs") 
-        .arg("-out:test/local/Pinvoke.dll")
+        .arg("-out:test/dlls/Pinvoke.dll")
         .arg("test/Pinvoke.cs")
         .output()
         .expect("Failed to execute command");
@@ -69,7 +68,7 @@ mod tests{
     pub fn compile_test_lib(){
         let output = Command::new("mcs") 
         .arg("-target:library") 
-        .arg("-out:test/local/Test.dll")
+        .arg("-out:test/dlls/Test.dll")
         .arg("test/Test.cs")
         .output()
         .expect("Failed to execute command");
@@ -83,11 +82,11 @@ mod tests{
 
 fn main() {
     #[cfg(test)]
-    std::fs::create_dir_all("test/local").expect("Could not create test directory");
+    std::fs::create_dir_all("test/dlls").expect("Could not create test directory");
     println!("cargo:rustc-link-lib=mono-2.0");
     #[cfg(test)]
     binds::gen_binds();
-    #[cfg(test)]
+    //#[cfg(test)]
     {
         tests::compile_pinvoke_test_assembly();
         tests::compile_jit_test_assembly();

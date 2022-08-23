@@ -1,18 +1,23 @@
 use crate::binds::{MonoAssembly};
 use std::ffi::CString;
 use core::ptr::null_mut;
+use crate::image::Image;
+///Safe represtation of an executable file containg managed code and data about it.
 pub struct Assembly{
     ptr:*mut crate::binds::MonoAssembly,
 }
 impl Assembly{
+    ///Creates [`Assembly`] from a valid [`MonoAssembly`] pointer.
     pub unsafe fn from_ptr(ptr:*mut MonoAssembly) -> Assembly{
         return Assembly{ptr:ptr};
     }
+    ///Returns internal pointer.
     pub unsafe fn get_ptr(&self)->*mut MonoAssembly{
         return self.ptr;
     }
-    pub fn get_image(&self)->crate::image::Image{
-        return unsafe{crate::image::Image::from_ptr(crate::binds::mono_assembly_get_image(self.ptr))};
+    ///Gets the [`Image`] from this assembly(part of the assembly containing exexutable code)
+    pub fn get_image(&self)->Image{
+        return unsafe{Image::from_ptr(crate::binds::mono_assembly_get_image(self.ptr))};
     }
     ///Returns main assembly(first loaded assembly)
     pub fn get_main()->Option<Assembly>{
@@ -35,7 +40,7 @@ impl Assembly{
     }
     ///Checks if assembly *name* is loaded, and if it is returns that assembly.
     pub fn assembly_loaded(name:&str)->Option<Assembly>{
-        let cstr = CString::new(name).expect("Could not create CString");
+        let cstr = CString::new(name).expect(crate::STR2CSTR_ERR);
         let aname = unsafe{crate::binds::mono_assembly_name_new(cstr.as_ptr())};
         let ptr = unsafe{crate::binds::mono_assembly_loaded(aname)};
         drop(cstr);

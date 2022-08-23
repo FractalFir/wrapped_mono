@@ -14,7 +14,7 @@ impl Domain{
         //!```rust
         //! let asm = domain.assembly_open("SomeAssembly.dll").expect("Could not load assembly!");
         //!```
-        let cstr = CString::new(path).expect("Couldn't create cstring!");
+        let cstr = CString::new(path).expect(crate::STR2CSTR_ERR);
         let ptr = unsafe{mono_domain_assembly_open(self.get_ptr(),cstr.as_ptr())};
         if ptr == null_mut(){
             return None;
@@ -33,8 +33,8 @@ impl Domain{
     }
     /// Sets domain confing to one loaded from file *filename* in directory *base_directory*.
     pub fn set_config(&self,base_directory:&str,filename:&str){
-        let bd_cstr = CString::new(base_directory).expect("Could not create CString");
-        let fnme_cstr =CString::new(filename).expect("Could not create CString");
+        let bd_cstr = CString::new(base_directory).expect(crate::STR2CSTR_ERR);
+        let fnme_cstr =CString::new(filename).expect(crate::STR2CSTR_ERR);
         unsafe{crate::binds::mono_domain_set_config(self.ptr,bd_cstr.as_ptr(),fnme_cstr.as_ptr())};
         drop(bd_cstr);
         drop(fnme_cstr);

@@ -2,6 +2,7 @@ use crate::binds::{mono_jit_init,mono_jit_init_version,mono_config_parse,mono_ji
 use crate::domain::{Domain};
 use std::ffi::CString;
 use core::ptr::null_mut;
+static mut HAS_BEEN_INITIALIZED:bool = false;
 /// This function starts up MonoRuntime,and returns main domain. It should be called before any other mono function is called. **Can be only called once per process.**
 /// Version argument specifies runtime version, if **None** passed, default version will be selected.
 /// ```rust
@@ -11,10 +12,14 @@ use core::ptr::null_mut;
 /// let main_domain_with_version = jit::init("domain_name","v4.0.30319");
 /// ```
 pub fn init(name:&str,version:Option<&str>)->Domain{
-    let n_cstr = CString::new(name).expect("could not create cstring!");
+    unsafe{
+        assert!(!HAS_BEEN_INITIALIZED, "Mono runtime can't be initialized twice in the same process.");
+        HAS_BEEN_INITIALIZED = true;
+    }
+    let n_cstr = CString::new(name).expect(crate::STR2CSTR_ERR);
     let res = unsafe{Domain::from_ptr( match version{
         Some(s)=>{
-            let v_cstr = CString::new(s).expect("could not create cstring!");
+            let v_cstr = CString::new(s).expect(crate::STR2CSTR_ERR);
             let ptr = mono_jit_init_version(n_cstr.as_ptr(),v_cstr.as_ptr());
             drop(v_cstr);
             ptr
@@ -23,7 +28,6 @@ pub fn init(name:&str,version:Option<&str>)->Domain{
             mono_jit_init(n_cstr.as_ptr())
         }
     })};
-    unsafe{mono_config_parse (null_mut())};
     drop(n_cstr);
     return res;
 }

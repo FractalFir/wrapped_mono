@@ -42,8 +42,8 @@ impl Exception{
     }
     /// Creates [`Exception`] of type *name* in *namespace* from *image* in *domain*
     pub fn from_name_domain(domain:&Domain,image:&Image,namespace:&str,name:&str)->Option<Self>{
-        let ns_cstr = CString::new(namespace).expect("Could not create CString!");
-        let nm_cstr = CString::new(name).expect("Could not create CString!");
+        let ns_cstr = CString::new(namespace).expect(crate::STR2CSTR_ERR);
+        let nm_cstr = CString::new(name).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_exception_from_name_domain(domain.get_ptr(),image.get_ptr(),ns_cstr.as_ptr(),nm_cstr.as_ptr())
         )};
@@ -53,8 +53,8 @@ impl Exception{
     }
     /// Creates [`Exception`] of type *name* in *namespace* from *image*
     pub fn from_name(image:&Image,namespace:&str,name:&str)->Option<Self>{
-        let ns_cstr = CString::new(namespace).expect("Could not create CString!");
-        let nm_cstr = CString::new(name).expect("Could not create CString!");
+        let ns_cstr = CString::new(namespace).expect(crate::STR2CSTR_ERR);
+        let nm_cstr = CString::new(name).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_exception_from_name(image.get_ptr(),ns_cstr.as_ptr(),nm_cstr.as_ptr())
         )};
@@ -64,9 +64,9 @@ impl Exception{
     }
     /// Creates [`Exception`] of type *name* in *namespace* from *image* with message *msg*.
     pub fn from_name_msg(image:&Image,namespace:&str,name:&str,msg:&str)->Option<Self>{
-        let ns_cstr = CString::new(namespace).expect("Could not create CString!");
-        let nm_cstr = CString::new(name).expect("Could not create CString!");
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let ns_cstr = CString::new(namespace).expect(crate::STR2CSTR_ERR);
+        let nm_cstr = CString::new(name).expect(crate::STR2CSTR_ERR);
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_exception_from_name_msg(image.get_ptr(),ns_cstr.as_ptr(),nm_cstr.as_ptr(),msg_cstr.as_ptr())
         )};
@@ -81,8 +81,8 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.ArgumentException**
     pub fn argument_exception(arg:&str,msg:&str)->Self{
-        let arg_cstr = CString::new(arg).expect("Could not create CString!");
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let arg_cstr = CString::new(arg).expect(crate::STR2CSTR_ERR);
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_argument(arg_cstr.as_ptr(),msg_cstr.as_ptr())
         )};
@@ -92,7 +92,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.NotImplementedException**
     pub fn not_implemented(msg:&str)->Self{
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_not_implemented(msg_cstr.as_ptr())
         )};
@@ -101,7 +101,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.ArgumentNullException**
     pub fn argument_null(msg:&str)->Self{
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_argument_null(msg_cstr.as_ptr())
         )};
@@ -110,7 +110,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.ArgumentOutOfRangeException**
     pub fn argument_out_of_range(msg:&str)->Self{
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_argument_out_of_range(msg_cstr.as_ptr())
         )};
@@ -127,7 +127,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.BadImageFormatException**
     pub fn bad_image_format(msg:&str)->Self{
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_bad_image_format(msg_cstr.as_ptr())
         )};
@@ -136,7 +136,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.CannotUnloadAppdomain**
     pub fn cannot_unload_appdomain(msg:&str)->Self{
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_cannot_unload_appdomain(msg_cstr.as_ptr())
         )};
@@ -153,7 +153,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.ExecutionEngineException**
     pub fn execution_engine_exception(msg:&str)->Self{
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_execution_engine(msg_cstr.as_ptr())
         )};
@@ -162,7 +162,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.IO.FileNotFoundException**
     pub fn file_not_found(fname:&str)->Self{
-        let fname_cstr = CString::new(fname).expect("Could not create CString!");
+        let fname_cstr = CString::new(fname).expect(crate::STR2CSTR_ERR);
         let ms = unsafe{crate::binds::mono_string_new_wrapper(fname_cstr.as_ptr())}; 
         drop(fname_cstr); 
         let res = unsafe{Self::from_ptr(
@@ -182,7 +182,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.IO.IOException**
     pub fn io_exception(msg:&str)->Self{
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_io(msg_cstr.as_ptr())
         )};
@@ -191,8 +191,8 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.MissingMethodException**
     pub fn missing_method(class_name:&str,member_name:&str)->Self{
-        let class_name_cstr = CString::new(class_name).expect("Could not create CString!");
-        let member_name_cstr = CString::new(member_name).expect("Could not create CString!");
+        let class_name_cstr = CString::new(class_name).expect(crate::STR2CSTR_ERR);
+        let member_name_cstr = CString::new(member_name).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_missing_method(class_name_cstr.as_ptr(),member_name_cstr.as_ptr())
         )};
@@ -214,7 +214,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.Runtime.Serialization.SerializationException**
     pub fn serialization_exception(msg:&str)->Self{
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_serialization(msg_cstr.as_ptr())
         )};
@@ -227,7 +227,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.SynchronizationLockException**
     pub fn synchronization_lock(msg:&str)->Self{
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_synchronization_lock(msg_cstr.as_ptr())
         )};
@@ -240,7 +240,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.Threading.ThreadStateException**
     pub fn thread_sate(msg:&str)->Self{
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_thread_state(msg_cstr.as_ptr())
         )};
@@ -249,7 +249,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.TypeInitializationException** with *type_name* and inner exception *inner*.
     pub fn type_initialization(type_name:&str,inner:&Exception)->Self{
-        let type_name_cstr = CString::new(type_name).expect("Could not create CString!");
+        let type_name_cstr = CString::new(type_name).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_type_initialization(type_name_cstr.as_ptr(),inner.get_ptr())
         )};
@@ -258,10 +258,10 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.TypeLoadException**
     pub fn type_load(class_name:&str,member_name:&str)->Self{
-        let class_name_cstr = CString::new(class_name).expect("Could not create CString!");
+        let class_name_cstr = CString::new(class_name).expect(crate::STR2CSTR_ERR);
         let cn_mono_string = unsafe{crate::binds::mono_string_new_wrapper(class_name_cstr.as_ptr())};
         drop(class_name_cstr);
-        let member_name_cstr = CString::new(member_name).expect("Could not create CString!");
+        let member_name_cstr = CString::new(member_name).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_type_load(cn_mono_string,member_name_cstr.as_ptr() as *mut i8)
         )};
@@ -270,7 +270,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.InvalidOperationException**
     pub fn invalid_operation(msg:&str)->Self{
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_invalid_operation(msg_cstr.as_ptr())
         )};
@@ -279,8 +279,8 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.MissingFieldException**
     pub fn missing_field(class_name:&str,member_name:&str)->Self{
-        let class_name_cstr = CString::new(class_name).expect("Could not create CString!");
-        let member_name_cstr = CString::new(member_name).expect("Could not create CString!");
+        let class_name_cstr = CString::new(class_name).expect(crate::STR2CSTR_ERR);
+        let member_name_cstr = CString::new(member_name).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_missing_field(class_name_cstr.as_ptr(),member_name_cstr.as_ptr() as *mut i8)
         )};
@@ -290,7 +290,7 @@ impl Exception{
     }
     /// Returns [`Exception`] that is instance of **System.NotSupportedException**
     pub fn not_supported(msg:&str)->Self{
-        let msg_cstr = CString::new(msg).expect("Could not create CString!");
+        let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_get_exception_not_supported(msg_cstr.as_ptr())
         )};
