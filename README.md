@@ -3,45 +3,46 @@
 ## W.I.P
  While `wrapped_mono` is mostly finished, there are still few rough edges that need some polish. Some more obscure features do not have safe wrappers yet.
 ## What `wrapped_mono` **is not**
- `wrapped_mono` aims to be as lightweight as possible while still providing a safe and convnient API. While there are checks to ensure `wrapped_mono` works propely and in case of undefined behavior or crashes proper error messages will be printed,**not every mistake can be caught without a substantial effect on preformance**. That kinds of errors are **not handled**, and handling errors that can be caught relativly easily but still have some preformance impact can be disabled to gain even more preformance. It means that it is still possible to make certain kinds of mistakes (accesing objects after deleting them by deleting domain there are in, e.t.c).
+ `wrapped_mono` aims to be as lightweight as possible while still providing a safe and convnient API. While there are checks to ensure `wrapped_mono` works propely and in case of undefined behavior or crashes proper error messages will be printed,**not every mistake can be caught without a substantial effect on preformance**. That kinds of errors are **not handled**, and handling errors that can be caught relativly easily but still have some preformance impact can be disabled to gain even more preformance. It means that it is still possible to make certain kinds of mistakes (accesing objects after deleting them by deleting domain there are in, etc).
 # Fetures and planned features
-Version 0.1
-[x] Runtime initialization/shutdown
-[x] Creating multpile domains
-[x] Loading assemblies from disk
-[x] Searching for a specific class in assembly
-[x] Creating new object of a given type
-[x] Getting method of a class
-[x] Calling a method - both static and not static
-[x] Utilities related to objects (getting their size, converting them to strings)
-[x] Boxing and unboxing values
-[x] Getting/Setting object field
-[x] Cloning objects
-[x] Managed string support
-[x] Array creation
-[x] Getting/Setting array at index
-[x] Exception creating
-[x] Raising Exceptions
-[x] Catching Exceptions
-[x] Getting common type classes
-[x] Loading config files
-[x] Signal chaining
-[x] Exposing unmanged functions as internal calls in managed code
-[x] Passing data between managed and unmanaged code
-[ ] Support for properities (getters,setters, e.t.c)
-[ ] Implementation of Inertop Traits for all simple types.
-[ ] Full documentaion for all features - 90% done
-Version 0.2
-[ ] Arrays with more than one dimension. (Altough there is no support for multidimensional arrays, they can be still used by enabling unsafe_arrays fetures and indexing into them like into an 1 - dimensional array(they can't be created yet too))
-[ ] Autoimplementation of some Interop traits (Interop Send,InteropRevive) for structs.
-Version 0.3
-[ ] Debugging API
-[ ] Dynamic code generation
-[ ] Certain fetures of mono JIT(mostly debugging)
-[ ] Reading of assembly meatdata
-[ ] Profilier (Data about preformance)
-[ ] Seciurity API
-[ ] Features related to threads
+## Version 0.1
+- [x] Runtime initialization/shutdown
+- [x] Creating multpile domains
+- [x] Loading assemblies from disk
+- [x] Searching for a specific class in assembly
+- [x] Creating new object of a given type
+- [x] Getting method of a class
+- [x] Calling a method - both static and not static
+- [x] Utilities related to objects (getting their size, converting them to strings)
+- [x] Boxing and unboxing values
+- [x] Getting/Setting object field
+- [x] Cloning objects
+- [x] Managed string support
+- [x] Array creation
+- [x] Getting/Setting array at index
+- [x] Exception creating
+- [x] Raising Exceptions
+- [x] Catching Exceptions
+- [x] Getting common type classes
+- [x] Loading config files
+- [x] Signal chaining
+- [x] Exposing unmanged functions as internal calls in managed code
+- [x] Passing data between managed and unmanaged code
+- [ ] Support for properities (getters,setters, etc)
+- [ ] Implementation of Inertop Traits for all simple types.
+- [ ] Full documentaion for all features - 95% done
+## Version 0.2
+- [ ] Arrays with more than one dimension. (Altough there is no support for multidimensional arrays, they can be still used by enabling unsafe_arrays fetures and indexing into them like into an 1 - dimensional array(they can't be created yet too))
+- [ ] Autoimplementation of some Interop traits (Interop Send,InteropRevive) for structs.
+## Version 0.3
+- [ ] Debugging API
+- [ ] Dynamic code generation
+- [ ] Certain fetures of mono JIT(mostly debugging)
+- [ ] Reading of assembly meatdata
+- [ ] Profilier (Data about preformance)
+- [ ] Seciurity API
+- [ ] Features related to threads
+
 # Examples
 <p align = "center">
     <a href="#Loading">Loading basic assembly<a>&nbsp;
@@ -77,7 +78,7 @@ fn main(){
     let domain = jit::init("root",None);
     //opening assembly
     let assemmbly = domain.assembly_open("Some.dll").unwrap();
-    //creating structure containing arguments to be passed as string[] args
+    //creating structure containing arguments to be passed as string- [] args
     let args:Vec<&str> = Vec::new();
     //calling main function in managed code
     jit::exec(dom,assembly,args);
@@ -86,36 +87,36 @@ fn main(){
 ## Exposing rust functions as internal calls
 ```cs
     class SomeClass{
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        - [MethodImplAttribute(MethodImplOptions.InternalCall)]
         void SomeFunction(string arg);
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        - [MethodImplAttribute(MethodImplOptions.InternalCall)]
         void OtherFunction(int arg);
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        int ArrayFunction(int[] arg);
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        - [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        int ArrayFunction(int- [] arg);
+        - [MethodImplAttribute(MethodImplOptions.InternalCall)]
         void PointerFunction(System.IntPtr arg);
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        - [MethodImplAttribute(MethodImplOptions.InternalCall)]
         void CharFunction(char arg);
     }
 ```
 ```rust
-    #[invokable]
+    #- [invokable]
     fn some_function(arg:String){
         println!("recived arg:'{}'!",arg);
     }
-    #[invokable]
+    #- [invokable]
     fn other_function(arg:i32){
         println!("recived arg:'{}'!",arg);
     }
-    #[invokable]
+    #- [invokable]
     fn pointer_function(arg:*mut i64){
         println!("recived pointer:'{}'!",arg);
     }
-     #[invokable]
+     #- [invokable]
     fn char_function(arg:char){
         println!("recived UTF-8 char!(supports symbols like ó ö ❤️)",arg);
     }
-    #[invokable]
+    #- [invokable]
     fn array_function(arg:Array<i32>)->i32{
         let len = arg.len();
         for i in 0..len{
@@ -136,3 +137,4 @@ fn main(){
             managed code executed afer this point will call rust code when functions exposed as interall calls will be called
         */
     }
+```
