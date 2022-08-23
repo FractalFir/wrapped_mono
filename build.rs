@@ -86,7 +86,7 @@ fn main() {
     println!("cargo:rustc-link-lib=mono-2.0");
     #[cfg(test)]
     binds::gen_binds();
-    //#[cfg(test)]
+    #[cfg(test)]
     {
         tests::compile_pinvoke_test_assembly();
         tests::compile_jit_test_assembly();
