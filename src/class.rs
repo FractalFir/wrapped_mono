@@ -4,7 +4,7 @@ use crate::Method;
 
 use std::ffi::CString;
 use core::ffi::c_void;
-
+///Safe representaion of a managed class.(eg. System.Int64, System.Object, etc.);
 #[derive(Eq)]
 pub struct Class{
     class_ptr:*mut MonoClass,
@@ -417,12 +417,7 @@ impl ClassField{
     /// let some_field_value = *(some_field_value_object.unbox() as *mut i32);
     /// //First got pointer to unboxed value using unbox() then converted it to proper type (*mut i32), and dereferenced
     /// it to get its value.
-    /// ```
-    pub fn get_value_object(&self,obj:&Object)->Option<Object>{
-        use crate::object::ObjectTrait;
-        let dom = obj.get_domain();
-        return unsafe{Object::from_ptr(
-            crate::binds::mono_field_get_value_object(dom.get_ptr(),self.get_ptr(),obj.get_ptr())
+    /// ```add_internal_calno_field_get_value_object(dom.get_ptr(),self.get_ptr(),obj.get_ptr())
         )};
     }
     ///Sets value of the object field on [`Object`] to value pointed to by *value*
@@ -444,7 +439,7 @@ impl ClassField{
         crate::binds::mono_field_set_value(obj.get_ptr(),self.get_ptr(),value_ptr);
     }
 }
-use crate::interop::InteropBox;
+use crate::interop::{InteropBox,InteropClass};
 impl ClassField{
     ///Sets value of a boxable type. WARING: curently there are no checksto enusure value type and field type match.
     pub fn set_value<T:InteropBox>(&self,obj:&Object,mut val:T){
@@ -455,7 +450,7 @@ impl ClassField{
         unsafe{crate::binds::mono_field_set_value(obj.get_ptr(),self.get_ptr(),&mut val as *mut T as *mut c_void)};
     }
     ///Gets value of a boxable type.
-    pub fn get_value<T:InteropBox>(&self,obj:&Object)->T{
+    pub fn get_value<T:InteropBox + std::marker::Copy + InteropClass>(&self,obj:&Object)->T{
         use crate::object::ObjectTrait;
         let dom = obj.get_domain();
         let obj = unsafe{Object::from_ptr(
@@ -464,15 +459,15 @@ impl ClassField{
         #[cfg(not(feature = "unsafe_boxing"))]
         {
             let oclass =  obj.get_class();
-            let tclass = <T as InteropBox>::get_mono_class();
+            let tclass = <T as InteropClass>::get_mono_class();
             if oclass != tclass{
-                panic!("Tried getting value of field of type `{}` as `{}` type!",&obj.get_name(),&tclass.get_name());
+                panic!("Tried getting value of field of type `{}` as `{}` type!",&oclass.get_name(),&tclass.get_name());
             } 
         }
         return obj.unbox::<T>();
     }
     ///Sets value of field *self* on *object* to *value*
     pub fn set_value_object(&self,obj:&Object,value:&Object){
-        unsafe{crate::binds::mono_field_set_value(obj.get_ptr(),self.get_ptr(),val.get_ptr())};
+        unsafe{crate::binds::mono_field_set_value(obj.get_ptr(),self.get_ptr(),value.get_ptr() as *mut c_void)};
     }
 }

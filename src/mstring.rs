@@ -53,7 +53,7 @@ impl MString{
     }
     ///Returns this [`MString`] as [`Object`]. Both original and return value still reference the same managed object.
     pub fn to_object(&self)->Object{
-        return unsafe{Object::from_ptr(self.get_ptr as *mut crate::binds::MonoObject)}.expect("Impossible condition reached! object null and not null at the same time!");
+        return unsafe{Object::from_ptr(self.s_ptr as *mut crate::binds::MonoObject)}.expect("Impossible condition reached! object null and not null at the same time!");
     }
 }
 impl InteropRecive for MString{

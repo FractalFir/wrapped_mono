@@ -51,7 +51,7 @@ pub use object::{Object,ObjectTrait};
 #[doc(inline)]
 pub use domain::Domain;
 #[doc(inline)]
-pub use interop::{InteropRecive,InteropSend};
+pub use interop::{InteropRecive,InteropSend,InteropBox,InteropClass};
 #[doc(inline)]
 pub use array::Array;
 #[doc(inline)]
