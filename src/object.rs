@@ -131,7 +131,7 @@ impl Object{
     ///}
     ///```
     pub fn unbox<T: InteropBox + Copy>(&self)->T{
-        #[cfg(not(feature = "unsafe_unboxing"))]
+        #[cfg(not(feature = "unsafe_boxing"))]
         {
             let self_class = self.get_class();
             let t_class = <T as InteropClass>::get_mono_class();

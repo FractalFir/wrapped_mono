@@ -13,9 +13,9 @@ rusty-fork = "0.3.0"
 [workspace]
 members = ["src/macros"]
 [features]
-## Disables unboxing safety checks. Normaly, when an object is unboxed, it's type is checked to prevent crashes and errors. Enabling unsafe_unboxing will make wrapped_mono assume that type given by the user is allways correct.
-unsafe_unboxing = []
+## Disables boxing/unboxing safety checks. Normaly, when an object is unboxed, it's type is checked to prevent crashes and errors. Enabling unsafe_unboxing will make wrapped_mono assume that type given by the user is allways correct.
+unsafe_boxing = []
 ## Disables array safety checks. Normaly, when an array is created, it will make checks to enusre that its managed type maches its unmanaged type.
 unsafe_arrays = []
 ## Disables all safety checks to speed `wrapped_mono` up. USE WITH CAUTION.
-unsafe_speedup = ["unsafe_unboxing","unsafe_arrays"]
+unsafe_speedup = ["unsafe_boxing","unsafe_arrays"]

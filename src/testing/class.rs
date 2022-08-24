@@ -57,4 +57,14 @@ rusty_fork_test!{
         let rank = Class::get_int_64().get_rank();
         assert!(rank == 0);
     }
+    #[test]
+    fn class_get_field(){
+        use crate::binds::MonoObject;
+        use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let filed = Class::get_field_from_name(&class,"someField").expect("Could not get filed!");
+    }
 } 

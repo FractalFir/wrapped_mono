@@ -31,14 +31,14 @@ impl Class{
     pub fn from_name(image:&crate::image::Image,namespace:&str,name:&str)->Option<Self>{
         let cstr_nspace = CString::new(namespace).expect(crate::STR2CSTR_ERR);
         let cstr_name = CString::new(name).expect(crate::STR2CSTR_ERR);
-        let res = unsafe{crate::binds::mono_class_from_name(image.to_ptr(),cstr_nspace.as_ptr(),cstr_name.as_ptr())};
+        let res = unsafe{crate::binds::mono_class_from_name(image.get_ptr(),cstr_nspace.as_ptr(),cstr_name.as_ptr())};
         return unsafe{Self::from_ptr(res)};
     } 
     ///Case sensitve version of Class::from_name.
     pub fn from_name_case(image:&crate::image::Image,namespace:&str,name:&str)->Option<Self>{
         let cstr_nspace = CString::new(namespace).expect(crate::STR2CSTR_ERR);
         let cstr_name = CString::new(name).expect(crate::STR2CSTR_ERR);
-        let res = unsafe{crate::binds::mono_class_from_name_case(image.to_ptr(),cstr_nspace.as_ptr(),cstr_name.as_ptr())};
+        let res = unsafe{crate::binds::mono_class_from_name_case(image.get_ptr(),cstr_nspace.as_ptr(),cstr_name.as_ptr())};
         return unsafe{Self::from_ptr(res)};
     } 
     ///Gets field *name* of class.
@@ -311,6 +311,18 @@ impl Class{
         }
         return res;
     }
+    ///Returns field wiht name *name*
+    pub fn get_field(&self,name:&str)->Option<ClassField>{
+        let mut gptr = 0 as *mut std::os::raw::c_void;
+        while let Some(cf) = unsafe{ClassField::from_ptr(
+            crate::binds::mono_class_get_fields(self.class_ptr,&mut gptr as *mut *mut c_void)
+        )}{
+            if &cf.get_name() == name{
+                return Some(cf);
+            }
+        }
+        return None;
+    }
     ///Returns all methods of a class
     pub fn get_methods(&self)->Vec<Method>{
         let mut gptr = 0 as *mut std::os::raw::c_void;
@@ -428,7 +440,39 @@ impl ClassField{
     /// ```
     /// # Safety
     /// *value_ptr* pointer must be valid and have correct type.
-    pub unsafe fn set_value_unsafe(&self,obj:&crate::object::Object,value_ptr:*mut std::os::raw::c_void){
+    pub unsafe fn set_value_unsafe(&self,obj:&Object,value_ptr:*mut std::os::raw::c_void){
         crate::binds::mono_field_set_value(obj.get_ptr(),self.get_ptr(),value_ptr);
+    }
+}
+use crate::interop::InteropBox;
+impl ClassField{
+    ///Sets value of a boxable type. WARING: curently there are no checksto enusure value type and field type match.
+    pub fn set_value<T:InteropBox>(&self,obj:&Object,mut val:T){
+        #[cfg(not(feature = "unsafe_boxing"))]
+        {
+            //TODO:add safety checks
+        }
+        unsafe{crate::binds::mono_field_set_value(obj.get_ptr(),self.get_ptr(),&mut val as *mut T as *mut c_void)};
+    }
+    ///Gets value of a boxable type.
+    pub fn get_value<T:InteropBox>(&self,obj:&Object)->T{
+        use crate::object::ObjectTrait;
+        let dom = obj.get_domain();
+        let obj = unsafe{Object::from_ptr(
+            crate::binds::mono_field_get_value_object(dom.get_ptr(),self.get_ptr(),obj.get_ptr())
+        )}.expect("Cant unbox null as value type");
+        #[cfg(not(feature = "unsafe_boxing"))]
+        {
+            let oclass =  obj.get_class();
+            let tclass = <T as InteropBox>::get_mono_class();
+            if oclass != tclass{
+                panic!("Tried getting value of field of type `{}` as `{}` type!",&obj.get_name(),&tclass.get_name());
+            } 
+        }
+        return obj.unbox::<T>();
+    }
+    ///Sets value of field *self* on *object* to *value*
+    pub fn set_value_object(&self,obj:&Object,value:&Object){
+        unsafe{crate::binds::mono_field_set_value(obj.get_ptr(),self.get_ptr(),val.get_ptr())};
     }
 }

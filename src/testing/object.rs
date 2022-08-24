@@ -1,8 +1,8 @@
 use rusty_fork::rusty_fork_test;
+use crate as wrapped_mono;
 rusty_fork_test! { 
     #[test]
     fn object_creation(){
-        use crate as wrapped_mono;
         use wrapped_mono::jit;
         use wrapped_mono::object::*;
         use wrapped_mono::class::Class;
@@ -16,7 +16,6 @@ rusty_fork_test! {
     }
     #[test]
     fn object_box(){
-        use crate as wrapped_mono;
         use wrapped_mono::jit;
         use wrapped_mono::object::*;
         let main = jit::init("main",None);
@@ -25,7 +24,6 @@ rusty_fork_test! {
     }
     #[test]
     fn object_unbox(){
-        use crate as wrapped_mono;
         use wrapped_mono::jit;
         use wrapped_mono::object::*;
         let main = jit::init("main",None);
@@ -37,11 +35,10 @@ rusty_fork_test! {
 
         assert!(unboxed == val);
     }
-    #[cfg(not(feature = "unsafe_unboxing"))]
+    #[cfg(not(feature = "unsafe_boxing"))]
     #[should_panic]
     #[test]
-    fn object_unbox_wrong_type(){
-        use crate as wrapped_mono;
+    fn object_unbox_wrong_type(){   
         use wrapped_mono::jit;
         use wrapped_mono::object::*;
         let main = jit::init("main",None);
@@ -49,5 +46,34 @@ rusty_fork_test! {
         let val:i32 = 128; 
         let obj = Object::box_val(&main,val);
         let _unboxed = Object::unbox::<i64>(&obj);
+    }
+    #[test]
+    fn test_object_size(){
+        use crate::binds::MonoObject;
+        use std::mem::size_of;
+        use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let obj = Object::new(&dom,&class);
+        let size = obj.get_size();
+        //println!("{}",size);
+        assert!(size as usize == size_of::<MonoObject>()  + size_of::<i32>());
+    }
+    #[test]
+    fn test_object_field_get_value(){
+        use crate::binds::MonoObject;
+        use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let obj = Object::new(&dom,&class);
+        let field = Class::get_field_from_name(&class,"someField").expect("Could not get field!");
+        let val = field.get_value_object(&obj).expect("Could not get object field!");
+        let unboxed = val.unbox::<i32>();
+        //Gets 0 because constructor not called!
+        assert!(unboxed == 0);
     }
 }
