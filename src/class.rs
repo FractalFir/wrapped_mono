@@ -358,7 +358,6 @@ use crate::binds::MonoClassField;
 pub struct ClassField{
     cf_ptr:*mut MonoClassField,
 }
-
 impl ClassField{
     /// Creates [`ClassField`] form *cf_ptr*. Returns [`Some(ClassField)`] if pointer is not null, and [`None`] if it is.
     /// # Safety
@@ -418,6 +417,12 @@ impl ClassField{
     /// //First got pointer to unboxed value using unbox() then converted it to proper type (*mut i32), and dereferenced
     /// it to get its value.
     /// ```add_internal_calno_field_get_value_object(dom.get_ptr(),self.get_ptr(),obj.get_ptr())
+    /// ```
+    pub fn get_value_object(&self,obj:&Object)->Option<Object>{
+        use crate::object::ObjectTrait;
+        let dom = obj.get_domain();
+        return unsafe{Object::from_ptr(
+            crate::binds::mono_field_get_value_object(dom.get_ptr(),self.get_ptr(),obj.get_ptr())
         )};
     }
     ///Sets value of the object field on [`Object`] to value pointed to by *value*
