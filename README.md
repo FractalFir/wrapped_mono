@@ -30,9 +30,9 @@
 - [x] Signal chaining
 - [x] Exposing unmanged functions as internal calls in managed code
 - [x] Passing data between managed and unmanaged code
-- [ ] Support for properities (getters,setters, etc)
-- [ ] Implementation of Inertop Traits for all simple types.
-- [ ] Full documentaion for all features - 95% done
+- [X] Support for properities (getters,setters, etc)
+- [X] Implementation of Inertop Traits for all simple types.
+- [X] Full documentaion for all features
 ## Version 0.2
 - [ ] Arrays with more than one dimension. (Altough there is no support for multidimensional arrays, they can be still used by enabling unsafe_arrays fetures and indexing into them like into an 1 - dimensional array(they can't be created yet too))
 - [ ] Autoimplementation of some Interop traits (Interop Send,InteropRevive) for structs.

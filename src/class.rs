@@ -346,7 +346,26 @@ impl Class{
         }
         return res;
     }
-    //TODO:mono_class_get_property_from_name && mono_class_get_properties ASAP
+    ///Returns properity with name *name* or [`None`] if it is not inside class.
+    pub fn get_property_from_name(&self,name:&str)->Option<ClassProperity>{
+        let cstr = CString::new(name).expect(crate::STR2CSTR_ERR);
+        let res = unsafe{ClassProperity::from_ptr(
+            crate::binds::mono_class_get_property_from_name(self.class_ptr, cstr.as_ptr()) 
+        )};
+        drop(cstr);
+        return res;
+    }
+    ///Returns all properities of class *self*.
+    pub fn get_properities(&self)->Vec<ClassProperity>{
+        let mut gptr = 0 as *mut std::os::raw::c_void;
+        let mut res = Vec::new();
+        while let Some(cf) = unsafe{ClassProperity::from_ptr(
+            crate::binds::mono_class_get_properties(self.class_ptr,&mut gptr as *mut *mut c_void)
+        )}{
+            res.push(cf);
+        }
+        return res;
+    }
 }
 impl std::cmp::PartialEq for Class{
     fn eq(&self,other:&Self)->bool{
@@ -475,4 +494,77 @@ impl ClassField{
     pub fn set_value_object(&self,obj:&Object,value:&Object){
         unsafe{crate::binds::mono_field_set_value(obj.get_ptr(),self.get_ptr(),value.get_ptr() as *mut c_void)};
     }
+}
+use crate::binds::MonoProperty;
+use crate::Exception;
+use core::ptr::null_mut;
+///Representaion of class properity(getters,setters) *not a class field!*
+pub struct ClassProperity{
+    prop_ptr:*mut MonoProperty,
+}
+impl ClassProperity{
+    pub fn from_ptr(ptr:*mut MonoProperty)->Option<ClassProperity>{
+        if ptr == null_mut(){
+            return None;
+        }
+        else {
+            return Some(Self{prop_ptr:ptr});
+        }
+    }
+    pub fn get_ptr(&self)->*mut MonoProperty{
+        return self.prop_ptr;
+    }
+    ///Gets value of properity *self* of *object*(pass None if static), with parmateres *params*(only for Indexers,otherwise pass empty vec)
+    ///Pointers in *params* must be a valid.
+    pub unsafe fn get(&self,obj:Option<Object>,params:Vec<*mut c_void>)->Result<Option<Object>,Exception>{
+        let param_ptr = params.as_ptr() as *mut *mut c_void;
+        let obj_ptr = match obj{
+            Some(obj)=>obj.get_ptr(),
+            None=>null_mut(),
+        } as *mut c_void;
+        use crate::binds::{MonoException,MonoObject};
+        let mut exec:*mut MonoException = null_mut();
+        let exec_ptr = &mut exec as *mut *mut MonoException;
+        let res = unsafe{crate::binds::mono_property_get_value(self.get_ptr(),obj_ptr,param_ptr,exec_ptr as *mut *mut MonoObject)};
+        if exec != null_mut(){
+            let e = unsafe{Exception::from_ptr(exec)}.expect("Impossible condition reached. Pointer null and not null at the same time!");
+            return Err(e);
+        }
+        else{
+            return Ok(unsafe{Object::from_ptr(res)});
+        }
+    }
+    ///Sets value of properity *self* of *object*(pass None if static), with value at begining of *params*, and passany other arguments after it(only for Indexers,otherwise pass only the set value)
+    ///Pointers in *params* must be a valid.
+    pub unsafe fn set(&self,obj:Option<Object>,params:Vec<*mut c_void>)->Result<(),Exception>{
+        let param_ptr = params.as_ptr() as *mut *mut c_void;
+        let obj_ptr = match obj{
+            Some(obj)=>obj.get_ptr(),
+            None=>null_mut(),
+        } as *mut c_void;
+        use crate::binds::{MonoException,MonoObject};
+        let mut exec:*mut MonoException = null_mut();
+        let exec_ptr = &mut exec as *mut *mut MonoException;
+        let _ = unsafe{crate::binds::mono_property_set_value(self.get_ptr(),obj_ptr,param_ptr,exec_ptr as *mut *mut MonoObject)};
+        if exec != null_mut(){
+            let e = unsafe{Exception::from_ptr(exec)}.expect("Impossible condition reached. Pointer null and not null at the same time!");
+            return Err(e);
+        }
+        else{
+            return Ok(());
+        }
+    }
+    ///Gets properities getter method.
+    pub unsafe fn get_get_method(&self)->Option<Method>{
+        return unsafe{Method::from_ptr(crate::binds::mono_property_get_get_method(self.prop_ptr))};
+    }
+    ///Gets properities setter method.
+    pub unsafe fn get_set_method(&self)->Option<Method>{
+        return unsafe{Method::from_ptr(crate::binds::mono_property_get_get_method(self.prop_ptr))};
+    }
+    ///Gets class this properity is attached to 
+    pub fn get_parent(&self)->Class{
+        return unsafe{Class::from_ptr(crate::binds::mono_property_get_parent(self.prop_ptr))}.expect("Cold not get class this properity is attached to");
+    }
+    //TODO:mono_property_get_name
 }
