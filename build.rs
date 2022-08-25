@@ -79,7 +79,6 @@ mod tests{
     }
 }
 
-
 fn main() {
     #[cfg(not(any(target_os = "linux",target_os = "windows")))]
     panic!("Target OS currently not supported");

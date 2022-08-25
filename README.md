@@ -91,24 +91,24 @@ fn main(){
 ## Exposing rust functions as internal calls
 ```cs
     class SomeClass{
-        - [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         void SomeFunction(string arg);
-        - [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         void OtherFunction(int arg);
-        - [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         int ArrayFunction(int- [] arg);
-        - [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         void PointerFunction(System.IntPtr arg);
-        - [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         void CharFunction(char arg);
     }
 ```
 ```rust
-    #- [invokable]
+    #[invokable]
     fn some_function(arg:String){
         println!("recived arg:'{}'!",arg);
     }
-    #- [invokable]
+    #[invokable]
     fn other_function(arg:i32){
         println!("recived arg:'{}'!",arg);
     }
@@ -116,11 +116,11 @@ fn main(){
     fn pointer_function(arg:*mut i64){
         println!("recived pointer:'{}'!",arg);
     }
-     #- [invokable]
+    #[invokable]
     fn char_function(arg:char){
         println!("recived UTF-8 char!(supports symbols like ó ö ❤️)",arg);
     }
-    #- [invokable]
+    #[invokable]
     fn array_function(arg:Array<i32>)->i32{
         let len = arg.len();
         for i in 0..len{
