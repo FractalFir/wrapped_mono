@@ -6,6 +6,8 @@
  `wrapped_mono` aims to be as lightweight as possible while still providing a safe and convnient API. While there are checks to ensure `wrapped_mono` works propely and in case of undefined behavior or crashes proper error messages will be printed,**not every mistake can be caught without a substantial effect on preformance**. That kinds of errors are **not handled**, and handling errors that can be caught relativly easily but still have some preformance impact can be disabled to gain even more preformance. It means that it is still possible to make certain kinds of mistakes (accesing objects after deleting them by deleting domain there are in, etc).
 # Dependencies
  `wrapped_mono` depends on the mono library, since it is just a wrapper. Mono library can be downloaded <a href="https://www.mono-project.com/download/stable/">here</a>.
+# Supported platforms
+ `wrapped_mono` works well with linux, but windows support is not finished(crate compiles without issues, but does not run propely because it can't find `mscorlib.dll`).
 # Fetures and planned features
 ## Version 0.1
 - [x] Runtime initialization/shutdown

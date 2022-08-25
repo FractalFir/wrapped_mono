@@ -26,7 +26,7 @@ mod binds{
         bindings.write(Box::new(file)).expect("Couldn't write bindings!");
     }
 }
-//#[cfg(test)]
+#[cfg(test)]
 mod tests{
     use std::process::Command;
     /*
@@ -81,12 +81,29 @@ mod tests{
 
 
 fn main() {
-    #[cfg(test)]
-    std::fs::create_dir_all("test/dlls").expect("Could not create test directory");
-    println!("cargo:rustc-link-lib=mono-2.0");
+    #[cfg(not(any(target_os = "linux",target_os = "windows")))]
+    panic!("Target OS currently not supported");
+    #[cfg(target_os = "linux")]
+    {
+        println!("cargo:rustc-link-lib=mono-2.0");
+    }
+    #[cfg(target_os = "windows")]
+    {
+        //Windows support experimental
+        println!("cargo:rustc-link-lib=libmono-static-sgen");
+        println!("cargo:rustc-link-search=C:\\ProgramFiles\\Mono\\lib");
+        println!("cargo:rustc-link-lib=winmm");
+        println!("cargo:rustc-link-lib=ole32");
+        println!("cargo:rustc-link-lib=oleaut32");
+        println!("cargo:rustc-link-lib=shell32");
+        println!("cargo:rustc-link-lib=version");
+    }
     #[cfg(test)]
     binds::gen_binds();
-    //#[cfg(test)]
+   
+    #[cfg(test)]
+    std::fs::create_dir_all("test/dlls").expect("Could not create test directory");
+    #[cfg(test)]
     {
         tests::compile_pinvoke_test_assembly();
         tests::compile_jit_test_assembly();
