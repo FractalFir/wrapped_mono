@@ -106,7 +106,7 @@ fn main() {
     {
         //Windows support experimental
         println!("cargo:rustc-link-lib=mono-2.0-sgen");
-        println!("cargo:rustc-link-search=C:\\ProgramFiles\\Mono\\lib");
+        println!("cargo:rustc-link-search=C:\\Program Files\\Mono\\lib");
         copy_win_dlls();
     }
     #[cfg(test)]
