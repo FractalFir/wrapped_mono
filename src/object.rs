@@ -96,7 +96,7 @@ impl ObjectTrait for Object{
 }
 use crate::interop::InteropBox;
 impl Object{ 
-    ///Allocates new object of [`Class`] class. **Does not call the constructor**
+    ///Allocates new object of [`Class`] class. **Does not call the constructor**, to call constuctor call the `.ctor` method after creating the object. 
     /// # Examples
     /// ```rust
     /// let new_obj = Object::new(some_domain,new_objects_class);

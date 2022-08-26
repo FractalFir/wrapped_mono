@@ -4,7 +4,7 @@ use crate as wrapped_mono;
 mod some_mod{
     use macros::*;
     #[invokable]
-    fn some_fn(){}
+    pub fn some_fn(){}
 }
 rusty_fork_test! {
     #[test]
@@ -53,7 +53,6 @@ rusty_fork_test! {
         args.push("two");
         args.push("three");
         args.push("four");
-        some_mod::some_fn();
         add_internal_call!("Test::SendTestString",string_test);
         add_internal_call!("Test::PassArgCount", pass_arg_count);
         add_internal_call!("Test::PassDataArray",pass_data_array);

@@ -95,7 +95,8 @@ impl Method{
         return res;
     }
     //TODO: Make this sligtly safer
-    ///**Doesn't** handle virtual methods, calls the method passed. To handle virtual methods, first get virtual method from object it is called on
+    ///Invokes method *self*. *obj* is the `this` object(object method is called on). Pass [`None`] if method is static.
+    ///**Doesn't** handle virtual methods, calls the method passed. To handle virtual methods, first get virtual method from object it is called on.
     pub unsafe fn invoke_unsafe(&self,obj:Option<&Object>,params:&mut Vec<*mut std::os::raw::c_void>)->Result<Option<Object>,Exception>{
         use core::ffi::c_void;
         use crate::binds::MonoException;
