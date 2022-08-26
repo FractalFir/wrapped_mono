@@ -9,13 +9,15 @@
 # Supported platforms
  `wrapped_mono` works well with linux, but windows support is not finished(some files have to be manualy copied).
 ## Windows Issues
-  Outside crate foldrer named 'lib' must be created. This folder is the default location of 'mscorlib.dll'. To change this location call `runtime::set_dirs` before `jit::init`. This folder must contain copy of file `mscorlib.dll` from `C:\Program Files\Mono\lib\mono\{MONO_RUNTIME_VERSION}\mscorlib.dll`.Root folder of a crate using `wrapped_mono` must contain copy of file `mono-2.0-sgen.dll` from `C:\Program Files\Mono\bin\mono-2.0-sgen.dll`.
+  Outside the crate, in the directory containing it a directory named `lib` must be created(for example, in case of a crate called `my_crate` `lib` shoudl be in the same directory `my_crate` is in). This folder is the default location of 'mscorlib.dll'. To change this location call `runtime::set_dirs` before `jit::init`. This folder must contain copy of file `mscorlib.dll` from `C:\Program Files\Mono\lib\mono\{MONO_RUNTIME_VERSION}\mscorlib.dll`. Root folder of a crate using `wrapped_mono` must contain copy of file `mono-2.0-sgen.dll` from `C:\Program Files\Mono\bin\mono-2.0-sgen.dll`.
 ## MacOS Support
   `wrapped_mono` likey works on MacOS with linux copilation flags, but since I have no acces to a mac computer, it was not tested yet. (because of that, compilation will stop with "your os is not supported" message, change `build.rs` to enable compiling on MacOS).
 ## Cross-Compilation
   Cross compiling `warpped_mono` is not supported yet(flags set by `build.rs` assume target system is also the host system), but support for it can be added by seeting proper flags.
 ## Any other platform
   In order to compile for any other platform 3 requirements must be met: this platform is supported by mono, rust can be compiled for it, and proper flags are set in `build.rs`.
+# Documentaion
+ `wrapped_mono` contains full documentaion inside it. In order to open documentation download `wrapped_mono` and run `cargo doc --open`.
 # Fetures and planned features
 ## Version 0.1
 - [x] Runtime initialization/shutdown
@@ -104,7 +106,7 @@ fn main(){
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         void OtherFunction(int arg);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        int ArrayFunction(int- [] arg);
+        int ArrayFunction(int[] arg);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         void PointerFunction(System.IntPtr arg);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
