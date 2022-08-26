@@ -78,7 +78,21 @@ mod tests{
         }
     }
 }
-
+//TODO:extend this function(use symlinks?) to allow for multipile versions of mono to be used.
+fn copy_win_dlls(){
+    //check if "mono-2.0-sgen.dll" present, and copy it if not
+    let msgen_taraget_path = "mono-2.0-sgen.dll";
+    if !msgen_taraget_path.exists(){
+        let msgen_source_path = "C:\\Program Files\\Mono\\bin\\mono-2.0-sgen.dll";
+        std::fs::copy(msgen_source_path,msgen_taraget_path).expect("Could not copy `mono-2.0-sgen.dll` file. Is mono propely installed on your system?");
+    }
+    //check if mscorlib.dll file is present and if not copy
+    let mcl_target_path = "..\\lib\\mono\\4.5\\mscorlib.dll"
+    if !mcl_target_path.exists(){
+        let mcl_source_path = "C:\\Program Files\\Mono\\lib\\mono\\4.5\\mscorlib.dll";
+        std::fs::copy(mcl_source_path,mcl_target_path).expect("Could not copy `mscorlib.dll` file. Is mono propely installed on your system?");
+    }
+}
 fn main() {
     #[cfg(not(any(target_os = "linux",target_os = "windows")))]
     panic!("Target OS currently not supported");
@@ -89,13 +103,9 @@ fn main() {
     #[cfg(target_os = "windows")]
     {
         //Windows support experimental
-        println!("cargo:rustc-link-lib=libmono-static-sgen");
+        println!("cargo:rustc-link-lib=mono-2.0-sgen");
         println!("cargo:rustc-link-search=C:\\ProgramFiles\\Mono\\lib");
-        println!("cargo:rustc-link-lib=winmm");
-        println!("cargo:rustc-link-lib=ole32");
-        println!("cargo:rustc-link-lib=oleaut32");
-        println!("cargo:rustc-link-lib=shell32");
-        println!("cargo:rustc-link-lib=version");
+        copy_win_dlls();
     }
     #[cfg(test)]
     binds::gen_binds();

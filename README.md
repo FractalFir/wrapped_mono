@@ -7,7 +7,7 @@
 # Dependencies
  `wrapped_mono` depends on the mono library, since it is just a wrapper. Mono library can be downloaded <a href="https://www.mono-project.com/download/stable/">here</a>.
 # Supported platforms
- `wrapped_mono` works well with linux, but windows support is not finished(crate compiles without issues, but does not run propely because it can't find `mscorlib.dll`).
+ `wrapped_mono` works well with linux, but windows support is not finished(only mono version 4.5 is working).
 # Fetures and planned features
 ## Version 0.1
 - [x] Runtime initialization/shutdown
