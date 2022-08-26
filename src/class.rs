@@ -374,6 +374,7 @@ impl std::cmp::PartialEq for Class{
 }
 use crate::object::Object;
 use crate::binds::MonoClassField;
+///Representaion of a class field. Accesors(getters,setters and indexers) are *not* fields, but properties! For them use [`ClassProperty`]
 pub struct ClassField{
     cf_ptr:*mut MonoClassField,
 }

@@ -55,7 +55,7 @@ pub use interop::{InteropRecive,InteropSend,InteropBox,InteropClass};
 #[doc(inline)]
 pub use array::Array;
 #[doc(inline)]
-pub use class::{Class,ClassField};
+pub use class::{Class,ClassField,ClassProperity};
 #[doc(inline)]
 pub use image::Image;
 #[doc(inline)]

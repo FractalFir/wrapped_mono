@@ -76,4 +76,27 @@ rusty_fork_test! {
         //Gets 0 because constructor not called!
         assert!(unboxed == 0);
     }
+    #[test]
+    fn get_2D_array(){
+        use crate::binds::MonoObject;
+        use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait},array::Array,method::Method};
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let mthd = Method::get_method_from_name(&class,"Get2DIntArray",0).expect("Could not load function");
+        let arr:Array<i32> = unsafe{Array::from_ptr((
+            mthd.invoke_unsafe(None,&mut Vec::new()).expect("Exception").expect("got null").get_ptr() as *mut crate::binds::MonoArray
+        ))}.expect("got null again");
+        assert!(arr.len() == 8*16);
+        //Gets 0 because constructor not called!
+    }
+    #[test]
+    fn get_4D_array(){
+        use wrapped_mono::{jit,Array,ObjectTrait};
+        let dom = jit::init("root",None);
+        let arr:Array<i32> = Array::new_dimensions(&dom,4,&[4;4]);
+        assert!(arr.len() == 4*4*4*4);
+        assert!(arr.get_class().get_rank() == 4);
+    }
 }

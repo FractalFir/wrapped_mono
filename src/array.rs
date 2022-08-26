@@ -1,14 +1,19 @@
 use crate::interop::{InteropRecive,InteropSend,InteropClass};
 use crate::Class;
 use crate::Object;
+use core::marker::PhantomData;
+use crate::binds::MonoArray;
 /// Safe representation of MonoArray(a reference to a managed array). Reqiures it's generic argument to implement InvokePass in order to automaticaly convert value from managed type to rust type.
 /// # Safety
 /// It is possible to use wrong type Array (e.g. casting float[] to Array<String>) and either cause a crash or read a garbage value.
 /// # Nullable support
 /// [`Array<T>`] is non-nullable on defult and will panic when null passed as argument form managed code. For nullable support use [`Option<Array<T>>`].
+/// # More dimensions
+/// Arrays with any given number of dimmensions bechave the same as a one dimensional array of length equvalent to ammount of elemnts in a n-dimensional array, 
+/// besides the `class` of the object being diffrent.
 pub struct Array<T:InteropSend + InteropRecive + InteropClass>{
-    arr_ptr:*mut crate::binds::MonoArray,
-    pd:std::marker::PhantomData<T>,
+    arr_ptr:*mut MonoArray,
+    pd:PhantomData<T>,
 } 
 impl<T:InteropSend + InteropRecive + InteropClass> Array<T>{
     ///Function returning element at *index*
@@ -56,17 +61,17 @@ impl<T:InteropSend + InteropRecive + InteropClass> Array<T>{
     ///Function creating Array<T> from a pointer to MonoArray
     /// # Safety
     /// Pointer must be either a pointer to valid MonoAray of the same type, or a null pointer. Invalid values may lead to undefined behaviour and crashes.
-    pub unsafe fn from_ptr(ptr:*mut crate::binds::MonoArray)->Option<Self>{
+    pub unsafe fn from_ptr(ptr:*mut MonoArray)->Option<Self>{
         if ptr == null_mut(){
             return None;
         }
-        let res = Array{arr_ptr:ptr,pd:std::marker::PhantomData};
+        let res = Array{arr_ptr:ptr,pd:PhantomData};
         #[cfg(not(feature = "unsafe_arrays"))]
         {
             use crate::object::ObjectTrait;
             let sclass = res.to_object().get_class(); 
             let tclass = <Self as InteropClass>::get_mono_class();
-            if sclass != tclass{
+            if sclass.get_element_class() != tclass.get_element_class(){
                 panic!("tried to create array of type `{}` from object of type `{}`",&tclass.get_name(),&sclass.get_name());
             }
         }
@@ -86,6 +91,20 @@ impl<T:InteropSend + InteropRecive + InteropClass> Array<T>{
     pub fn new(domain:&crate::domain::Domain,n:usize)->Self{
         return unsafe{Self::from_ptr(
             crate::binds::mono_array_new(domain.get_ptr(),<T as InteropClass>::get_mono_class().get_ptr(),n)
+        )}.expect("could not create a new array!");
+    }
+    ///Alocate new array in *domain* with *n* dimensions and size *dimensions* with elements of type *class*. 
+    /// # Example
+    ///```rust
+    /// let arr_len = 8;
+    /// let arr = Array<i32>::new(&domain,&int_managed_class,arr_len);
+    /// assert!(arr.len() == arr_len);
+    ///```
+    pub fn new_dimensions(domain:&crate::domain::Domain,n:usize,dimensions:&[usize])->Self{
+        assert!(dimensions.len() == n,"Dimension array size mus be equal to nuymber of dimensions!");
+        let class = <T as InteropClass>::get_mono_class().get_array_class(n as u32);
+        return unsafe{Self::from_ptr(
+            crate::binds::mono_array_new_full(domain.get_ptr(),class.get_ptr(),dimensions as *const [usize] as *mut usize,null_mut())
         )}.expect("could not create a new array!");
     }
     ///Function returning a copy of internal pointer to MonoArray

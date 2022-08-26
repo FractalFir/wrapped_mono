@@ -3,6 +3,9 @@ interface IInterfaceOne{
 }
 class TestFunctions : IInterfaceOne{
     public int someField = 5;
+    public static int[,] Get2DIntArray(){
+        return new int[8,16];
+    }
     public int GetSomeFiled(){
         return this.someField;
     }

@@ -44,14 +44,14 @@
 - [X] Implementation of Inertop Traits for all simple types.
 - [X] Full documentaion for all features
 ## Version 0.2
-- [ ] Arrays with more than one dimension. (Altough there is no support for multidimensional arrays, they can be still used by enabling unsafe_arrays fetures and indexing into them like into an 1 - dimensional array(they can't be created yet too))
+- [X] Arrays with more than one dimension. (Multi-dimensional arrays work, but they behave like 1D arrays. This may be a limitation of the mono runtime, or it could be solvable)
 - [ ] Autoimplementation of some Interop traits (Interop Send,InteropRevive) for structs.
-## Version 0.3
-- [ ] Debugging API
-- [ ] Dynamic code generation
-- [ ] Certain fetures of mono JIT(mostly debugging)
-- [ ] Reading of assembly meatdata
 - [ ] Profilier (Data about preformance)
+- [ ] Debugging API
+- [ ] Certain fetures of mono JIT(mostly debugging)
+## Version 0.3
+- [ ] Dynamic code generation
+- [ ] Reading of assembly meatdata
 - [ ] Seciurity API
 - [ ] Features related to threads
 

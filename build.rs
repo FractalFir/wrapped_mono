@@ -26,7 +26,7 @@ mod binds{
         bindings.write(Box::new(file)).expect("Couldn't write bindings!");
     }
 }
-#[cfg(test)]
+//#[cfg(test)]
 mod tests{
     use std::process::Command;
     /*
@@ -114,7 +114,7 @@ fn main() {
    
     #[cfg(test)]
     std::fs::create_dir_all("test/dlls").expect("Could not create test directory");
-    #[cfg(test)]
+    //#[cfg(test)]
     {
         tests::compile_pinvoke_test_assembly();
         tests::compile_jit_test_assembly();
