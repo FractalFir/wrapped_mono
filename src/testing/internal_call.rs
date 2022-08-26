@@ -1,9 +1,14 @@
 use rusty_fork::rusty_fork_test;
 use macros::*;
 use crate as wrapped_mono;
+mod some_mod{
+    use macros::*;
+    #[invokable]
+    fn some_fn(){}
+}
 rusty_fork_test! {
     #[test]
-    fn p_invoke(){
+    fn internal_call(){
         #[invokable]
         fn string_test(s:String) -> i32{
             assert!(s == "|one,two,three,four,");
@@ -48,12 +53,13 @@ rusty_fork_test! {
         args.push("two");
         args.push("three");
         args.push("four");
-
+        some_mod::some_fn();
         add_internal_call!("Test::SendTestString",string_test);
         add_internal_call!("Test::PassArgCount", pass_arg_count);
         add_internal_call!("Test::PassDataArray",pass_data_array);
         add_internal_call!("Test::GetObject",get_object);
         add_internal_call!("Test::PassTestChar",pass_test_char);
+        add_internal_call!("Test::SomeFN",some_mod::some_fn);
 
         let _res = jit::exec(&dom,&asm,args);
 

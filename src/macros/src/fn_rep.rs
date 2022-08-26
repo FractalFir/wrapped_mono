@@ -1,4 +1,4 @@
-//TODO: while makro system works, it is not a good written piece of software. It needs a complete rewrite.
+//TODO: while makro system works,this is my first ever macro, and it is not a good written piece of software. It needs a complete rewrite.
 use crate::tok_vec::*;
 use crate::arg_rep::*;
 use std::fmt;
@@ -27,7 +27,7 @@ impl fmt::Display for FnRep{
     }
 }
 //TODO: Rewrite this function to make it more sensible
-fn tok_vec_pop_return(tv:&mut TokVec)->TokenTree{
+fn tok_vec_pop_return(mut tv:&mut TokVec)->TokenTree{
     let mut is_last_arrow = false;
     let mut res:Vec<TokenTree> = Vec::with_capacity(tv.len());
     while let Some(tok) = tv.pop(){
@@ -64,19 +64,30 @@ fn tok_vec_pop_return(tv:&mut TokVec)->TokenTree{
             _=>res.push(tok.clone()),
         }
     }
-    //println!("res:{}",res.to_string());
-    //println!("ila:{}",is_last_arrow);
+    println!("res:{}",res.to_string());
+    println!("ila:{}",is_last_arrow);
     panic!("Could not find return");
 }
 use std::str::FromStr;
 impl FnRep{
     pub fn fn_rep_from_stream(fn_ts:TokenStream) -> FnRep{
         let tok_backup = fn_ts.clone();
-        let mut tokens = TokVec::from_stream(fn_ts);        
+        let mut tokens = TokVec::from_stream(fn_ts); 
+        //check if public
+        let mut _is_pub = false;
+        match &tokens[0]{
+            TokenTree::Ident(i)=>{
+                if i.to_string() == "pub"{
+                    //println!("public function!");
+                    _is_pub = true;
+                    tokens.remove(0);
+                }
+            },
+            _=>(),
+        }       
         //body
         tokens.pop();
         //return type
-        //TODO:fix this to allow for return values
         let ret = if tokens.len() > 3{
             Some(tok_vec_pop_return(&mut tokens))
         }else{None};

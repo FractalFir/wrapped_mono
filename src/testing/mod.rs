@@ -1,6 +1,6 @@
 #![cfg(test)]
 use rusty_fork::rusty_fork_test;
-mod pinvoke;
+mod internal_call;
 mod object;
 mod method;
 mod exception;
