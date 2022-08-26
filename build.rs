@@ -90,7 +90,7 @@ fn copy_win_dlls(){
     //check if mscorlib.dll file is present and if not copy
     let mcl_target_path = Path::new("..\\lib\\mono\\4.5\\mscorlib.dll");
     if !mcl_target_path.exists(){
-        std::fs::create_dir_all(".\\lib\\mono\\4.5");
+        std::fs::create_dir_all("..\\lib\\mono\\4.5");
         let mcl_source_path = Path::new("C:\\Program Files\\Mono\\lib\\mono\\4.5\\mscorlib.dll");
         std::fs::copy(mcl_source_path,mcl_target_path).expect("Could not copy `mscorlib.dll` file. Is mono propely installed on your system?");
     }
