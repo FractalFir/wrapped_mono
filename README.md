@@ -1,7 +1,7 @@
 # wrapped_mono
  `wrapped_mono` is a safe lightweight wrapper around the mono library. It allows embeding the mono runtime(an open-source .NET runtime) inside rust code, and running code written in languges from the .NET framework. `wrapped_mono` allows for easy interop between managed and unmanaged code. Built-in macros automaticaly convert types when passing data between native code and code run inside the runtime.
 ## W.I.P
- While `wrapped_mono` is mostly finished, there are still few rough edges that need some polish. Some more obscure features do not have safe wrappers yet.
+ While `wrapped_mono` is mostly finished, there are still few rough edges that need some polish. Some more obscure features do not have safe wrappers yet. In order to avoid problems with changes to API during development add wrapped_mono to Cargo.toml in the follwong way:`wrapped_mono = {git = "https://github.com/FractalFir/wrapped_mono.git",tag = "VERSION_NUMBER"}`.This will make you stay at release *VERSION_NUMBER*.
 ## What `wrapped_mono` **is not**
  `wrapped_mono` aims to be as lightweight as possible while still providing a safe and convnient API. While there are checks to ensure `wrapped_mono` works propely and in case of undefined behavior or crashes proper error messages will be printed,**not every mistake can be caught without a substantial effect on preformance**. That kinds of errors are **not handled**, and handling errors that can be caught relativly easily but still have some preformance impact can be disabled to gain even more preformance. It means that it is still possible to make certain kinds of mistakes (accesing objects after deleting them by deleting domain there are in, etc).
 # Dependencies
