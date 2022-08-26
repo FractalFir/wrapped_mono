@@ -1,5 +1,5 @@
 # wrapped_mono
- `wrapped_mono`is a safe lightweight wrapper around the mono library. It allows embeding the mono runtime(an open-source .NET runtime) inside rust code, and running code written in languges from the .NET framework. `wrapped_mono` allows for easy interop between managed and unmanaged code. Built-in macros automaticaly convert types when passing data between native code and code run inside the runtime.
+ `wrapped_mono` is a safe lightweight wrapper around the mono library. It allows embeding the mono runtime(an open-source .NET runtime) inside rust code, and running code written in languges from the .NET framework. `wrapped_mono` allows for easy interop between managed and unmanaged code. Built-in macros automaticaly convert types when passing data between native code and code run inside the runtime.
 ## W.I.P
  While `wrapped_mono` is mostly finished, there are still few rough edges that need some polish. Some more obscure features do not have safe wrappers yet.
 ## What `wrapped_mono` **is not**
@@ -7,7 +7,15 @@
 # Dependencies
  `wrapped_mono` depends on the mono library, since it is just a wrapper. Mono library can be downloaded <a href="https://www.mono-project.com/download/stable/">here</a>.
 # Supported platforms
- `wrapped_mono` works well with linux, but windows support is not finished(only mono version 4.5 is working).
+ `wrapped_mono` works well with linux, but windows support is not finished(some files have to be manualy copied).
+## Windows Issues
+  Outside crate foldrer named 'lib' must be created. This folder is the default location of 'mscorlib.dll'. To change this location call `runtime::set_dirs` before `jit::init`. This folder must contain copy of file `mscorlib.dll` from `C:\Program Files\Mono\lib\mono\{MONO_RUNTIME_VERSION}\mscorlib.dll`.Root folder of a crate using `wrapped_mono` must contain copy of file `mono-2.0-sgen.dll` from `C:\Program Files\Mono\bin\mono-2.0-sgen.dll`.
+## MacOS Support
+  `wrapped_mono` likey works on MacOS with linux copilation flags, but since I have no acces to a mac computer, it was not tested yet. (because of that, compilation will stop with "your os is not supported" message, change `build.rs` to enable compiling on MacOS).
+## Cross-Compilation
+  Cross compiling `warpped_mono` is not supported yet(flags set by `build.rs` assume target system is also the host system), but support for it can be added by seeting proper flags.
+## Any other platform
+  In order to compile for any other platform 3 requirements must be met: this platform is supported by mono, rust can be compiled for it, and proper flags are set in `build.rs`.
 # Fetures and planned features
 ## Version 0.1
 - [x] Runtime initialization/shutdown
