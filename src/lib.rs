@@ -44,6 +44,9 @@ pub mod runtime;
 pub mod exception;
 /// Funcrions related to garbage collection.
 pub mod gc;
+/// Utilities related to metadata.
+pub mod metadata;
+
 mod testing;
 pub use macros;
 #[doc(inline)]

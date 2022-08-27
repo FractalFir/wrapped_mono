@@ -82,4 +82,15 @@ rusty_fork_test! {
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
         let _met = Method::get_method_from_name(&class,"GetArg",3).unwrap();
     }
+    /*
+    #[test]
+    fn testing_function_signature(){
+        use wrapped_mono::{jit,class::Class,method::Method};
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let sig_check = img.check_fnc_sig("TestFunctions::GetArg",Class::get_int_32(),&vec![Class::get_int_32()]);
+        assert!(sig_check);
+    }
+    */
 }

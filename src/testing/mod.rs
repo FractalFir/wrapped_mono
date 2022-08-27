@@ -50,6 +50,16 @@ rusty_fork_test! {
         let dom = jit::init("root",None);
         dom.assembly_open("test/dlls/Test.dll").unwrap();
     }
+    #[test]
+    fn metadata_acces(){
+        use wrapped_mono::jit;
+        use wrapped_mono::metadata::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let asm_meta = AssemblyMetadata::from_image(&img);
+        panic!("{}",asm_meta);
+    }
     #[should_panic]
     #[test]
     fn missing_assembly_loading(){
