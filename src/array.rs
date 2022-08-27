@@ -77,6 +77,10 @@ impl<T:InteropSend + InteropRecive + InteropClass> Array<T>{
         }
         return Some(res);
     }
+    ///Converts [`Object`] to [`Array`]
+    pub fn from_object(object:&Object)->Array<T>{
+        return unsafe{Array::from_ptr(object.get_ptr() as *mut crate::binds::MonoArray)}.expect("Could not cast object to array!");
+    } 
     ///Converts [`Array`] to [`Object`]
     pub fn to_object(&self)->Object{
         return unsafe{Object::from_ptr(self.arr_ptr as *mut crate::binds::MonoObject)}.expect("Could not create object from array!");

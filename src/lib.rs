@@ -51,7 +51,7 @@ pub use object::{Object,ObjectTrait};
 #[doc(inline)]
 pub use domain::Domain;
 #[doc(inline)]
-pub use interop::{InteropRecive,InteropSend,InteropBox,InteropClass};
+pub use interop::{InteropRecive,InteropSend,InteropBox,InteropClass,get_mono_rep_val,ref_to_cvoid_ptr};
 #[doc(inline)]
 pub use array::Array;
 #[doc(inline)]
@@ -64,6 +64,8 @@ pub use method::Method;
 pub use exception::Exception;
 #[doc(inline)]
 pub use mstring::MString;
+#[doc(inline)]
+pub use macros::{add_internal_call,invokable,method_invoke};
 //for 0.2 TODO:create event object functionalites
 //for 0.2 TODO:create delegate related functionalites
 //for 0.2 TODO:create wrapper around MonoType. It is not necesary for basic functionalities, but is nice to have.

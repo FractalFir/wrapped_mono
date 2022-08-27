@@ -1,23 +1,23 @@
 # wrapped_mono
- `wrapped_mono` is a safe lightweight wrapper around the mono library. It allows embeding the mono runtime(an open-source .NET runtime) inside rust code, and running code written in languges from the .NET framework. `wrapped_mono` allows for easy interop between managed and unmanaged code. Built-in macros automaticaly convert types when passing data between native code and code run inside the runtime.
+ `wrapped_mono` is a safe lightweight wrapper around the mono library. It allows embedding the mono runtime(an open-source .NET runtime) inside rust code, and running code written in languages from the .NET framework. `wrapped_mono` allows for easy interop between managed and unmanaged code. Built-in macros automaticaly convert types when passing data between native code and code run inside the runtime.
 ## W.I.P
- While `wrapped_mono` is mostly finished, there are still few rough edges that need some polish. Some more obscure features do not have safe wrappers yet. In order to avoid problems with changes to API during development add wrapped_mono to Cargo.toml in the follwong way:`wrapped_mono = {git = "https://github.com/FractalFir/wrapped_mono.git",tag = "VERSION_NUMBER"}`.This will make you stay at release *VERSION_NUMBER*.
+ While `wrapped_mono` is mostly finished, there are still a few rough edges that need some polish. Some more obscure features do not have safe wrappers yet. In order to avoid problems with changes to API during development, add wrapped_mono to Cargo.toml in the following way:`wrapped_mono = {git = "https://github.com/FractalFir/wrapped_mono.git",tag = "VERSION_NUMBER"}`. This will make you stay at release *VERSION_NUMBER*.
 ## What `wrapped_mono` **is not**
- `wrapped_mono` aims to be as lightweight as possible while still providing a safe and convnient API. While there are checks to ensure `wrapped_mono` works propely and in case of undefined behavior or crashes proper error messages will be printed,**not every mistake can be caught without a substantial effect on preformance**. That kinds of errors are **not handled**, and handling errors that can be caught relativly easily but still have some preformance impact can be disabled to gain even more preformance. It means that it is still possible to make certain kinds of mistakes (accesing objects after deleting them by deleting domain there are in, etc).
+ `wrapped_mono` aims to be as lightweight as possible while still providing a safe and convenient API. While there are checks to ensure `wrapped_mono` works properly and in case of undefined behavior or crashes proper error messages will be printed,**not every mistake can be caught without a substantial effect on performance**. That kinds of errors are **not handled**, and handling errors that can be caught relatively easily but still have some performance impact can be disabled to gain even more performance. It means that it is still possible to make certain kinds of mistakes (accessing objects after deleting them by deleting the domain there are in, etc.).
 # Dependencies
  `wrapped_mono` depends on the mono library, since it is just a wrapper. Mono library can be downloaded <a href="https://www.mono-project.com/download/stable/">here</a>.
 # Supported platforms
- `wrapped_mono` works well with linux, but windows support is not finished(some files have to be manualy copied).
+ `wrapped_mono` works well with Linux, but windows support is not finished(some files have to be manually copied).
 ## Windows Issues
-  Outside the crate, in the directory containing it a directory named `lib` must be created(for example, in case of a crate called `my_crate` `lib` shoudl be in the same directory `my_crate` is in). This folder is the default location of 'mscorlib.dll'. To change this location call `runtime::set_dirs` before `jit::init`. This folder must contain copy of file `mscorlib.dll` from `C:\Program Files\Mono\lib\mono\{MONO_RUNTIME_VERSION}\mscorlib.dll`. Root folder of a crate using `wrapped_mono` must contain copy of file `mono-2.0-sgen.dll` from `C:\Program Files\Mono\bin\mono-2.0-sgen.dll`.
+  Outside the crate, in the directory containing it a directory named `lib` must be created(for example, in case of a crate called `my_crate` `lib` should be in the same directory `my_crate` is in). This folder is the default location of 'mscorlib.dll'. To change this location, call `runtime::set_dirs` before `jit::init`. This folder must contain a copy of file `mscorlib.dll` from `C:\Program Files\Mono\lib\mono\{MONO_RUNTIME_VERSION}\mscorlib.dll`. Root folder of a crate using `wrapped_mono` must contain copy of file `mono-2.0-sgen.dll` from `C:\Program Files\Mono\bin\mono-2.0-sgen.dll`.
 ## MacOS Support
-  `wrapped_mono` likey works on MacOS with linux copilation flags, but since I have no acces to a mac computer, it was not tested yet. (because of that, compilation will stop with "your os is not supported" message, change `build.rs` to enable compiling on MacOS).
+  `wrapped_mono` likely works on MacOS with Linux compilation flags, but since I have no access to a Mac computer, it was not tested yet. (because of that, compilation will stop with "your OS is not supported" message, change `build.rs` to enable compiling on MacOS).
 ## Cross-Compilation
-  Cross compiling `warpped_mono` is not supported yet(flags set by `build.rs` assume target system is also the host system), but support for it can be added by seeting proper flags.
+  Cross compiling `warpped_mono` is not supported yet(flags set by `build.rs` assume target system is also the host system), but support for it can be added by setting proper flags.
 ## Any other platform
   In order to compile for any other platform 3 requirements must be met: this platform is supported by mono, rust can be compiled for it, and proper flags are set in `build.rs`.
-# Documentaion
- `wrapped_mono` contains full documentaion inside it. In order to open documentation download `wrapped_mono` and run `cargo doc --open`.
+# Documentation
+ `wrapped_mono` contains full documentation inside it. In order to open documentation, download `wrapped_mono` and run `cargo doc --open`.
 # Fetures and planned features
 ## Version 0.1
 - [x] Runtime initialization/shutdown

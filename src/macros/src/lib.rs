@@ -6,7 +6,7 @@ extern crate quote;
 mod tok_vec;
 mod arg_rep;
 mod fn_rep;
-
+mod method_invoke;
 //use arg_rep::*;
 //use tok_vec::*;
 use fn_rep::*;
@@ -66,7 +66,7 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
     let mut tokens = TokVec::separate_by_separator(TokVec::from_stream(args),',');
     if tokens.len() != 2{
         return TokenStream::from_str(
-            &format!("compile_error!(\"add_interal_call macro requires two arguments but got {} args!\")",tokens.len())
+            &format!("compile_error!(\"add_internal_call macro requires two arguments but got {} args!\")",tokens.len())
         ).expect("could not create token stream!");
     }
     //using unwrap instead of expect, beacuse previous condition garantees that size of tokens is 2, thus bigger than 0.
@@ -113,3 +113,33 @@ pub fn invokable(_attr_ts: TokenStream, fn_ts: TokenStream) -> TokenStream{
     handler.extend(fnc.tok_backup);
     return handler;
 }
+#[proc_macro]
+pub fn method_invoke(args: TokenStream) -> TokenStream {
+    let mut tokens = TokVec::separate_by_separator(TokVec::from_stream(args),',');
+    let params = tokens.split_off(2);
+    assert!(tokens.len() == 2);
+    let mut res = TokenStream::from_str(&format!("let mut params:Vec<*mut core::ffi::c_void> = Vec::with_capacity({});",params.len())).expect("Could not create token stream!");
+    for param in &params{
+        let name = param.to_string();
+        res.extend(TokenStream::from_str(&format!(
+            "let mut param_{} = get_mono_rep_val({});
+            \nparams.push(ref_to_cvoid_ptr(&mut {}));",name,name,name
+        )));
+    }
+    res.extend(TokenStream::from_str(&format!(
+        "let res = unsafe{{{}.invoke_unsafe({},&params)}};",&tokens[0].to_string(),&tokens[1].to_string()
+    )));
+    for param in &params{
+        let name = param.to_string();
+        res.extend(TokenStream::from_str(&format!(
+            "drop(param_{});",name
+        )));
+    }
+    res.extend(TokenStream::from_str("res"));
+    let res  = TokenStream::from(
+        TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,res))
+    );
+    //println!("'{}'",res.to_string());
+    //panic!("TODO")
+    return res;
+} 
