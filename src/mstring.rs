@@ -3,6 +3,7 @@ use crate::domain::Domain;
 use core::ptr::null_mut;
 use std::ffi::CString;
 use crate::interop::{InteropRecive,InteropSend};
+use crate::Class;
 ///needed for docs
 #[allow(unused_imports)]
 use crate::object::Object;
@@ -28,6 +29,14 @@ impl MString{
         let s = cstr.to_str().expect("Colud not create String!").to_owned();
         unsafe{crate::binds::mono_free(cstr.into_raw() as *mut std::os::raw::c_void)};
         return s;
+    }
+    ///Cast [`Object`] to [`String`]. Returns [`None`] if cast failed. 
+    pub fn cast_from_object(obj:&Object)->Option<MString>{
+        use crate::object::ObjectTrait;
+        if obj.get_class() != Class::get_string(){
+            return None;
+        }
+        return Some(Self{s_ptr:obj.get_ptr() as *mut MonoString});
     }
     ///Compares two managed strings. Returns true if their **content** is equal, not if they are the same **object**.
     pub fn is_equal(&self,other:&Self)->bool{

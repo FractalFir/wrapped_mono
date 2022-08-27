@@ -300,6 +300,10 @@ impl Class{
             crate::binds::mono_array_class_get(self.class_ptr,rank)
         )}.expect("Impossible condition reached");
     }
+    /// Returns [`Class`] representing the type **System.Exception**.
+    pub fn get_exception_class()->Class{
+        return unsafe{Class::from_ptr(crate::binds::mono_get_exception_class())}.expect("Could not get ExceptionClass!");
+    }
     ///Returns all fields of a class
     pub fn get_fields(&self)->Vec<ClassField>{
         let mut gptr = 0 as *mut std::os::raw::c_void;

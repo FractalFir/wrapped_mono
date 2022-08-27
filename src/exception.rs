@@ -5,7 +5,7 @@ use std::ffi::CString;
 use crate::Domain;
 use crate::Image;
 use crate::Class;
-
+use crate::Object;
 /// Safe representation of MonoException
 pub struct Exception{
     exc_ptr:*mut MonoException,
@@ -75,9 +75,13 @@ impl Exception{
         drop(nm_cstr);
         return res;
     }
-    /// Returns [`Class`] representing the type **System.Exception**.
-    pub fn get_exception_class()->Class{
-        return unsafe{Class::from_ptr(crate::binds::mono_get_exception_class())}.expect("Could not get ExceptionClass!");
+    ///Casts object to exception. Returns [`None`] if cast failed
+    pub fn cast_from_object(object:&Object)->Option<Exception>{
+        use crate::object::ObjectTrait;
+        if !Class::get_exception_class().is_assignable_from(&object.get_class()){
+            return None;
+        }
+        return Some(Self{exc_ptr:object.get_ptr() as *mut MonoException});
     }
     /// Returns [`Exception`] that is instance of **System.ArgumentException**
     pub fn argument_exception(arg:&str,msg:&str)->Self{

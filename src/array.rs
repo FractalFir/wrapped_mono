@@ -77,9 +77,15 @@ impl<T:InteropSend + InteropRecive + InteropClass> Array<T>{
         }
         return Some(res);
     }
-    ///Converts [`Object`] to [`Array`]
-    pub fn from_object(object:&Object)->Array<T>{
-        return unsafe{Array::from_ptr(object.get_ptr() as *mut crate::binds::MonoArray)}.expect("Could not cast object to array!");
+    ///Cast [`Object`] to [`Array`]. Returns [`None`] if cast failed. 
+    pub fn cast_from_object(object:&Object)->Option<Array<T>>{
+        use crate::object::ObjectTrait;
+        let sclass = object.get_class(); 
+        let tclass = <Self as InteropClass>::get_mono_class();
+        if sclass.get_element_class() != tclass.get_element_class(){
+            return None;
+        }
+        return Some(Array{arr_ptr:object.get_ptr() as *mut crate::binds::MonoArray,pd:PhantomData});
     } 
     ///Converts [`Array`] to [`Object`]
     pub fn to_object(&self)->Object{
