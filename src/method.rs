@@ -6,6 +6,7 @@ use crate::array::Array;
 use crate::object::Object;
 use crate::exception::Exception;
 use crate::binds::{MonoObject};
+use std::os::raw::c_void;
 //necesary for docs
 #[allow(unused_imports)]
 use crate::class::Class;
@@ -94,7 +95,22 @@ impl Method{
         drop(ptrs);
         return res;
     }
-    //TODO: Make this sligtly safer
+    ///Returns list of all parameters this function accepts.
+    pub fn get_params(&self)->Vec<Class>{
+        use std::ptr::null_mut;
+        let sig = unsafe{crate::binds::mono_method_signature(self.met_ptr)};
+        let mut iter:usize = 0;
+        let mut res = Vec::with_capacity(self.get_param_count() as usize);
+        while let Some(class) = unsafe{Class::from_ptr(
+            {
+                let ptr = crate::binds::mono_signature_get_params(sig,&mut iter as *mut usize as *mut *mut c_void);
+                if ptr == null_mut(){null_mut()}else{crate::binds::mono_class_from_mono_type(ptr)}
+            }
+        )}{
+            res.push(class);
+        }
+        return res;
+    } 
     ///Invokes method *self*. *obj* is the `this` object(object method is called on). Pass [`None`] if method is static.
     ///**Doesn't** handle virtual methods, calls the method passed. To handle virtual methods, first get virtual method from object it is called on.
     ///Use `method_invoke!` instead for safety reasons. 
@@ -133,4 +149,20 @@ impl Method{
         )}
     } 
     */
+}
+impl std::fmt::Display for Method{
+    fn fmt(&self,f:&mut std::fmt::Formatter<'_>)->std::fmt::Result{
+        write!(f,"{}:{}(",&self.get_class().get_name_sig(),&self.get_name())?;
+        let param_types = self.get_params();
+        let param_names = self.get_param_names();
+        let pcount:usize = self.get_param_count() as usize;
+        for i in 0..pcount{
+            write!(f,"{}:{}",param_names[i],&param_types[i].get_name())?;
+            if i < pcount - 1{
+                write!(f,", ")?;
+            }
+        }
+        write!(f,")")
+        //TODO: Print return type.
+    }
 }

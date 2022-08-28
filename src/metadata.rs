@@ -183,9 +183,9 @@ impl std::fmt::Display for HashAlgorithm{
             HashAlgorithm::MD5=>    "MD5",
             HashAlgorithm::None=>   "None",
             HashAlgorithm::SHA1=>   "SHA1",
-            HashAlgorithm::SHA256=> "SHA1",
-            HashAlgorithm::SHA384=> "SHA1",
-            HashAlgorithm::SHA512=> "SHA1",
+            HashAlgorithm::SHA256=> "SHA256",
+            HashAlgorithm::SHA384=> "SHA386",
+            HashAlgorithm::SHA512=> "SHA512",
         };
         write!(f,"{}",s)
     }

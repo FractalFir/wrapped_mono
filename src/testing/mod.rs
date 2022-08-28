@@ -57,8 +57,7 @@ rusty_fork_test! {
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
-        let asm_meta = AssemblyMetadata::from_image(&img);
-        panic!("{}",asm_meta);
+        let _asm_meta = AssemblyMetadata::from_image(&img);
     }
     #[should_panic]
     #[test]

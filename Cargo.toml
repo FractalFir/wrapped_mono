@@ -19,3 +19,5 @@ unsafe_boxing = []
 unsafe_arrays = []
 ## Disables all safety checks to speed `wrapped_mono` up. USE WITH CAUTION.
 unsafe_speedup = ["unsafe_boxing","unsafe_arrays"]
+## Build test dlls. Enable only for tests, if you want to change test .cs files.
+build_test_dlls = []

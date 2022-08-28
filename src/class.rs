@@ -67,6 +67,31 @@ impl Class{
         let _ = cstr.into_raw();
         return res;
     }
+    ///Gets all of the constuctors of this class. **Does not get parent class construtors!**
+    pub fn get_ctors(&self)->Vec<Method>{
+        let mut gptr = 0 as *mut std::os::raw::c_void;
+        let mut res = Vec::new();
+        while let Some(cf) = unsafe{Method::from_ptr(
+            crate::binds::mono_class_get_methods(self.class_ptr,&mut gptr as *mut *mut c_void)
+        )}{
+            if cf.get_name() == ".ctor"{
+                res.push(cf);
+            }
+        }
+        return res;
+    }
+    ///Gets all of the constuctors of this class, including parent class construtors.
+    pub fn get_ctros_recursive(&self)->Vec<Method>{
+        let mut ctors = self.get_ctors();
+        let parent = self.get_parent();
+        return match parent {
+            Some(parent)=>{
+                ctors.extend(parent.get_ctros_recursive());
+                ctors
+            },
+            None=>ctors,
+        }
+    }
     ///Gets the image this type exists in.
     pub fn get_image(&self)->Image{
         return unsafe{Image::from_ptr(crate::binds:: mono_class_get_image(self.class_ptr))};
@@ -105,12 +130,12 @@ impl Class{
     /// For a class `SomeClass`
     /// # C#
     ///```csharp
-    /// class SomeClass:SomeParrentClass{
+    /// class SomeClass:SomeparentClass{
     ///    
     /// }
     ///```
     ///
-    /// Function will return `SomeParrentClass`
+    /// Function will return `SomeparentClass`
     pub fn get_parent(&self)->Option<Class>{
         return unsafe{Self::from_ptr(
             crate::binds::mono_class_get_parent(self.class_ptr)
@@ -370,6 +395,15 @@ impl Class{
         }
         return res;
     }
+    ///Returns a name string used in text formating: "NAMESPACE.NAME"
+    pub fn get_name_sig(&self)->String{
+        let mut namespace = self.get_namespace();
+        if namespace != ""{
+            namespace += ".";
+        }
+        let name = self.get_name();
+        return namespace + &name;
+    }
 }
 impl std::cmp::PartialEq for Class{
     fn eq(&self,other:&Self)->bool{
@@ -418,7 +452,7 @@ impl ClassField{
     /// # Example
     ///```rust
     /// let some_field = some_class.get_field_from_name(some_field_name).expect("Could not find field!");
-    /// let some_field_class = some_field.get_parrent();
+    /// let some_field_class = some_field.get_parent();
     /// assert!(some_field_class == some_class);
     ///```
     pub fn get_parent(&self)->Class{

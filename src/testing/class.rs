@@ -25,6 +25,15 @@ rusty_fork_test!{
         assert!("System" == &class.get_namespace());
     }
     #[test]
+    fn get_parrent(){
+        use wrapped_mono::*;
+        let domain = jit::init("main",None);
+        let asm = domain.assembly_open("test/dlls/Test.dll").expect("Could not load assembly");
+        let img = asm.get_image();
+        let test_class = Class::from_name(&img,"","TestFunctions").expect("Could not find class");
+        test_class.get_parent();
+    }
+    #[test]
     fn class_get_namespace_no_namespace(){
         use wrapped_mono::*;
         let domain = jit::init("main",None);
@@ -66,5 +75,33 @@ rusty_fork_test!{
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
         let filed = Class::get_field_from_name(&class,"someField").expect("Could not get filed!");
+    }
+    #[test]
+    fn ctors_get(){
+        use crate::binds::MonoObject;
+        use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let ctors = class.get_ctros_recursive();
+        println!("{}",ctors.len());
+        assert!(ctors.len() == 2);//One of 'Object', one of 'TestFunctions'
+    }
+    #[test]
+    fn ctors_recursive_get(){
+        use crate::binds::MonoObject;
+        use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","CtorTestClass").expect("Could not get class");
+        let ctors = class.get_ctros_recursive();
+        println!("Found {} constructors!",ctors.len());
+        for ctor in &ctors{
+            println!("{}",ctor);
+        }
+        assert!(ctors.len() == 5);
+        //panic!();
     }
 } 

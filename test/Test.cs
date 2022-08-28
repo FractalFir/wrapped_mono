@@ -1,6 +1,14 @@
 interface IInterfaceOne{
     void SomeInterfaceFunction();
 }
+class CtorTestClassParrent{
+    protected CtorTestClassParrent(){}
+    public CtorTestClassParrent(int a,int b){}
+}
+class CtorTestClass: CtorTestClassParrent{
+    public CtorTestClass(int a,string b){}
+    public CtorTestClass(object a,string b){}
+}
 class TestFunctions : IInterfaceOne{
     public int someField = 5;
     public static int[,] Get2DIntArray(){
