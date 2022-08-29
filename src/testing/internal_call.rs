@@ -43,7 +43,6 @@ rusty_fork_test! {
             return None;
         }
 
-
         use wrapped_mono::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Pinvoke.dll").unwrap();

@@ -82,6 +82,21 @@ rusty_fork_test! {
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
         let _met = Method::get_method_from_name(&class,"GetArg",3).unwrap();
     }
+    #[test]
+    fn passing_enum_method(){
+        use wrapped_mono::{jit,class::Class,method::Method};
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met = Method::get_method_from_name(&class,"GetEnum",1).unwrap();
+        let mut arg1:CLikeEnum = CLikeEnum::Val;
+        let obj = method_invoke!(met,None,arg1).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<CLikeEnum>();
+        assert!(res == arg1);
+    }
     /*
     #[test]
     fn testing_function_signature(){
@@ -93,4 +108,21 @@ rusty_fork_test! {
         assert!(sig_check);
     }
     */
+}
+use crate::{InteropRecive,InteropSend,InteropClass};
+use crate::InteropBox;
+#[derive(InteropRecive,InteropSend,Copy,Clone,PartialEq)]
+#[repr(u64)]
+enum CLikeEnum{
+    Val = 1,
+    Val2 = 2,
+    Val3 = 612,
+}
+impl InteropBox for CLikeEnum{}
+use crate::assembly::Assembly;
+use crate::Class;
+impl InteropClass for CLikeEnum{
+    fn get_mono_class()-> Class{
+        return Class::from_name(&Assembly::assembly_loaded("Test").expect("Could not find assembly").get_image(),"","CLikeEnum").expect("Could not get class!");
+    }
 }

@@ -145,11 +145,49 @@ pub fn method_invoke(args: TokenStream) -> TokenStream {
     return res;
 } 
 const TS_CR_FAIL:&str = "Colud not create TokenStream!";
-///Autoimplement [`InteropRecive`] trait for any type containing only [`IteropRecive`] implementing memebers. Currently supports only structs.
+const ENUM_NOT_TRIVIAL:&str = "Could not derive a trait for an non-trivial enum. Trivial enums must be value only and have user set values for compatibility reasons.";
+//Extracts enum max value or return None.
+fn extract_enum_data(inner:&Vec<Vec<TokenTree>>)->Option<u32>{
+    let mut max_val = 0;
+    for member in inner{
+        if member.len() != 3{return None};
+        match &member[1]{
+            TokenTree::Punct(p)=>{
+                if p.as_char()!='='{
+                    return None;
+                }
+            },
+            _=> return None,
+        }
+        match &member[2]{
+            TokenTree::Literal(l)=>{
+                let num = match l.to_string().parse(){
+                    Ok(num)=>num,
+                    Err(_)=>return None,
+                };
+                max_val = std::cmp::max(max_val,num);
+            },
+            _=>return None,
+        }
+    }
+    return Some(max_val);
+}
+/// Autoimplement [`InteropRecive`] trait for any type containing only [`IteropRecive`] implementing memebers. Currently supports only structs, and trivial enums(C-like enums) of size less than u64(C# max enum size).
+/// # Rust enums
+/// Can't be used  with rust-like enums(enums with non-value data), since there is no clear way how this should look like on the managed side. 
+/// # Safety
+/// When converting from C# checks only if value is in enum range between 0 and enum max val.
+/// # Enums
+/// 1 can have only values
+/// 2 have to have set values
+/// 3 have to be size smaller than u64, otherwise 'evaluation of constant value failed' error will be thrown(This error is thrown on purpose, 
+/// since C# enums cant' be bigger than u64. This message means your enum is to big and will cause problems).
 #[proc_macro_derive(InteropRecive)]
-pub fn derive(input: TokenStream) -> TokenStream {
+pub fn derive_recive(input: TokenStream) -> TokenStream {
     let mut input = TokVec::from_stream(input);
-    assert!(input.len() == 3);
+    while input.len() > 3{
+        input.remove(0);
+    }
     let itype = match &input[0]{
         TokenTree::Ident(ident)=>ident.to_string(),
         _=>panic!("type token in derive input is not an identifier!"),
@@ -169,8 +207,8 @@ pub fn derive(input: TokenStream) -> TokenStream {
     });
     let mut type_res = TokenStream::new();
     let mut fn_impl_res = TokenStream::new();
+    let inner = TokVec::separate_by_separator(inner,',');
     if itype == "struct"{
-        let inner = TokVec::separate_by_separator(inner,',');
         let mut ret_self = TokenStream::new();
         let mut i = 0;
         for memeber in inner{
@@ -193,8 +231,14 @@ pub fn derive(input: TokenStream) -> TokenStream {
         fn_impl_res.extend(TokenStream::from_str(";").expect(TS_CR_FAIL));
     }
     else if itype == "enum"{
-        //TODO: support trivial(C - like) enums.
-        panic!("enums not supported yet.");
+        //Check that enum is trivial and its values are set.
+        let max_val = extract_enum_data(&inner).expect(ENUM_NOT_TRIVIAL);
+        type_res.extend(TokenStream::from_str(
+            &format!("u64")
+        ).expect(TS_CR_FAIL));
+        fn_impl_res.extend(TokenStream::from_str(&format!("unsafe{{let ptr = &arg as *const u64; assert!(arg < {},\"Error:Recived enum out of range!\");
+         const _: [(); 0 - !{{ const ASSERT: bool = (std::mem::size_of::<{}>() <= std::mem::size_of::<u64>()); ASSERT }} as usize] = [];
+         let res = *(ptr as *mut {}); drop(arg); return res;}}",max_val,iname,iname)).expect(TS_CR_FAIL));
     }
     else {panic!("{} is not a valid type!",itype);}
     let mut res = TokenStream::from_str(&format!("impl InteropRecive for {}",iname)).expect(TS_CR_FAIL);
@@ -206,5 +250,87 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
     inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,fn_impl_res))));
     res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner_res))));
+    println!("{}",res);
     return res;
 }
+/// Autoimplement [`InteropSend`] trait for any type containing only [`IteroSend`] implementing memebers. Currently supports only structs, and trivial enums(C-like enums) of size less than u64(C# max enum size).
+/// # Rust enums
+/// Can't be used  with rust-like enums(enums with non-value data), since there is no clear way how this should look like on the managed side. 
+/// # Enums
+/// 1 can have only values
+/// 2 have to have set values
+/// 3 have to be size smaller than u64, otherwise 'evaluation of constant value failed' error will be thrown(This error is thrown on purpose, 
+/// since C# enums cant' be bigger than u64. This message means your enum is to big and will cause problems).
+#[proc_macro_derive(InteropSend)]
+pub fn derive_send(mut input: TokenStream) -> TokenStream {
+    let mut input = TokVec::from_stream(input);
+    while input.len() > 3{
+        input.remove(0);
+    }
+    let itype = match &input[0]{
+        TokenTree::Ident(ident)=>ident.to_string(),
+        _=>panic!("type token in derive input is not an identifier!"),
+    };
+    let iname = match &input[1]{
+        TokenTree::Ident(ident)=>ident.to_string(),
+        _=>panic!("name token in derive input is not an identifier!"),
+    };
+    let inner = TokVec::from_stream(match input.pop().expect("Inpossible condition reached. Poping from vec of length 3 yelded nothing."){
+        TokenTree::Group(g)=>{
+            match g.delimiter(){
+                proc_macro::Delimiter::Brace=>g.stream(),
+                _=>panic!("unsupported delimiter type!"),
+            }
+        },
+        _=>panic!("inside of a type declaration empty!"),
+    });
+    let mut type_res = TokenStream::new();
+    let mut fn_impl_res = TokenStream::new();
+    let inner = TokVec::separate_by_separator(inner,',');
+    if itype == "struct"{
+        let mut ret_self = TokenStream::new();
+        let mut i = 0;
+        for memeber in inner{
+            let mname = memeber[0].to_string();
+            let mtype = memeber[2].to_string();
+            println!("name:'{}' type:'{}'",mname,mtype);
+            type_res.extend(TokenStream::from_str(
+                &format!("<{} as InteropSend>::TargetType,",mtype)
+            ).expect(TS_CR_FAIL));
+            fn_impl_res.extend(TokenStream::from_str(
+                &format!("let {} = <{} as InteropSend>::get_mono_rep(arg.{});",mname,mtype,mname)
+            ).expect(TS_CR_FAIL));
+            ret_self.extend(TokenStream::from_str(
+                &format!("{},",mname)
+            ).expect(TS_CR_FAIL));
+            i+=1;
+        }
+        fn_impl_res.extend(TokenStream::from_str("return ").expect(TS_CR_FAIL));
+        fn_impl_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,ret_self))));
+        fn_impl_res.extend(TokenStream::from_str(";").expect(TS_CR_FAIL));
+    }
+    else if itype == "enum"{
+        //Check that enum is trivial and its values are set.
+        let max_val = extract_enum_data(&inner).expect(ENUM_NOT_TRIVIAL);
+        type_res.extend(TokenStream::from_str(
+            &format!("u64")
+        ).expect(TS_CR_FAIL));
+        fn_impl_res.extend(TokenStream::from_str(&format!("unsafe{{let mut res:u64 = 0;
+            *(&mut res as *mut u64 as *mut {}) = arg;
+            const _: [(); 0 - !{{ const ASSERT: bool = (std::mem::size_of::<{}>() <= std::mem::size_of::<u64>()); ASSERT }} as usize] = [];
+            return res;}}",iname,iname)).expect(TS_CR_FAIL));
+    }
+    else {panic!("{} is not a valid type!",itype);}
+    let mut res = TokenStream::from_str(&format!("impl InteropSend for {}",iname)).expect(TS_CR_FAIL);
+    let mut inner_res = TokenStream::from_str(&"type TargetType = ").expect(TS_CR_FAIL);
+    inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,type_res))));
+
+    inner_res.extend(TokenStream::from_str(&";").expect(TS_CR_FAIL));
+    inner_res.extend(TokenStream::from_str("fn get_mono_rep(arg:Self)->Self::TargetType").expect(TS_CR_FAIL));
+
+    inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,fn_impl_res))));
+    res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner_res))));
+    println!("{}",res);
+    return res;
+}
+//TODO: maybe autoimplement interop box?

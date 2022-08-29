@@ -47,7 +47,7 @@
 - [X] Full documentaion for all features
 ## Version 0.2
 - [X] Arrays with more than one dimension. (Multi-dimensional arrays work, but they behave like 1D arrays. This may be a limitation of the mono runtime, or it could be solvable)
-- [ ] Autoimplementation of some Interop traits (Interop Send,InteropRevive) for structs.
+- [X] Autoimplementation of some Interop traits (Interop Send,InteropRevive) for structs. 
 - [ ] Profilier (Data about preformance)
 - [ ] Debugging API
 - [ ] Certain fetures of mono JIT(mostly debugging)

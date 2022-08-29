@@ -1,6 +1,11 @@
 interface IInterfaceOne{
     void SomeInterfaceFunction();
 }
+enum CLikeEnum{
+    Val = 1,
+    Val2 = 2,
+    Val3 = 612,
+}
 class CtorTestClassParrent{
     protected CtorTestClassParrent(){}
     public CtorTestClassParrent(int a,int b){}
@@ -19,6 +24,9 @@ class TestFunctions : IInterfaceOne{
     }
     public void SomeInterfaceFunction(){
 
+    }
+    public static CLikeEnum GetEnum(CLikeEnum input){
+        return input;
     }
     //function used to test if basic static function call works
     public static int GetOne(){
