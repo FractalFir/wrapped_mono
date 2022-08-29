@@ -137,4 +137,10 @@ rusty_fork_test! {
         let _class = Class::from_name(&img,"","TestFunctions");
     }
 } 
-
+use crate::macros::InteropRecive;
+#[derive(InteropRecive)]
+struct Vec3{
+    x:f32,
+    y:f32,
+    z:f32,
+}

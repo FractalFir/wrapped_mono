@@ -138,20 +138,21 @@ impl Method{
             return Err(e); 
         }
     }
-    /*
-    ///Searches for method at *path* in *image*
-    pub fn search_in_image(path:&str,image:&Image)->Option<Method>{
-        let cstr = CString::new(path);
-        let md = unsafe{crate::binds::mono_method_desc_new(cstr.as_ptr())};
-        drop(cstr);
-        let res = unsafe{Self::from_ptr(
-            crate::binds::mono_method_search_in_image(image.get_ptr())
-        )}
+    //Returns return type of the function
+    pub fn get_return(&self)->Option<Class>{
+        use std::ptr::null_mut;
+        let sig = unsafe{crate::binds::mono_method_signature(self.met_ptr)};
+        let ptr = unsafe{crate::binds:: mono_signature_get_return_type(sig)};
+        let res = unsafe{Class::from_ptr({if ptr == null_mut(){null_mut()}else{crate::binds::mono_class_from_mono_type(ptr)}})};
+        return res;
     } 
-    */
 }
 impl std::fmt::Display for Method{
     fn fmt(&self,f:&mut std::fmt::Formatter<'_>)->std::fmt::Result{
+        match self.get_return(){
+            Some(ret)=>write!(f,"{} ",&ret.get_name())?,
+            None=>(),
+        }
         write!(f,"{}:{}(",&self.get_class().get_name_sig(),&self.get_name())?;
         let param_types = self.get_params();
         let param_names = self.get_param_names();
@@ -163,6 +164,5 @@ impl std::fmt::Display for Method{
             }
         }
         write!(f,")")
-        //TODO: Print return type.
     }
 }

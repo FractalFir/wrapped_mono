@@ -113,6 +113,7 @@ pub fn invokable(_attr_ts: TokenStream, fn_ts: TokenStream) -> TokenStream{
     handler.extend(fnc.tok_backup);
     return handler;
 }
+///Invokes method guessing its signature based on types of provided varaibles. Argments should be passed in the following way: 1 - method to invoke, 2 - Option<Object> as "this", None for static, after that any other parameters.
 #[proc_macro]
 pub fn method_invoke(args: TokenStream) -> TokenStream {
     let mut tokens = TokVec::separate_by_separator(TokVec::from_stream(args),',');
@@ -136,10 +137,74 @@ pub fn method_invoke(args: TokenStream) -> TokenStream {
         )));
     }
     res.extend(TokenStream::from_str("res"));
-    let res  = TokenStream::from(
+    let res = TokenStream::from(
         TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,res))
     );
     //println!("'{}'",res.to_string());
     //panic!("TODO")
     return res;
 } 
+const TS_CR_FAIL:&str = "Colud not create TokenStream!";
+///Autoimplement [`InteropRecive`] trait for any type containing only [`IteropRecive`] implementing memebers. Currently supports only structs.
+#[proc_macro_derive(InteropRecive)]
+pub fn derive(input: TokenStream) -> TokenStream {
+    let mut input = TokVec::from_stream(input);
+    assert!(input.len() == 3);
+    let itype = match &input[0]{
+        TokenTree::Ident(ident)=>ident.to_string(),
+        _=>panic!("type token in derive input is not an identifier!"),
+    };
+    let iname = match &input[1]{
+        TokenTree::Ident(ident)=>ident.to_string(),
+        _=>panic!("name token in derive input is not an identifier!"),
+    };
+    let inner = TokVec::from_stream(match input.pop().expect("Inpossible condition reached. Poping from vec of length 3 yelded nothing."){
+        TokenTree::Group(g)=>{
+            match g.delimiter(){
+                proc_macro::Delimiter::Brace=>g.stream(),
+                _=>panic!("unsupported delimiter type!"),
+            }
+        },
+        _=>panic!("inside of a type declaration empty!"),
+    });
+    let mut type_res = TokenStream::new();
+    let mut fn_impl_res = TokenStream::new();
+    if itype == "struct"{
+        let inner = TokVec::separate_by_separator(inner,',');
+        let mut ret_self = TokenStream::new();
+        let mut i = 0;
+        for memeber in inner{
+            let mname = memeber[0].to_string();
+            let mtype = memeber[2].to_string();
+            println!("name:'{}' type:'{}'",mname,mtype);
+            type_res.extend(TokenStream::from_str(
+                &format!("<{} as InteropRecive>::SourceType,",mtype)
+            ).expect(TS_CR_FAIL));
+            fn_impl_res.extend(TokenStream::from_str(
+                &format!("let {} = <{} as InteropRecive>::get_rust_rep(arg.{});",mname,mtype,i)
+            ).expect(TS_CR_FAIL));
+            ret_self.extend(TokenStream::from_str(
+                &format!("{}:{},",mname,mname)
+            ).expect(TS_CR_FAIL));
+            i+=1;
+        }
+        fn_impl_res.extend(TokenStream::from_str("return Self").expect(TS_CR_FAIL));
+        fn_impl_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,ret_self))));
+        fn_impl_res.extend(TokenStream::from_str(";").expect(TS_CR_FAIL));
+    }
+    else if itype == "enum"{
+        //TODO: support trivial(C - like) enums.
+        panic!("enums not supported yet.");
+    }
+    else {panic!("{} is not a valid type!",itype);}
+    let mut res = TokenStream::from_str(&format!("impl InteropRecive for {}",iname)).expect(TS_CR_FAIL);
+    let mut inner_res = TokenStream::from_str(&"type SourceType = ").expect(TS_CR_FAIL);
+    inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,type_res))));
+
+    inner_res.extend(TokenStream::from_str(&";").expect(TS_CR_FAIL));
+    inner_res.extend(TokenStream::from_str("fn get_rust_rep(arg:Self::SourceType)->Self").expect(TS_CR_FAIL));
+
+    inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,fn_impl_res))));
+    res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner_res))));
+    return res;
+}
