@@ -47,7 +47,7 @@
 - [X] Full documentaion for all features
 ## Version 0.2
 - [X] Arrays with more than one dimension. (Multi-dimensional arrays work, but they behave like 1D arrays. This may be a limitation of the mono runtime, or it could be solvable)
-- [X] Autoimplementation of some Interop traits (Interop Send,InteropRevive) for structs. 
+- [X] Autoimplementation of some Interop traits (Interop Send,InteropRecive) for structs. 
 - [ ] Profilier (Data about preformance)
 - [ ] Debugging API
 - [ ] Certain fetures of mono JIT(mostly debugging)
@@ -111,6 +111,18 @@ fn main(){
         void PointerFunction(System.IntPtr arg);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         void CharFunction(char arg);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        void EnumFunction(SimpleEnum arg);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        void StructFunction(Vec3 arg);
+    }
+    struct Vec3{
+     float x;
+     float y;
+     float z;
+    }
+    enum SimpleEnum{
+        Variant1 = 0,Variant2 = 7,
     }
 ```
 ```rust
@@ -122,7 +134,7 @@ fn main(){
     fn other_function(arg:i32){
         println!("recived arg:'{}'!",arg);
     }
-    #- [invokable]
+    #[invokable]
     fn pointer_function(arg:*mut i64){
         println!("recived pointer:'{}'!",arg);
     }
@@ -138,6 +150,28 @@ fn main(){
         }
         return len;
     }
+    #[invokable]
+    fn enum_function(arg:SimpleEnum){
+      match arg{
+         SimpleEnum::Variant1=>println!("recived Variant1"),
+         SimpleEnum::Variant2=>println!("recived Variant2"),
+      }
+    }
+     #[invokable]
+    fn struct_function(vec:Vec3){
+      println!("recived vec3 with x:{},y:{},z:{}",vec.x,vec.y,vec.z);
+    }
+    #[derive(InteropSend,InteropRecive,Copy,Clone)]
+    enum SimpleEnum{
+     Variant1 = 1,
+     Variant2 = 7,
+    }
+    #[derive(InteropSend,InteropRecive,Copy,Clone)]
+    struct Vec3{
+     x:f32,
+     y:f32,
+     z:f32,
+    }
     fn main(){
         /*
             jit initialization,domain creation, assembly loading, etc.
@@ -150,5 +184,34 @@ fn main(){
         /*
             managed code executed afer this point will call rust code when functions exposed as interall calls will be called
         */
+    }
+```
+### Invoke Managed Method
+```csharp
+class TestFunctions{
+ public static int GetArg(int arg){
+        return arg;
+    }
+}
+```
+```rust
+    fn calling_method(){
+        use wrapped_mono::{jit,class::Class,method::Method};
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        //open assembly
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        //find class method is in
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        //get method from class
+        let met = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+        let mut arg1:i32 = 7;
+        //this macro gueses C# signature bassed on passed arguments
+        let obj = method_invoke!(met,None,arg1).expect("Exception").expect("Got null on a non-nullable!");
+        //unbox result to get value from object
+        let res = obj.unbox::<i32>();
+        assert!(res == arg1);
     }
 ```
