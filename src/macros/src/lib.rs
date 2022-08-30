@@ -216,7 +216,7 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
         let mut i = 0;
         for memeber in inner{
             let mname = memeber[0].to_string();
-            let mtype = memeber[2].to_string()
+            let mtype = memeber[2].to_string();
             type_res.extend(TokenStream::from_str(
                 &format!("<{} as InteropRecive>::SourceType,",mtype)
             ).expect(TS_CR_FAIL));
