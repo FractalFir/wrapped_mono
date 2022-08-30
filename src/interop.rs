@@ -322,8 +322,6 @@ impl InteropBox for usize{}
 impl InteropBox for bool{}
 impl InteropBox for char{}
 
-///Used in some macros to prevent droping data 
-pub const fn hold<T>(data:&T){}
 use core::ffi::c_void;
 pub fn get_mono_rep_val<T:InteropSend>(input:T)-><T as InteropSend>::TargetType{
     return <T as InteropSend>::get_mono_rep(input);

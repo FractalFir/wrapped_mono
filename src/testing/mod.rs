@@ -51,13 +51,24 @@ rusty_fork_test! {
         dom.assembly_open("test/dlls/Test.dll").unwrap();
     }
     #[test]
-    fn metadata_acces(){
+    fn metadata_acces_assembly(){
         use wrapped_mono::jit;
         use wrapped_mono::metadata::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let _asm_meta = AssemblyMetadata::from_image(&img);
+    }
+    #[should_panic]
+    #[test]
+    fn metadata_acces_assembly_os(){
+        use wrapped_mono::jit;
+        use wrapped_mono::metadata::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let asm_meta = AssemblyOSMetadata::from_image(&img).expect("No OS metadata!");
+        panic!("{}",asm_meta);
     }
     #[should_panic]
     #[test]
@@ -135,6 +146,23 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let _class = Class::from_name(&img,"","TestFunctions");
+    }
+    #[test]
+    fn profiler_test(){
+        use crate::profiler::Profiler;
+        fn profiler_runtime_init_callback(prof:&mut Profiler<i32>){
+            println!("Callback called!");
+        }
+        let prof = profiler::Profiler::create(64);
+        prof.set_runtime_initialized_callback(profiler_runtime_init_callback);
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Jit.dll").unwrap(); 
+    
+        let mut args:Vec<&str> = Vec::new();
+        args.push("1");
+        args.push("2");
+        prof.destroy();
+        let res = jit::exec(&dom,&asm,args);
     }
 } 
 use crate::macros::{InteropRecive,InteropSend};

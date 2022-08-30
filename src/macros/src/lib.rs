@@ -1,5 +1,5 @@
 #![recursion_limit = "32"]
-
+#![feature(proc_macro_span)]
 extern crate syn;
 extern crate quote;
 
@@ -83,7 +83,8 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
         let fnc_ptr:*const core::ffi::c_void = unsafe{{ std::mem::transmute({}_invokable as {}_fn_type) }};
         unsafe{{ wrapped_mono::binds::mono_add_internal_call(cstr.as_ptr(),fnc_ptr) }};
         drop(cstr);",&method,&fnc_name,&fnc_name)).expect("Could not create token stream");
-    //println!("{}",res);
+    #[cfg(feature = "dump_macro_results")]
+    dumping::dump_stream(&res);
     return res;
 }
 ///Macro creating a wrapper around a function making it able to be exposed as internal call.
@@ -111,6 +112,8 @@ pub fn invokable(_attr_ts: TokenStream, fn_ts: TokenStream) -> TokenStream{
     let fnc = FnRep::fn_rep_from_stream(fn_ts);
     let mut handler = fnc.create_wrapper();
     handler.extend(fnc.tok_backup);
+    #[cfg(feature = "dump_macro_results")]
+    dumping::dump_stream(&handler);
     return handler;
 }
 ///Invokes method guessing its signature based on types of provided varaibles. Argments should be passed in the following way: 1 - method to invoke, 2 - Option<Object> as "this", None for static, after that any other parameters.
@@ -140,8 +143,8 @@ pub fn method_invoke(args: TokenStream) -> TokenStream {
     let res = TokenStream::from(
         TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,res))
     );
-    //println!("'{}'",res.to_string());
-    //panic!("TODO")
+    #[cfg(feature = "dump_macro_results")]
+    dumping::dump_stream(&res);
     return res;
 } 
 const TS_CR_FAIL:&str = "Colud not create TokenStream!";
@@ -213,8 +216,7 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
         let mut i = 0;
         for memeber in inner{
             let mname = memeber[0].to_string();
-            let mtype = memeber[2].to_string();
-            println!("name:'{}' type:'{}'",mname,mtype);
+            let mtype = memeber[2].to_string()
             type_res.extend(TokenStream::from_str(
                 &format!("<{} as InteropRecive>::SourceType,",mtype)
             ).expect(TS_CR_FAIL));
@@ -250,7 +252,8 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
 
     inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,fn_impl_res))));
     res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner_res))));
-    println!("{}",res);
+    #[cfg(feature = "dump_macro_results")]
+    dumping::dump_stream(&res);
     return res;
 }
 /// Autoimplement [`InteropSend`] trait for any type containing only [`IteroSend`] implementing memebers. Currently supports only structs, and trivial enums(C-like enums) of size less than u64(C# max enum size).
@@ -293,7 +296,6 @@ pub fn derive_send(mut input: TokenStream) -> TokenStream {
         for memeber in inner{
             let mname = memeber[0].to_string();
             let mtype = memeber[2].to_string();
-            println!("name:'{}' type:'{}'",mname,mtype);
             type_res.extend(TokenStream::from_str(
                 &format!("<{} as InteropSend>::TargetType,",mtype)
             ).expect(TS_CR_FAIL));
@@ -330,7 +332,42 @@ pub fn derive_send(mut input: TokenStream) -> TokenStream {
 
     inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,fn_impl_res))));
     res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner_res))));
-    println!("{}",res);
+    #[cfg(feature = "dump_macro_results")]
+    dumping::dump_stream(&res);
     return res;
+}
+#[cfg(feature = "dump_macro_results")]
+mod dumping{
+    static mut HAS_BEGUN_DUMP:bool = false;
+    pub fn dump_stream(stream:&proc_macro::TokenStream){
+        use proc_macro::Span;
+        use std::io::Write;
+        let mut file = get_dump_file();
+        write!(file,"//##############################################################################\n");
+        let span = Span::call_site();
+        write!(file,"// inserted in file `{}` at `{}:{}`\n",span.source_file().path().display(),span.end().line,span.end().column);
+        write!(file,"{}\n",stream);
+    }
+    pub fn get_dump_file()->std::fs::File{
+        use std::fs::OpenOptions;
+        let path = "macro.dump";
+        return {
+            if unsafe{HAS_BEGUN_DUMP}{
+                OpenOptions::new()
+                .write(true)
+                .append(true)
+                .open(path)
+                .expect("Could not open macro dump file!")
+            }
+            else{
+                unsafe{HAS_BEGUN_DUMP = true};
+                std::fs::File::create(path).expect("Could not create macro dump file!");
+                OpenOptions::new()
+                .write(true)
+                .open(path)
+                .expect("Could not create macro dump file!")
+            }
+        };
+    }
 }
 //TODO: maybe autoimplement interop box?

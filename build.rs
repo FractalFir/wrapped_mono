@@ -1,6 +1,6 @@
 
 // comment out all #[cfg(test)] and bindgen dependency to renable bind generation
-#[cfg(test)]
+#[cfg(feature = "regen_binds")]
 mod binds{
     extern crate bindgen;
     use std::path::PathBuf;
@@ -29,20 +29,6 @@ mod binds{
 #[cfg(feature = "build_test_dlls")]
 mod tests{
     use std::process::Command;
-    /*
-    pub fn compile_assembly(src_path:&str,target_path:&str){
-        let output = Command::new("mcs") 
-        .arg(&format!("-out:{}",target_path))
-        .arg("-debug:embeded")
-        .arg(src_path)
-        .output()
-        .expect("Failed to execute command");
-        let stderr = output.stderr;
-        if stderr.len() > 0{
-            panic!("{}",std::str::from_utf8(&stderr).unwrap());
-        }
-    }
-    */
     pub fn compile_jit_test_assembly(){
         let output = Command::new("mcs") 
         .arg("-out:test/dlls/Jit.dll")
@@ -109,7 +95,7 @@ fn main() {
         println!("cargo:rustc-link-search=C:\\Program Files\\Mono\\lib");
         copy_win_dlls();
     }
-    #[cfg(test)]
+    #[cfg(feature = "regen_binds")]
     binds::gen_binds();
    
     #[cfg(feature = "build_test_dlls")]

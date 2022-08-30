@@ -1,11 +1,12 @@
 use crate::binds::MonoTableInfo;
 use crate::Image;
-
+///Representaiton of a table with metadata.
 pub struct MetadataTableInfo{
     pub table:*const MonoTableInfo,
     pub kind:MetadataTableKind,
 }
 pub type MetadataToken = u32;
+///Enum representing all possible kinds of metadata tables.
 #[repr(u32)] #[derive(PartialEq)]
 pub enum MetadataTableKind{
     Module              =   crate::binds::MonoMetaTableEnum_MONO_TABLE_MODULE,
@@ -78,6 +79,7 @@ impl MetadataTableInfo{
         return unsafe{crate::binds::mono_metadata_decode_row_col(self.table,row,column)};
     }
 }
+///Representaion of data about assembly.
 pub struct AssemblyMetadata{
     pub hash_alg:HashAlgorithm,
     pub major_version:u32,
@@ -86,9 +88,8 @@ pub struct AssemblyMetadata{
     pub rev_number:u32,
     pub flags:AssemblyFlags,
     pub public_key:u32,
-    name:u32,
-    pub culture:u32,
-    img:Image,
+    name:String,
+    culture:String,
 }
 impl AssemblyMetadata{
     fn from_meta_table(table:&MetadataTableInfo,img:&Image)->AssemblyMetadata{
@@ -101,23 +102,26 @@ impl AssemblyMetadata{
             rev_number:     table.decode_row_col(0,4),
             flags:          AssemblyFlags{flags:table.decode_row_col(0,5)},
             public_key:     table.decode_row_col(0,6),
-            name:           table.decode_row_col(0,7),
-            culture:        table.decode_row_col(0,8),
-            img:*img,
+            name:           img.metadata_string_heap(table.decode_row_col(0,7)),
+            culture:        img.metadata_string_heap(table.decode_row_col(0,8)),
         };
     }
+    ///Gets [`AssemblyMethadata`]
     pub fn from_image(img:&Image)->AssemblyMetadata{
         return Self::from_meta_table(&img.get_table_info(MetadataTableKind::Assembly),img);
     }
+    //Returns name string.
     pub fn get_name(&self)->String{
-        return self.img.metadata_string_heap(self.name);
+        return (&self.name).to_owned();
     }
+    ///Returns cultutre string.
     pub fn get_culture(&self)->String{
-        return self.img.metadata_string_heap(self.culture);
+        return (&self.culture).to_owned();
     }
 }
 ///Representation of assembly flags. More info <a href="https://docs.microsoft.com/en-us/dotnet/api/system.reflection.assemblyflags?view=net-6.0"> here </a>
 pub struct AssemblyFlags{pub flags:u32}
+#[allow(non_snake_case)]
 impl AssemblyFlags{
     ///Checks is `WindowsRuntime` flag is set.
     pub fn is_set_WindowsRuntime(&self)->bool{
@@ -144,6 +148,7 @@ impl AssemblyFlags{
         return [(self.flags & 2048) != 0,(self.flags & 1024) != 0];
     }
 }
+#[warn(non_snake_case)]
 impl std::fmt::Display for AssemblyFlags{
     fn fmt(&self,f:&mut std::fmt::Formatter<'_>)->std::fmt::Result{
         write!(f,"AssemblyFlags{{WindowsRuntime:{}, ",self.is_set_WindowsRuntime())?;
@@ -200,7 +205,42 @@ impl std::fmt::Display for AssemblyMetadata{
         write!(f,"rev_number:{}, ",      self.rev_number)?;
         write!(f,"flags:{}, ",           self.flags)?;
         write!(f,"public_key:{}, ",      self.public_key)?;
-        write!(f,"Name:{}, ",            self.get_name())?;
-        write!(f,"Culture:{}}}",         self.get_culture())
+        write!(f,"Name:{}, ",            &self.name)?;
+        write!(f,"Culture:{}}}",         &self.culture)
+    }
+}
+pub struct AssemblyOSMetadata{
+    platform: String,
+    major_version:u32,
+    minor_version:u32,
+}
+impl AssemblyOSMetadata{
+    fn from_meta_table(table:&MetadataTableInfo,img:&Image)->AssemblyOSMetadata{
+        assert!(table.kind == MetadataTableKind::AssemblyOS);
+        return AssemblyOSMetadata{
+            platform:img.metadata_string_heap(table.decode_row_col(0,0)),
+            major_version:table.decode_row_col(0,1),
+            minor_version:table.decode_row_col(0,2),
+        };
+    }
+    ///Gets [`AssemblyMethadata`]
+    pub fn from_image(img:&Image)->Option<AssemblyOSMetadata>{
+        let table = img.get_table_info(MetadataTableKind::AssemblyOS);
+        if table.get_table_rows()>0{
+            return Some(Self::from_meta_table(&table,img));
+        }
+       else {return None};
+    }
+    //Returns platform string.
+    pub fn get_platform(&self)->String{
+        return (&self.platform).to_owned();
+    }
+}
+impl std::fmt::Display for AssemblyOSMetadata{
+    fn fmt(&self,f:&mut std::fmt::Formatter<'_>)->std::fmt::Result{
+        write!(f,"AssemblyOSMetadata{{")?;
+        write!(f,"Platform:{}, ",       &self.platform)?;
+        write!(f,"MajorVersion:{}, ",   self.major_version)?;
+        write!(f,"MinorVersion:{}}}",   self.minor_version)
     }
 }

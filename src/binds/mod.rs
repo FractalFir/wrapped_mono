@@ -316,6 +316,7 @@ pub const FOPEN_MAX: u32 = 16;
 pub const _MONO_METADATA_LOADER_H_: u32 = 1;
 pub const MONO_DECLSEC_ACTION_MIN: u32 = 1;
 pub const MONO_DECLSEC_ACTION_MAX: u32 = 18;
+pub const MONO_PROFILER_API_VERSION: u32 = 3;
 pub type __u_char = ::std::os::raw::c_uchar;
 pub type __u_short = ::std::os::raw::c_ushort;
 pub type __u_int = ::std::os::raw::c_uint;
@@ -9399,15 +9400,869 @@ extern "C" {
         data: *mut ::std::os::raw::c_void,
     ) -> ::std::os::raw::c_int;
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoProfiler {
+    _unused: [u8; 0],
+}
+pub type MonoProfiler = _MonoProfiler;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoProfilerDesc {
+    _unused: [u8; 0],
+}
+pub type MonoProfilerHandle = *mut _MonoProfilerDesc;
+pub type MonoProfilerCleanupCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler)>;
 extern "C" {
-    pub fn mono_domain_create_appdomain_checked(
-        friendly_name: *mut ::std::os::raw::c_char,
-        configuration_file: *mut ::std::os::raw::c_char,
-        error: *mut MonoError,
-    ) -> *mut MonoDomain;
+    pub fn mono_profiler_load(desc: *const ::std::os::raw::c_char);
 }
 extern "C" {
-    pub fn test(arg1: ::std::os::raw::c_int) -> *mut ::std::os::raw::c_void;
+    pub fn mono_profiler_create(prof: *mut MonoProfiler) -> MonoProfilerHandle;
+}
+extern "C" {
+    pub fn mono_profiler_set_cleanup_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerCleanupCallback,
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct MonoProfilerCoverageData {
+    pub method: *mut MonoMethod,
+    pub il_offset: u32,
+    pub counter: u32,
+    pub file_name: *const ::std::os::raw::c_char,
+    pub line: u32,
+    pub column: u32,
+}
+#[test]
+fn bindgen_test_layout_MonoProfilerCoverageData() {
+    assert_eq!(
+        ::std::mem::size_of::<MonoProfilerCoverageData>(),
+        32usize,
+        concat!("Size of: ", stringify!(MonoProfilerCoverageData))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<MonoProfilerCoverageData>(),
+        8usize,
+        concat!("Alignment of ", stringify!(MonoProfilerCoverageData))
+    );
+    fn test_field_method() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<MonoProfilerCoverageData>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).method) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(MonoProfilerCoverageData),
+                "::",
+                stringify!(method)
+            )
+        );
+    }
+    test_field_method();
+    fn test_field_il_offset() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<MonoProfilerCoverageData>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).il_offset) as usize - ptr as usize
+            },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(MonoProfilerCoverageData),
+                "::",
+                stringify!(il_offset)
+            )
+        );
+    }
+    test_field_il_offset();
+    fn test_field_counter() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<MonoProfilerCoverageData>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).counter) as usize - ptr as usize
+            },
+            12usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(MonoProfilerCoverageData),
+                "::",
+                stringify!(counter)
+            )
+        );
+    }
+    test_field_counter();
+    fn test_field_file_name() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<MonoProfilerCoverageData>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).file_name) as usize - ptr as usize
+            },
+            16usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(MonoProfilerCoverageData),
+                "::",
+                stringify!(file_name)
+            )
+        );
+    }
+    test_field_file_name();
+    fn test_field_line() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<MonoProfilerCoverageData>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).line) as usize - ptr as usize
+            },
+            24usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(MonoProfilerCoverageData),
+                "::",
+                stringify!(line)
+            )
+        );
+    }
+    test_field_line();
+    fn test_field_column() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<MonoProfilerCoverageData>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).column) as usize - ptr as usize
+            },
+            28usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(MonoProfilerCoverageData),
+                "::",
+                stringify!(column)
+            )
+        );
+    }
+    test_field_column();
+}
+pub type MonoProfilerCoverageFilterCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, method: *mut MonoMethod) -> mono_bool,
+>;
+pub type MonoProfilerCoverageCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, data: *const MonoProfilerCoverageData),
+>;
+extern "C" {
+    pub fn mono_profiler_enable_coverage() -> mono_bool;
+}
+extern "C" {
+    pub fn mono_profiler_set_coverage_filter_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerCoverageFilterCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_get_coverage_data(
+        handle: MonoProfilerHandle,
+        method: *mut MonoMethod,
+        cb: MonoProfilerCoverageCallback,
+    ) -> mono_bool;
+}
+pub const MonoProfilerSampleMode_MONO_PROFILER_SAMPLE_MODE_NONE: MonoProfilerSampleMode = 0;
+pub const MonoProfilerSampleMode_MONO_PROFILER_SAMPLE_MODE_PROCESS: MonoProfilerSampleMode = 1;
+pub const MonoProfilerSampleMode_MONO_PROFILER_SAMPLE_MODE_REAL: MonoProfilerSampleMode = 2;
+pub type MonoProfilerSampleMode = ::std::os::raw::c_uint;
+extern "C" {
+    pub fn mono_profiler_enable_sampling(handle: MonoProfilerHandle) -> mono_bool;
+}
+extern "C" {
+    pub fn mono_profiler_set_sample_mode(
+        handle: MonoProfilerHandle,
+        mode: MonoProfilerSampleMode,
+        freq: u32,
+    ) -> mono_bool;
+}
+extern "C" {
+    pub fn mono_profiler_get_sample_mode(
+        handle: MonoProfilerHandle,
+        mode: *mut MonoProfilerSampleMode,
+        freq: *mut u32,
+    ) -> mono_bool;
+}
+extern "C" {
+    pub fn mono_profiler_enable_allocations() -> mono_bool;
+}
+extern "C" {
+    pub fn mono_profiler_enable_clauses() -> mono_bool;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoProfilerCallContext {
+    _unused: [u8; 0],
+}
+pub type MonoProfilerCallContext = _MonoProfilerCallContext;
+pub const MonoProfilerCallInstrumentationFlags_MONO_PROFILER_CALL_INSTRUMENTATION_NONE:
+    MonoProfilerCallInstrumentationFlags = 0;
+pub const MonoProfilerCallInstrumentationFlags_MONO_PROFILER_CALL_INSTRUMENTATION_ENTER:
+    MonoProfilerCallInstrumentationFlags = 2;
+pub const MonoProfilerCallInstrumentationFlags_MONO_PROFILER_CALL_INSTRUMENTATION_ENTER_CONTEXT:
+    MonoProfilerCallInstrumentationFlags = 4;
+pub const MonoProfilerCallInstrumentationFlags_MONO_PROFILER_CALL_INSTRUMENTATION_LEAVE:
+    MonoProfilerCallInstrumentationFlags = 8;
+pub const MonoProfilerCallInstrumentationFlags_MONO_PROFILER_CALL_INSTRUMENTATION_LEAVE_CONTEXT:
+    MonoProfilerCallInstrumentationFlags = 16;
+pub const MonoProfilerCallInstrumentationFlags_MONO_PROFILER_CALL_INSTRUMENTATION_TAIL_CALL:
+    MonoProfilerCallInstrumentationFlags = 32;
+pub const MonoProfilerCallInstrumentationFlags_MONO_PROFILER_CALL_INSTRUMENTATION_EXCEPTION_LEAVE : MonoProfilerCallInstrumentationFlags = 64 ;
+pub type MonoProfilerCallInstrumentationFlags = ::std::os::raw::c_uint;
+pub type MonoProfilerCallInstrumentationFilterCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        prof: *mut MonoProfiler,
+        method: *mut MonoMethod,
+    ) -> MonoProfilerCallInstrumentationFlags,
+>;
+extern "C" {
+    pub fn mono_profiler_set_call_instrumentation_filter_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerCallInstrumentationFilterCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_enable_call_context_introspection() -> mono_bool;
+}
+extern "C" {
+    pub fn mono_profiler_call_context_get_this(
+        context: *mut MonoProfilerCallContext,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn mono_profiler_call_context_get_argument(
+        context: *mut MonoProfilerCallContext,
+        position: u32,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn mono_profiler_call_context_get_local(
+        context: *mut MonoProfilerCallContext,
+        position: u32,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn mono_profiler_call_context_get_result(
+        context: *mut MonoProfilerCallContext,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn mono_profiler_call_context_free_buffer(buffer: *mut ::std::os::raw::c_void);
+}
+pub const MonoProfilerCodeBufferType_MONO_PROFILER_CODE_BUFFER_METHOD: MonoProfilerCodeBufferType =
+    0;
+pub const MonoProfilerCodeBufferType_MONO_PROFILER_CODE_BUFFER_METHOD_TRAMPOLINE:
+    MonoProfilerCodeBufferType = 1;
+pub const MonoProfilerCodeBufferType_MONO_PROFILER_CODE_BUFFER_UNBOX_TRAMPOLINE:
+    MonoProfilerCodeBufferType = 2;
+pub const MonoProfilerCodeBufferType_MONO_PROFILER_CODE_BUFFER_IMT_TRAMPOLINE:
+    MonoProfilerCodeBufferType = 3;
+pub const MonoProfilerCodeBufferType_MONO_PROFILER_CODE_BUFFER_GENERICS_TRAMPOLINE:
+    MonoProfilerCodeBufferType = 4;
+pub const MonoProfilerCodeBufferType_MONO_PROFILER_CODE_BUFFER_SPECIFIC_TRAMPOLINE:
+    MonoProfilerCodeBufferType = 5;
+pub const MonoProfilerCodeBufferType_MONO_PROFILER_CODE_BUFFER_HELPER: MonoProfilerCodeBufferType =
+    6;
+pub const MonoProfilerCodeBufferType_MONO_PROFILER_CODE_BUFFER_MONITOR: MonoProfilerCodeBufferType =
+    7;
+pub const MonoProfilerCodeBufferType_MONO_PROFILER_CODE_BUFFER_DELEGATE_INVOKE:
+    MonoProfilerCodeBufferType = 8;
+pub const MonoProfilerCodeBufferType_MONO_PROFILER_CODE_BUFFER_EXCEPTION_HANDLING:
+    MonoProfilerCodeBufferType = 9;
+pub type MonoProfilerCodeBufferType = ::std::os::raw::c_uint;
+pub const MonoProfilerGCEvent_MONO_GC_EVENT_PRE_STOP_WORLD: MonoProfilerGCEvent = 6;
+pub const MonoProfilerGCEvent_MONO_GC_EVENT_PRE_STOP_WORLD_LOCKED: MonoProfilerGCEvent = 10;
+pub const MonoProfilerGCEvent_MONO_GC_EVENT_POST_STOP_WORLD: MonoProfilerGCEvent = 7;
+pub const MonoProfilerGCEvent_MONO_GC_EVENT_START: MonoProfilerGCEvent = 0;
+pub const MonoProfilerGCEvent_MONO_GC_EVENT_END: MonoProfilerGCEvent = 5;
+pub const MonoProfilerGCEvent_MONO_GC_EVENT_PRE_START_WORLD: MonoProfilerGCEvent = 8;
+pub const MonoProfilerGCEvent_MONO_GC_EVENT_POST_START_WORLD_UNLOCKED: MonoProfilerGCEvent = 11;
+pub const MonoProfilerGCEvent_MONO_GC_EVENT_POST_START_WORLD: MonoProfilerGCEvent = 9;
+pub type MonoProfilerGCEvent = ::std::os::raw::c_uint;
+pub type MonoProfilerRuntimeInitializedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler)>;
+pub type MonoProfilerRuntimeShutdownBeginCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler)>;
+pub type MonoProfilerRuntimeShutdownEndCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler)>;
+pub type MonoProfilerContextLoadedCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, context: *mut MonoAppContext),
+>;
+pub type MonoProfilerContextUnloadedCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, context: *mut MonoAppContext),
+>;
+pub type MonoProfilerDomainLoadingCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, domain: *mut MonoDomain)>;
+pub type MonoProfilerDomainLoadedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, domain: *mut MonoDomain)>;
+pub type MonoProfilerDomainUnloadingCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, domain: *mut MonoDomain)>;
+pub type MonoProfilerDomainUnloadedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, domain: *mut MonoDomain)>;
+pub type MonoProfilerDomainNameCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        prof: *mut MonoProfiler,
+        domain: *mut MonoDomain,
+        name: *const ::std::os::raw::c_char,
+    ),
+>;
+pub type MonoProfilerJitBeginCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, method: *mut MonoMethod)>;
+pub type MonoProfilerJitFailedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, method: *mut MonoMethod)>;
+pub type MonoProfilerJitDoneCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, method: *mut MonoMethod, jinfo: *mut MonoJitInfo),
+>;
+pub type MonoProfilerJitChunkCreatedCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, chunk: *const mono_byte, size: usize),
+>;
+pub type MonoProfilerJitChunkDestroyedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, chunk: *const mono_byte)>;
+pub type MonoProfilerJitCodeBufferCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        prof: *mut MonoProfiler,
+        buffer: *const mono_byte,
+        size: u64,
+        type_: MonoProfilerCodeBufferType,
+        data: *const ::std::os::raw::c_void,
+    ),
+>;
+pub type MonoProfilerClassLoadingCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, klass: *mut MonoClass)>;
+pub type MonoProfilerClassFailedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, klass: *mut MonoClass)>;
+pub type MonoProfilerClassLoadedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, klass: *mut MonoClass)>;
+pub type MonoProfilerVTableLoadingCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, vtable: *mut MonoVTable)>;
+pub type MonoProfilerVTableFailedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, vtable: *mut MonoVTable)>;
+pub type MonoProfilerVTableLoadedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, vtable: *mut MonoVTable)>;
+pub type MonoProfilerModuleLoadingCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, image: *mut MonoImage)>;
+pub type MonoProfilerModuleFailedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, image: *mut MonoImage)>;
+pub type MonoProfilerModuleLoadedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, image: *mut MonoImage)>;
+pub type MonoProfilerModuleUnloadingCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, image: *mut MonoImage)>;
+pub type MonoProfilerModuleUnloadedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, image: *mut MonoImage)>;
+pub type MonoProfilerAssemblyLoadingCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, assembly: *mut MonoAssembly),
+>;
+pub type MonoProfilerAssemblyLLoadedCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, assembly: *mut MonoAssembly),
+>;
+pub type MonoProfilerAssemblyLUnloadingCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, assembly: *mut MonoAssembly),
+>;
+pub type MonoProfilerAssemblyLUnloadedCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, assembly: *mut MonoAssembly),
+>;
+pub type MonoProfilerMethodEnterCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        prof: *mut MonoProfiler,
+        method: *mut MonoMethod,
+        context: *mut MonoProfilerCallContext,
+    ),
+>;
+pub type MonoProfilerMethodLeaveCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        prof: *mut MonoProfiler,
+        method: *mut MonoMethod,
+        context: *mut MonoProfilerCallContext,
+    ),
+>;
+pub type MonoProfilerMethodTailCallCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, method: *mut MonoMethod, target: *mut MonoMethod),
+>;
+pub type MonoProfilerMethodExceptionLeaveCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        prof: *mut MonoProfiler,
+        method: *mut MonoMethod,
+        exception: *mut MonoObject,
+    ),
+>;
+pub type MonoProfilerMethodFreeCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, method: *mut MonoMethod)>;
+pub type MonoProfilerMethodBeginInvokeCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, method: *mut MonoMethod)>;
+pub type MonoProfilerMethodEndInvokeCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, method: *mut MonoMethod)>;
+pub type MonoProfilerExceptionThrowCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, exception: *mut MonoObject),
+>;
+pub type MonoProfilerExceptionClauseCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        prof: *mut MonoProfiler,
+        method: *mut MonoMethod,
+        index: u32,
+        type_: MonoExceptionEnum,
+        exception: *mut MonoObject,
+    ),
+>;
+pub type MonoProfilerGCEvent2Callback = ::std::option::Option<
+    unsafe extern "C" fn(
+        prof: *mut MonoProfiler,
+        event: MonoProfilerGCEvent,
+        generation: u32,
+        is_serial: mono_bool,
+    ),
+>;
+pub type MonoProfilerGCAllocationCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, object: *mut MonoObject)>;
+pub type MonoProfilerGCMovesCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, objects: *const *mut MonoObject, count: u64),
+>;
+pub type MonoProfilerGCResizeCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, size: usize)>;
+pub type MonoProfilerGCHandleCreatedCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        prof: *mut MonoProfiler,
+        handle: u32,
+        type_: MonoGCHandleType,
+        object: *mut MonoObject,
+    ),
+>;
+pub type MonoProfilerGCHandleDeletedCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, handle: u32, type_: MonoGCHandleType),
+>;
+pub type MonoProfilerGCFinalizingCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler)>;
+pub type MonoProfilerGCFinalizedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler)>;
+pub type MonoProfilerGCFinalizingObjectCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, object: *mut MonoObject)>;
+pub type MonoProfilerGCFinalizedObjectCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, object: *mut MonoObject)>;
+pub type MonoProfilerRootRegisterCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        prof: *mut MonoProfiler,
+        start: *const mono_byte,
+        size: usize,
+        source: MonoGCRootSource,
+        key: *const ::std::os::raw::c_void,
+        name: *const ::std::os::raw::c_char,
+    ),
+>;
+pub type MonoProfilerRootUnregisterCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, start: *const mono_byte)>;
+pub type MonoProfilerGCRootsCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        prof: *mut MonoProfiler,
+        count: u64,
+        addresses: *const *const mono_byte,
+        objects: *const *mut MonoObject,
+    ),
+>;
+pub type MonoProfilerMonitorContentionCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, object: *mut MonoObject)>;
+pub type MonoProfilerMonitorFailedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, object: *mut MonoObject)>;
+pub type MonoProfilerMonitorAcquiredCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, object: *mut MonoObject)>;
+pub type MonoProfilerThreadStartedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, tid: usize)>;
+pub type MonoProfilerThreadStoppingCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, tid: usize)>;
+pub type MonoProfilerThreadStoppedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, tid: usize)>;
+pub type MonoProfilerThreadExitedCallback =
+    ::std::option::Option<unsafe extern "C" fn(prof: *mut MonoProfiler, tid: usize)>;
+pub type MonoProfilerThreadNameCallback = ::std::option::Option<
+    unsafe extern "C" fn(prof: *mut MonoProfiler, tid: usize, name: *const ::std::os::raw::c_char),
+>;
+pub type MonoProfilerSampleHitCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        prof: *mut MonoProfiler,
+        ip: *const mono_byte,
+        context: *const ::std::os::raw::c_void,
+    ),
+>;
+extern "C" {
+    pub fn mono_profiler_set_runtime_initialized_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerRuntimeInitializedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_runtime_shutdown_begin_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerRuntimeShutdownBeginCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_runtime_shutdown_end_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerRuntimeShutdownEndCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_context_loaded_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerContextLoadedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_context_unloaded_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerContextUnloadedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_domain_loading_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerDomainLoadingCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_domain_loaded_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerDomainLoadedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_domain_unloading_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerDomainUnloadingCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_domain_unloaded_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerDomainUnloadedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_domain_name_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerDomainNameCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_jit_begin_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerJitBeginCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_jit_failed_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerJitFailedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_jit_done_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerJitDoneCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_jit_chunk_created_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerJitChunkCreatedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_jit_chunk_destroyed_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerJitChunkDestroyedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_jit_code_buffer_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerJitCodeBufferCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_class_loading_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerClassLoadingCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_class_failed_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerClassFailedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_class_loaded_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerClassLoadedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_vtable_loading_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerVTableLoadingCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_vtable_failed_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerVTableFailedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_vtable_loaded_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerVTableLoadedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_image_loading_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerModuleLoadingCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_image_failed_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerModuleFailedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_image_loaded_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerModuleLoadedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_image_unloading_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerModuleUnloadingCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_image_unloaded_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerModuleUnloadedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_assembly_loading_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerAssemblyLoadingCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_assembly_loaded_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerAssemblyLLoadedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_assembly_unloading_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerAssemblyLUnloadingCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_assembly_unloaded_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerAssemblyLUnloadedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_method_enter_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerMethodEnterCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_method_leave_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerMethodLeaveCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_method_tail_call_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerMethodTailCallCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_method_exception_leave_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerMethodExceptionLeaveCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_method_free_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerMethodFreeCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_method_begin_invoke_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerMethodBeginInvokeCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_method_end_invoke_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerMethodEndInvokeCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_exception_throw_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerExceptionThrowCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_exception_clause_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerExceptionClauseCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_gc_event_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerGCEvent2Callback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_gc_allocation_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerGCAllocationCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_gc_moves_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerGCMovesCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_gc_resize_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerGCResizeCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_gc_handle_created_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerGCHandleCreatedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_gc_handle_deleted_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerGCHandleDeletedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_gc_finalizing_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerGCFinalizingCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_gc_finalized_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerGCFinalizedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_gc_finalizing_object_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerGCFinalizingObjectCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_gc_finalized_object_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerGCFinalizedObjectCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_gc_root_register_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerRootRegisterCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_gc_root_unregister_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerRootUnregisterCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_gc_roots_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerGCRootsCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_monitor_contention_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerMonitorContentionCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_monitor_failed_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerMonitorFailedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_monitor_acquired_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerMonitorAcquiredCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_thread_started_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerThreadStartedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_thread_stopping_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerThreadStoppingCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_thread_stopped_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerThreadStoppedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_thread_exited_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerThreadExitedCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_thread_name_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerThreadNameCallback,
+    );
+}
+extern "C" {
+    pub fn mono_profiler_set_sample_hit_callback(
+        handle: MonoProfilerHandle,
+        cb: MonoProfilerSampleHitCallback,
+    );
 }
 pub type __builtin_va_list = [__va_list_tag; 1usize];
 #[repr(C)]

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 links = "mono-2.0"
 [build-dependencies]
-#bindgen = "0.60.1" #uncoment to enable bind regeneration
+bindgen = {version = "0.60.1",optional = true}
 [dependencies]
 macros = {path = "src/macros"}
 document-features = "0.2.3"
@@ -21,3 +21,7 @@ unsafe_arrays = []
 unsafe_speedup = ["unsafe_boxing","unsafe_arrays"]
 ## Build test dlls. Enable only for tests, if you want to change test .cs files.
 build_test_dlls = []
+## Regenerates bindings for mono library
+regen_binds = ["bindgen"]
+## Dumps code created as results of macros into "macro.dump" file. Use for debugging when macros do not behave as expecetd.
+dump_macro_results = ["macros/dump_macro_results"]

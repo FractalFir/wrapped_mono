@@ -47,6 +47,7 @@ pub mod gc;
 /// Utilities related to metadata.
 pub mod metadata;
 
+pub mod profiler;
 mod testing;
 pub use macros;
 #[doc(inline)]
