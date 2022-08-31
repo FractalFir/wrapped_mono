@@ -317,6 +317,17 @@ pub const _MONO_METADATA_LOADER_H_: u32 = 1;
 pub const MONO_DECLSEC_ACTION_MIN: u32 = 1;
 pub const MONO_DECLSEC_ACTION_MAX: u32 = 18;
 pub const MONO_PROFILER_API_VERSION: u32 = 3;
+pub const MONO_DEBUG_VAR_ADDRESS_MODE_FLAGS: u32 = 4026531840;
+pub const MONO_DEBUG_VAR_ADDRESS_MODE_REGISTER: u32 = 0;
+pub const MONO_DEBUG_VAR_ADDRESS_MODE_REGOFFSET: u32 = 268435456;
+pub const MONO_DEBUG_VAR_ADDRESS_MODE_TWO_REGISTERS: u32 = 536870912;
+pub const MONO_DEBUG_VAR_ADDRESS_MODE_DEAD: u32 = 805306368;
+pub const MONO_DEBUG_VAR_ADDRESS_MODE_REGOFFSET_INDIR: u32 = 1073741824;
+pub const MONO_DEBUG_VAR_ADDRESS_MODE_GSHAREDVT_LOCAL: u32 = 1342177280;
+pub const MONO_DEBUG_VAR_ADDRESS_MODE_VTADDR: u32 = 1610612736;
+pub const MONO_DEBUGGER_MAJOR_VERSION: u32 = 81;
+pub const MONO_DEBUGGER_MINOR_VERSION: u32 = 6;
+pub const MONO_DEBUGGER_MAGIC: u64 = 8862914395094897703;
 pub type __u_char = ::std::os::raw::c_uchar;
 pub type __u_short = ::std::os::raw::c_ushort;
 pub type __u_int = ::std::os::raw::c_uint;
@@ -10263,6 +10274,1078 @@ extern "C" {
         handle: MonoProfilerHandle,
         cb: MonoProfilerSampleHitCallback,
     );
+}
+pub type MonoSymbolTable = _MonoSymbolTable;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoDebugDataTable {
+    _unused: [u8; 0],
+}
+pub type MonoDebugDataTable = _MonoDebugDataTable;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoSymbolFile {
+    _unused: [u8; 0],
+}
+pub type MonoSymbolFile = _MonoSymbolFile;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoPPDBFile {
+    _unused: [u8; 0],
+}
+pub type MonoPPDBFile = _MonoPPDBFile;
+pub type MonoDebugHandle = _MonoDebugHandle;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoDebugLineNumberEntry {
+    _unused: [u8; 0],
+}
+pub type MonoDebugLineNumberEntry = _MonoDebugLineNumberEntry;
+pub type MonoDebugVarInfo = _MonoDebugVarInfo;
+pub type MonoDebugMethodJitInfo = _MonoDebugMethodJitInfo;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoDebugMethodAddress {
+    _unused: [u8; 0],
+}
+pub type MonoDebugMethodAddress = _MonoDebugMethodAddress;
+pub type MonoDebugMethodAddressList = _MonoDebugMethodAddressList;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoDebugClassEntry {
+    _unused: [u8; 0],
+}
+pub type MonoDebugClassEntry = _MonoDebugClassEntry;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoDebugMethodInfo {
+    _unused: [u8; 0],
+}
+pub type MonoDebugMethodInfo = _MonoDebugMethodInfo;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoDebugLocalsInfo {
+    _unused: [u8; 0],
+}
+pub type MonoDebugLocalsInfo = _MonoDebugLocalsInfo;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoDebugMethodAsyncInfo {
+    _unused: [u8; 0],
+}
+pub type MonoDebugMethodAsyncInfo = _MonoDebugMethodAsyncInfo;
+pub type MonoDebugSourceLocation = _MonoDebugSourceLocation;
+pub type MonoDebugList = _MonoDebugList;
+pub const MonoDebugFormat_MONO_DEBUG_FORMAT_NONE: MonoDebugFormat = 0;
+pub const MonoDebugFormat_MONO_DEBUG_FORMAT_MONO: MonoDebugFormat = 1;
+pub const MonoDebugFormat_MONO_DEBUG_FORMAT_DEBUGGER: MonoDebugFormat = 2;
+pub type MonoDebugFormat = ::std::os::raw::c_uint;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoDebugList {
+    pub next: *mut MonoDebugList,
+    pub data: *const ::std::os::raw::c_void,
+}
+#[test]
+fn bindgen_test_layout__MonoDebugList() {
+    assert_eq!(
+        ::std::mem::size_of::<_MonoDebugList>(),
+        16usize,
+        concat!("Size of: ", stringify!(_MonoDebugList))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_MonoDebugList>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_MonoDebugList))
+    );
+    fn test_field_next() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugList>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).next) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugList),
+                "::",
+                stringify!(next)
+            )
+        );
+    }
+    test_field_next();
+    fn test_field_data() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugList>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).data) as usize - ptr as usize
+            },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugList),
+                "::",
+                stringify!(data)
+            )
+        );
+    }
+    test_field_data();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoSymbolTable {
+    pub magic: u64,
+    pub version: u32,
+    pub total_size: u32,
+    pub corlib: *mut MonoDebugHandle,
+    pub global_data_table: *mut MonoDebugDataTable,
+    pub data_tables: *mut MonoDebugList,
+    pub symbol_files: *mut MonoDebugList,
+}
+#[test]
+fn bindgen_test_layout__MonoSymbolTable() {
+    assert_eq!(
+        ::std::mem::size_of::<_MonoSymbolTable>(),
+        48usize,
+        concat!("Size of: ", stringify!(_MonoSymbolTable))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_MonoSymbolTable>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_MonoSymbolTable))
+    );
+    fn test_field_magic() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoSymbolTable>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).magic) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoSymbolTable),
+                "::",
+                stringify!(magic)
+            )
+        );
+    }
+    test_field_magic();
+    fn test_field_version() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoSymbolTable>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).version) as usize - ptr as usize
+            },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoSymbolTable),
+                "::",
+                stringify!(version)
+            )
+        );
+    }
+    test_field_version();
+    fn test_field_total_size() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoSymbolTable>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).total_size) as usize - ptr as usize
+            },
+            12usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoSymbolTable),
+                "::",
+                stringify!(total_size)
+            )
+        );
+    }
+    test_field_total_size();
+    fn test_field_corlib() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoSymbolTable>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).corlib) as usize - ptr as usize
+            },
+            16usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoSymbolTable),
+                "::",
+                stringify!(corlib)
+            )
+        );
+    }
+    test_field_corlib();
+    fn test_field_global_data_table() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoSymbolTable>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).global_data_table) as usize - ptr as usize
+            },
+            24usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoSymbolTable),
+                "::",
+                stringify!(global_data_table)
+            )
+        );
+    }
+    test_field_global_data_table();
+    fn test_field_data_tables() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoSymbolTable>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).data_tables) as usize - ptr as usize
+            },
+            32usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoSymbolTable),
+                "::",
+                stringify!(data_tables)
+            )
+        );
+    }
+    test_field_data_tables();
+    fn test_field_symbol_files() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoSymbolTable>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).symbol_files) as usize - ptr as usize
+            },
+            40usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoSymbolTable),
+                "::",
+                stringify!(symbol_files)
+            )
+        );
+    }
+    test_field_symbol_files();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoDebugHandle {
+    pub index: u32,
+    pub image_file: *mut ::std::os::raw::c_char,
+    pub image: *mut MonoImage,
+    pub type_table: *mut MonoDebugDataTable,
+    pub symfile: *mut MonoSymbolFile,
+    pub ppdb: *mut MonoPPDBFile,
+}
+#[test]
+fn bindgen_test_layout__MonoDebugHandle() {
+    assert_eq!(
+        ::std::mem::size_of::<_MonoDebugHandle>(),
+        48usize,
+        concat!("Size of: ", stringify!(_MonoDebugHandle))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_MonoDebugHandle>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_MonoDebugHandle))
+    );
+    fn test_field_index() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugHandle>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).index) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugHandle),
+                "::",
+                stringify!(index)
+            )
+        );
+    }
+    test_field_index();
+    fn test_field_image_file() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugHandle>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).image_file) as usize - ptr as usize
+            },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugHandle),
+                "::",
+                stringify!(image_file)
+            )
+        );
+    }
+    test_field_image_file();
+    fn test_field_image() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugHandle>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).image) as usize - ptr as usize
+            },
+            16usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugHandle),
+                "::",
+                stringify!(image)
+            )
+        );
+    }
+    test_field_image();
+    fn test_field_type_table() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugHandle>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).type_table) as usize - ptr as usize
+            },
+            24usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugHandle),
+                "::",
+                stringify!(type_table)
+            )
+        );
+    }
+    test_field_type_table();
+    fn test_field_symfile() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugHandle>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).symfile) as usize - ptr as usize
+            },
+            32usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugHandle),
+                "::",
+                stringify!(symfile)
+            )
+        );
+    }
+    test_field_symfile();
+    fn test_field_ppdb() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugHandle>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).ppdb) as usize - ptr as usize
+            },
+            40usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugHandle),
+                "::",
+                stringify!(ppdb)
+            )
+        );
+    }
+    test_field_ppdb();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoDebugMethodJitInfo {
+    pub code_start: *const mono_byte,
+    pub code_size: u32,
+    pub prologue_end: u32,
+    pub epilogue_begin: u32,
+    pub wrapper_addr: *const mono_byte,
+    pub num_line_numbers: u32,
+    pub line_numbers: *mut MonoDebugLineNumberEntry,
+    pub has_var_info: u32,
+    pub num_params: u32,
+    pub this_var: *mut MonoDebugVarInfo,
+    pub params: *mut MonoDebugVarInfo,
+    pub num_locals: u32,
+    pub locals: *mut MonoDebugVarInfo,
+    pub gsharedvt_info_var: *mut MonoDebugVarInfo,
+    pub gsharedvt_locals_var: *mut MonoDebugVarInfo,
+}
+#[test]
+fn bindgen_test_layout__MonoDebugMethodJitInfo() {
+    assert_eq!(
+        ::std::mem::size_of::<_MonoDebugMethodJitInfo>(),
+        104usize,
+        concat!("Size of: ", stringify!(_MonoDebugMethodJitInfo))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_MonoDebugMethodJitInfo>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_MonoDebugMethodJitInfo))
+    );
+    fn test_field_code_start() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).code_start) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(code_start)
+            )
+        );
+    }
+    test_field_code_start();
+    fn test_field_code_size() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).code_size) as usize - ptr as usize
+            },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(code_size)
+            )
+        );
+    }
+    test_field_code_size();
+    fn test_field_prologue_end() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).prologue_end) as usize - ptr as usize
+            },
+            12usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(prologue_end)
+            )
+        );
+    }
+    test_field_prologue_end();
+    fn test_field_epilogue_begin() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).epilogue_begin) as usize - ptr as usize
+            },
+            16usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(epilogue_begin)
+            )
+        );
+    }
+    test_field_epilogue_begin();
+    fn test_field_wrapper_addr() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).wrapper_addr) as usize - ptr as usize
+            },
+            24usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(wrapper_addr)
+            )
+        );
+    }
+    test_field_wrapper_addr();
+    fn test_field_num_line_numbers() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).num_line_numbers) as usize - ptr as usize
+            },
+            32usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(num_line_numbers)
+            )
+        );
+    }
+    test_field_num_line_numbers();
+    fn test_field_line_numbers() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).line_numbers) as usize - ptr as usize
+            },
+            40usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(line_numbers)
+            )
+        );
+    }
+    test_field_line_numbers();
+    fn test_field_has_var_info() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).has_var_info) as usize - ptr as usize
+            },
+            48usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(has_var_info)
+            )
+        );
+    }
+    test_field_has_var_info();
+    fn test_field_num_params() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).num_params) as usize - ptr as usize
+            },
+            52usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(num_params)
+            )
+        );
+    }
+    test_field_num_params();
+    fn test_field_this_var() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).this_var) as usize - ptr as usize
+            },
+            56usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(this_var)
+            )
+        );
+    }
+    test_field_this_var();
+    fn test_field_params() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).params) as usize - ptr as usize
+            },
+            64usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(params)
+            )
+        );
+    }
+    test_field_params();
+    fn test_field_num_locals() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).num_locals) as usize - ptr as usize
+            },
+            72usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(num_locals)
+            )
+        );
+    }
+    test_field_num_locals();
+    fn test_field_locals() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).locals) as usize - ptr as usize
+            },
+            80usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(locals)
+            )
+        );
+    }
+    test_field_locals();
+    fn test_field_gsharedvt_info_var() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).gsharedvt_info_var) as usize - ptr as usize
+            },
+            88usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(gsharedvt_info_var)
+            )
+        );
+    }
+    test_field_gsharedvt_info_var();
+    fn test_field_gsharedvt_locals_var() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodJitInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).gsharedvt_locals_var) as usize - ptr as usize
+            },
+            96usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodJitInfo),
+                "::",
+                stringify!(gsharedvt_locals_var)
+            )
+        );
+    }
+    test_field_gsharedvt_locals_var();
+}
+#[repr(C)]
+#[derive(Debug)]
+pub struct _MonoDebugMethodAddressList {
+    pub size: u32,
+    pub count: u32,
+    pub data: __IncompleteArrayField<mono_byte>,
+}
+#[test]
+fn bindgen_test_layout__MonoDebugMethodAddressList() {
+    assert_eq!(
+        ::std::mem::size_of::<_MonoDebugMethodAddressList>(),
+        8usize,
+        concat!("Size of: ", stringify!(_MonoDebugMethodAddressList))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_MonoDebugMethodAddressList>(),
+        4usize,
+        concat!("Alignment of ", stringify!(_MonoDebugMethodAddressList))
+    );
+    fn test_field_size() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodAddressList>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).size) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodAddressList),
+                "::",
+                stringify!(size)
+            )
+        );
+    }
+    test_field_size();
+    fn test_field_count() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodAddressList>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).count) as usize - ptr as usize
+            },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodAddressList),
+                "::",
+                stringify!(count)
+            )
+        );
+    }
+    test_field_count();
+    fn test_field_data() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugMethodAddressList>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).data) as usize - ptr as usize
+            },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugMethodAddressList),
+                "::",
+                stringify!(data)
+            )
+        );
+    }
+    test_field_data();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoDebugSourceLocation {
+    pub source_file: *mut ::std::os::raw::c_char,
+    pub row: u32,
+    pub column: u32,
+    pub il_offset: u32,
+}
+#[test]
+fn bindgen_test_layout__MonoDebugSourceLocation() {
+    assert_eq!(
+        ::std::mem::size_of::<_MonoDebugSourceLocation>(),
+        24usize,
+        concat!("Size of: ", stringify!(_MonoDebugSourceLocation))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_MonoDebugSourceLocation>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_MonoDebugSourceLocation))
+    );
+    fn test_field_source_file() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugSourceLocation>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).source_file) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugSourceLocation),
+                "::",
+                stringify!(source_file)
+            )
+        );
+    }
+    test_field_source_file();
+    fn test_field_row() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugSourceLocation>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).row) as usize - ptr as usize
+            },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugSourceLocation),
+                "::",
+                stringify!(row)
+            )
+        );
+    }
+    test_field_row();
+    fn test_field_column() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugSourceLocation>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).column) as usize - ptr as usize
+            },
+            12usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugSourceLocation),
+                "::",
+                stringify!(column)
+            )
+        );
+    }
+    test_field_column();
+    fn test_field_il_offset() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugSourceLocation>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).il_offset) as usize - ptr as usize
+            },
+            16usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugSourceLocation),
+                "::",
+                stringify!(il_offset)
+            )
+        );
+    }
+    test_field_il_offset();
+}
+extern "C" {
+    pub fn mono_debug_enabled() -> mono_bool;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _MonoDebugVarInfo {
+    pub index: u32,
+    pub offset: u32,
+    pub size: u32,
+    pub begin_scope: u32,
+    pub end_scope: u32,
+    pub type_: *mut MonoType,
+}
+#[test]
+fn bindgen_test_layout__MonoDebugVarInfo() {
+    assert_eq!(
+        ::std::mem::size_of::<_MonoDebugVarInfo>(),
+        32usize,
+        concat!("Size of: ", stringify!(_MonoDebugVarInfo))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_MonoDebugVarInfo>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_MonoDebugVarInfo))
+    );
+    fn test_field_index() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugVarInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).index) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugVarInfo),
+                "::",
+                stringify!(index)
+            )
+        );
+    }
+    test_field_index();
+    fn test_field_offset() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugVarInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).offset) as usize - ptr as usize
+            },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugVarInfo),
+                "::",
+                stringify!(offset)
+            )
+        );
+    }
+    test_field_offset();
+    fn test_field_size() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugVarInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).size) as usize - ptr as usize
+            },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugVarInfo),
+                "::",
+                stringify!(size)
+            )
+        );
+    }
+    test_field_size();
+    fn test_field_begin_scope() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugVarInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).begin_scope) as usize - ptr as usize
+            },
+            12usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugVarInfo),
+                "::",
+                stringify!(begin_scope)
+            )
+        );
+    }
+    test_field_begin_scope();
+    fn test_field_end_scope() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugVarInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).end_scope) as usize - ptr as usize
+            },
+            16usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugVarInfo),
+                "::",
+                stringify!(end_scope)
+            )
+        );
+    }
+    test_field_end_scope();
+    fn test_field_type() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::std::mem::MaybeUninit::<_MonoDebugVarInfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::std::ptr::addr_of!((*ptr).type_) as usize - ptr as usize
+            },
+            24usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(_MonoDebugVarInfo),
+                "::",
+                stringify!(type_)
+            )
+        );
+    }
+    test_field_type();
+}
+extern "C" {
+    pub fn mono_debug_init(format: MonoDebugFormat);
+}
+extern "C" {
+    pub fn mono_debug_open_image_from_memory(
+        image: *mut MonoImage,
+        raw_contents: *const mono_byte,
+        size: ::std::os::raw::c_int,
+    );
+}
+extern "C" {
+    pub fn mono_debug_cleanup();
+}
+extern "C" {
+    pub fn mono_debug_close_image(image: *mut MonoImage);
+}
+extern "C" {
+    pub fn mono_debug_domain_unload(domain: *mut MonoDomain);
+}
+extern "C" {
+    pub fn mono_debug_domain_create(domain: *mut MonoDomain);
+}
+extern "C" {
+    pub fn mono_debug_add_method(
+        method: *mut MonoMethod,
+        jit: *mut MonoDebugMethodJitInfo,
+        domain: *mut MonoDomain,
+    ) -> *mut MonoDebugMethodAddress;
+}
+extern "C" {
+    pub fn mono_debug_remove_method(method: *mut MonoMethod, domain: *mut MonoDomain);
+}
+extern "C" {
+    pub fn mono_debug_lookup_method(method: *mut MonoMethod) -> *mut MonoDebugMethodInfo;
+}
+extern "C" {
+    pub fn mono_debug_lookup_method_addresses(
+        method: *mut MonoMethod,
+    ) -> *mut MonoDebugMethodAddressList;
+}
+extern "C" {
+    pub fn mono_debug_find_method(
+        method: *mut MonoMethod,
+        domain: *mut MonoDomain,
+    ) -> *mut MonoDebugMethodJitInfo;
+}
+extern "C" {
+    pub fn mono_debug_get_handle(image: *mut MonoImage) -> *mut MonoDebugHandle;
+}
+extern "C" {
+    pub fn mono_debug_free_method_jit_info(jit: *mut MonoDebugMethodJitInfo);
+}
+extern "C" {
+    pub fn mono_debug_add_delegate_trampoline(
+        code: *mut ::std::os::raw::c_void,
+        size: ::std::os::raw::c_int,
+    );
+}
+extern "C" {
+    pub fn mono_debug_lookup_locals(method: *mut MonoMethod) -> *mut MonoDebugLocalsInfo;
+}
+extern "C" {
+    pub fn mono_debug_lookup_method_async_debug_info(
+        method: *mut MonoMethod,
+    ) -> *mut MonoDebugMethodAsyncInfo;
+}
+extern "C" {
+    pub fn mono_debug_method_lookup_location(
+        minfo: *mut MonoDebugMethodInfo,
+        il_offset: ::std::os::raw::c_int,
+    ) -> *mut MonoDebugSourceLocation;
+}
+extern "C" {
+    pub fn mono_debug_lookup_source_location(
+        method: *mut MonoMethod,
+        address: u32,
+        domain: *mut MonoDomain,
+    ) -> *mut MonoDebugSourceLocation;
+}
+extern "C" {
+    pub fn mono_debug_il_offset_from_address(
+        method: *mut MonoMethod,
+        domain: *mut MonoDomain,
+        native_offset: u32,
+    ) -> i32;
+}
+extern "C" {
+    pub fn mono_debug_free_source_location(location: *mut MonoDebugSourceLocation);
+}
+extern "C" {
+    pub fn mono_debug_print_stack_frame(
+        method: *mut MonoMethod,
+        native_offset: u32,
+        domain: *mut MonoDomain,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn mono_debugger_method_has_breakpoint(method: *mut MonoMethod) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn mono_debugger_insert_breakpoint(
+        method_name: *const ::std::os::raw::c_char,
+        include_namespace: mono_bool,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn mono_set_is_debugger_attached(attached: mono_bool);
+}
+extern "C" {
+    pub fn mono_is_debugger_attached() -> mono_bool;
 }
 pub type __builtin_va_list = [__va_list_tag; 1usize];
 #[repr(C)]

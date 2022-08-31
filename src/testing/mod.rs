@@ -153,16 +153,24 @@ rusty_fork_test! {
         fn profiler_runtime_init_callback(prof:&mut Profiler<i32>){
             println!("Callback called!");
         }
-        let prof = profiler::Profiler::create(64);
-        prof.set_runtime_initialized_callback(profiler_runtime_init_callback);
+        fn profiler_runtime_init_callback2(prof:&mut Profiler<i32>){
+            println!("Callback2 called!");
+        }
+        fn profiler_cleanup_callback(prof:&mut Profiler<i32>){
+            println!("Cleanup callback called!");
+        }
+        let mut prof2 = profiler::Profiler::create(128);
+        prof2.add_runtime_initialized_callback(profiler_runtime_init_callback2);
+        //prof2.add_cleanup_callback(profiler_cleanup_callback);
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Jit.dll").unwrap(); 
-    
+        
         let mut args:Vec<&str> = Vec::new();
         args.push("1");
         args.push("2");
-        prof.destroy();
-        let res = jit::exec(&dom,&asm,args);
+        jit::cleanup(dom);
+        //panic!("OK");
+        //let res = jit::exec(&dom,&asm,args);
     }
 } 
 use crate::macros::{InteropRecive,InteropSend};
