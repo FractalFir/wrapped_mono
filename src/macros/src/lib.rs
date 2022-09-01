@@ -40,6 +40,11 @@ fn get_fn_path_string(input:TokVec)->Result<String,String>{
 }
 /// Macro equivalent of mono_add_internal_call with automatic support for type conversion. 
 /// Allows you to expose a function as an internal call
+/// # Parameters
+/// | Name | Type | Purpose|
+/// --- | --- | ---|
+/// | *function_path* | string literal("") | Path to managed function to replace with internal call. Example: "NAMESPCE.CLASS::Method". Managed method to replace must have `[MethodImpl(MehodImplOption.InternalCall)]` atribute|
+/// | *function* | rust function | Rust function with `invokable` macro. Must match signature of managed function, otherwise undefined beahviour may occcur.|
 /// # Example
 /// ## CSharp
 /// ```csharp
@@ -87,7 +92,7 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
     dumping::dump_stream(&res);
     return res;
 }
-///Macro creating a wrapper around a function making it able to be exposed as internal call.
+/// Macro creating a wrapper around a function making it able to be exposed as internal call.
 /// # Restrictions
 /// Arguments of function with [`macro@invokable`] atribute must be of types that implement InteropRecive trait.
 /// Return type of the function must implement InvokeSend trait.
@@ -116,7 +121,13 @@ pub fn invokable(_attr_ts: TokenStream, fn_ts: TokenStream) -> TokenStream{
     dumping::dump_stream(&handler);
     return handler;
 }
-///Invokes method guessing its signature based on types of provided varaibles. Argments should be passed in the following way: 1 - method to invoke, 2 - Option<Object> as "this", None for static, after that any other parameters.
+///Invokes method guessing its signature based on types of provided varaibles. 
+/// # Parameters
+/// | Name | Type | Purpose|
+/// --- | --- | ---|
+/// *method* | Method | method to invoke |
+/// *object* | Option<Object> | the *this* parameter of invoked function. Pass `None` if static. |
+/// *params*  | Any type implementing `IneropSend`. | Arguments of the function. Pass them in the same order and with corresponidng types to managed method *method*|
 #[proc_macro]
 pub fn method_invoke(args: TokenStream) -> TokenStream {
     let mut tokens = TokVec::separate_by_separator(TokVec::from_stream(args),',');
@@ -370,4 +381,5 @@ mod dumping{
         };
     }
 }
+
 //TODO: maybe autoimplement interop box?
