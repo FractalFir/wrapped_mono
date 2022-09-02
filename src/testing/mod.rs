@@ -150,18 +150,28 @@ rusty_fork_test! {
     #[test]
     fn profiler_test(){
         use crate::profiler::Profiler;
-        fn profiler_runtime_init_callback(prof:&mut Profiler<i32>){
+        #[derive(Clone)]
+        struct TestData{
+            pub a:u64,
+            pub b:u64,
+            pub c:String,
+            pub d:Vec<u64>,
+        }
+        let data = TestData{a:11,b:122,c:"LOL".to_string(),
+        d:Vec::new()
+        };
+        fn profiler_runtime_init_callback(prof:&mut Profiler<TestData>){
             println!("Callback called!");
         }
-        fn profiler_runtime_init_callback2(prof:&mut Profiler<i32>){
+        fn profiler_runtime_init_callback2(prof:&mut Profiler<TestData>){
             println!("Callback2 called!");
         }
-        fn profiler_cleanup_callback(prof:&mut Profiler<i32>){
+        fn profiler_cleanup_callback(prof:&mut Profiler<TestData>){
             println!("Cleanup callback called!");
         }
-        let mut prof2 = profiler::Profiler::create(128);
-        prof2.add_runtime_initialized_callback(profiler_runtime_init_callback2);
-        //prof2.add_cleanup_callback(profiler_cleanup_callback);
+        let mut init = profiler::Profiler::create(data.clone());
+        init.add_runtime_initialized_callback(profiler_runtime_init_callback2);
+        init.add_cleanup_callback(profiler_cleanup_callback);
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Jit.dll").unwrap(); 
         
