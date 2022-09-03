@@ -5,6 +5,7 @@ mod object;
 mod method;
 mod exception;
 mod class;
+mod profiler;
 use crate as wrapped_mono;
 use wrapped_mono::*;
 use mstring::MString;
@@ -146,41 +147,6 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let _class = Class::from_name(&img,"","TestFunctions");
-    }
-    #[test]
-    fn profiler_test(){
-        use crate::profiler::Profiler;
-        #[derive(Clone)]
-        struct TestData{
-            pub a:u64,
-            pub b:u64,
-            pub c:String,
-            pub d:Vec<u64>,
-        }
-        let data = TestData{a:11,b:122,c:"LOL".to_string(),
-        d:Vec::new()
-        };
-        fn profiler_runtime_init_callback(prof:&mut Profiler<TestData>){
-            println!("Callback called!");
-        }
-        fn profiler_runtime_init_callback2(prof:&mut Profiler<TestData>){
-            println!("Callback2 called!");
-        }
-        fn profiler_cleanup_callback(prof:&mut Profiler<TestData>){
-            println!("Cleanup callback called!");
-        }
-        let mut init = profiler::Profiler::create(data.clone());
-        init.add_runtime_initialized_callback(profiler_runtime_init_callback2);
-        init.add_cleanup_callback(profiler_cleanup_callback);
-        let dom = jit::init("root",None);
-        let asm = dom.assembly_open("test/dlls/Jit.dll").unwrap(); 
-        
-        let mut args:Vec<&str> = Vec::new();
-        args.push("1");
-        args.push("2");
-        jit::cleanup(dom);
-        //panic!("OK");
-        //let res = jit::exec(&dom,&asm,args);
     }
 } 
 use crate::macros::{InteropRecive,InteropSend};
