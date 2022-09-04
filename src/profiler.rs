@@ -1,6 +1,6 @@
 use crate::binds::{MonoProfilerHandle,MonoProfiler,_MonoProfiler,MonoProfilerCallContext};
 use std::ptr::null_mut; 
-use crate::{Object,Domain};
+use crate::{Object,Domain,Method};
 use crate::interop::InteropRecive;
 //TODO: fix to allow arc.
 struct _Profiler<T>{
@@ -16,6 +16,7 @@ struct _Profiler<T>{
     domain_unloading_cb:Option<fn (profiler:&mut Profiler<T>,dom:&mut Domain)>,
     domain_unloaded_cb:Option<fn (profiler:&mut Profiler<T>,dom:&mut Domain)>,
     domain_set_name_cb:Option<fn (profiler:&mut Profiler<T>,dom:&mut Domain,&str)>,
+    jit_begin_cb:Option<fn (profiler:&mut Profiler<T>,&Method)>,
     pub data:T,
 } 
 struct ProfilerCallContext{
@@ -40,7 +41,7 @@ impl ProfilerCallContext{
 }
 // mono_profiler_set_sample_mode(
 impl<T> _Profiler<T>{
-    pub fn create(data:T)->*mut Self{
+    pub fn create(mut data:T)->*mut Self{
         use std::alloc::{alloc, dealloc, Layout};
         use std::mem::ManuallyDrop;
         let ptr = unsafe{
@@ -50,7 +51,10 @@ impl<T> _Profiler<T>{
             }
             let ptr = ptr as *mut Self;
             (*ptr).handle = crate::binds::mono_profiler_create(ptr as *mut MonoProfiler);
-            (*ptr).data = data;
+            let src:&mut T = (&mut data);
+            let dst:&mut T = (&mut (*ptr).data);
+            std::mem::swap(src,dst);
+            std::mem::forget(data);
             ptr
         };
         return ptr;
@@ -389,6 +393,35 @@ impl<T> _Profiler<T>{
                 (Self::domain_name_callback as unsafe extern "C" fn(*mut _Profiler<T>,*mut crate::binds::MonoDomain,*const i8)));
             self.domain_set_name_cb = Some(cb);
         }
+    }
+    //##################################################
+    //Domain set jit begin
+    unsafe extern "C" fn jit_begin_callback(profiler:*mut _Profiler<T>,met:*mut crate::binds::MonoMethod){
+        let this = &mut *(profiler);
+        let method = Method::from_ptr(met).expect("Could not get jit main method while executing jit begin. This is an internal profiler error.");
+        match this.jit_begin_cb{
+            Some(cb)=>{
+                let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
+                let cb = cb(&mut prof,&method);
+            },
+            None=>panic!("Invalid callback registration state. Callback registered for hindler, yet hindler has no callback function to call!"),
+        }
+    }
+    pub fn remove_jit_begin_cb(&mut self){
+        //Check if another callback has been registered ind if so, renove it.
+        unsafe{
+            crate::binds::mono_profiler_set_jit_begin_callback(self.handle,None);
+            self.jit_begin_cb = None;
+        }
+    }
+    pub fn add_jit_begin_cb(&mut self,cb:fn (profiler:&mut Profiler<T>,&Method)){
+        //Check if another callback has been registered ind if so, renove it.
+        unsafe{
+            crate::binds::mono_profiler_set_jit_begin_callback(self.handle,
+                std::mem::transmute::<unsafe extern "C" fn(*mut _Profiler<T>,*mut crate::binds::MonoMethod),Option<unsafe extern "C" fn(*mut _MonoProfiler,*mut crate::binds::MonoMethod)>>
+                (Self::jit_begin_callback as unsafe extern "C" fn(*mut _Profiler<T>,*mut crate::binds::MonoMethod)));
+            self.jit_begin_cb = Some(cb);
+        }
     } 
 }
 //impliment mono_profiler_set_coverage_filter_callback
@@ -502,5 +535,13 @@ impl<T> Profiler<T>{
     ///Adds callback to be called when runtime is started.
     pub fn add_domain_name(&mut self,cb: fn (profiler:&mut Profiler<T>,&mut Domain,&str)){
         unsafe{(*self.ptr).add_domain_name_cb(cb)};
+    }
+    ///Removes callback added by [`add_domain_unloading`]
+    pub fn remove_jit_begin(&mut self){
+        unsafe{(*self.ptr).remove_jit_begin_cb()};
+    }
+    ///Adds callback to be called when runtime is started.
+    pub fn add_jit_begin(&mut self,cb: fn (profiler:&mut Profiler<T>,&Method)){
+        unsafe{(*self.ptr).add_jit_begin_cb(cb)};
     }
 }

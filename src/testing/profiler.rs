@@ -50,6 +50,13 @@ rusty_fork_test! {
         assert!(*init_lisener.get_internal_data() == 1);
     }
     #[test]
+    fn profiler_arc(){
+        let dom = jit::init("root",None);
+        let data:Arc<u32> = Arc::new(0);
+        let prof = Profiler::create(data);
+        prof.destroy();
+    }
+    #[test]
     fn profiler_test(){
     } 
 }
