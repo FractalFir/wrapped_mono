@@ -10,45 +10,57 @@ struct TestData{
     pub c:String,
     pub d:Vec<u64>,
 }
+///Local macro used to simplify tests
+macro_rules! profiler_test{
+    ($tname:ident)=>{
+        rusty_fork_test! {
+            #[test]
+            fn $tname (){
+                let mut i:u32 = 0;
+                let mut init_lisener = Profiler::create(i);
+                fn callback(prof:&mut Profiler<u32>){
+                    let ls:&mut u32 = (prof.get_internal_data());
+                    (*ls) += 1;
+                }
+                init_lisener.$tname(callback);
+                let dom = jit::init("root",None);
+                jit::cleanup(dom);
+                assert!(*init_lisener.get_internal_data() == 1);
+            }
+        }
+    };
+    ($tname:ident,$rtime_code:expr,$tpe:tt)=>{
+        rusty_fork_test! {
+            #[test]
+            fn $tname (){
+                let mut i:u32 = 0;
+                let mut init_lisener = Profiler::create(i);
+                fn callback(prof:&mut Profiler<u32>,_:$tpe){
+                    let ls:&mut u32 = (prof.get_internal_data());
+                    (*ls) += 1;
+                }
+                init_lisener.$tname(callback);
+                let dom = jit::init("root",None);
+                $rtime_code
+                jit::cleanup(dom);
+                assert!(*init_lisener.get_internal_data() == 1);
+            }
+        }
+    }
+}
+// Some tests do not pass because macro implementing them does not support code injection needed to test them propely.
+profiler_test!{add_runtime_initialized_callback}
+profiler_test!{add_runtime_shutown_begin_callback}
+profiler_test!{add_runtime_shutown_end_callback}
+profiler_test!{add_context_loaded}
+profiler_test!{add_context_unloaded}
+profiler_test!{add_domain_loading,{},(&mut Domain)}
+profiler_test!{add_domain_loaded,{},(&mut Domain)}
+profiler_test!{add_domain_unloading,{},(&mut Domain)}
+profiler_test!{add_domain_unloaded,{},(&mut Domain)}
+//profiler_test!{add_domain_name,{},(&mut Domain)}
+profiler_test!{add_jit_begin,{},(&Method)}
 rusty_fork_test! {
-    #[test]
-    fn jit_init_cb(){
-        let mut i:u32 = 0;
-        let mut init_lisener = Profiler::create(i);
-        fn profiler_runtime_init_callback(prof:&mut Profiler<u32>){
-            let ls:&mut u32 = (prof.get_internal_data());
-            (*ls) += 1;
-        }
-        init_lisener.add_runtime_initialized_callback(profiler_runtime_init_callback);
-        let dom = jit::init("root",None);
-        assert!(*init_lisener.get_internal_data() == 1);
-    }
-    #[test]
-    fn jit_shutdown_beg(){
-        let mut i:u32 = 0;
-        let mut init_lisener = Profiler::create(i);
-        fn profiler_runtime_shutdown_beg(prof:&mut Profiler<u32>){
-            let ls:&mut u32 = (prof.get_internal_data());
-            (*ls) += 1;
-        }
-        init_lisener.add_runtime_shutown_begin_callback(profiler_runtime_shutdown_beg);
-        let dom = jit::init("root",None);
-        jit::cleanup(dom);
-        assert!(*init_lisener.get_internal_data() == 1);
-    }
-    #[test]
-    fn jit_shutdown_end(){
-        let mut i:u32 = 0;
-        let mut init_lisener = Profiler::create(i);
-        fn profiler_runtime_shutdown_end(prof:&mut Profiler<u32>){
-            let ls:&mut u32 = (prof.get_internal_data());
-            (*ls) += 1;
-        }
-        init_lisener.add_runtime_shutown_end_callback(profiler_runtime_shutdown_end);
-        let dom = jit::init("root",None);
-        jit::cleanup(dom);
-        assert!(*init_lisener.get_internal_data() == 1);
-    }
     #[test]
     fn profiler_arc(){
         let dom = jit::init("root",None);

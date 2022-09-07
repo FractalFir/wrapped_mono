@@ -10,25 +10,12 @@ namespace Vec3Namespace{
 }
 */
 //this types layout does not differ on managed and unmanged side.
+#[derive(InteropSend,InteropRecive)]
 struct Vec3{
     x:f32,
     y:f32,
     z:f32,
 } 
-impl InteropRecive for Vec3{
-    type SourceType = Vec3;
-    fn get_rust_rep(src:Self::SourceType)->Self{
-        //Since this types data layout and format is exacly the same on managed and unmanaged side, there is no conversion to be done here, and it can be just passed.
-        return src;
-    }
-}
-impl InteropSend for Vec3{
-    type TargetType = Vec3;
-    fn get_mono_rep(src:Self)->Self::TargetType{
-        //Since this types data layout and format is exacly the same on managed and unmanaged side, there is no conversion to be done here, and it can be just passed.
-        return src;
-    }
-}
 use lazy_static::*;
 lazy_static!{
     static ref vec3_class:Class = {
@@ -80,9 +67,9 @@ impl InteropRecive for SomeObjectClass{
 }
 //Reciving `SomeObjectClass` as a nullable!
 impl InteropRecive for Option<SomeObjectClass>{
-    type SourceType = *mut MonoObject;
+    type SourceType = Option<Object>;
     fn get_rust_rep(src:Self::SourceType)->Self{
-        return unsafe{Object::from_ptr(src)};
+        return src;
     }
 }
 //Sending` SomeObjectClass` as a non-nullable!
