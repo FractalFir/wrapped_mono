@@ -134,8 +134,8 @@ impl Method{
             return Ok(res);
         }
         else {
-            let e = Exception::from_ptr(expect).expect("Imposible: pointer is null and not null at the same time.");
-            return Err(e); 
+            let except = Exception::from_ptr(expect).expect("Imposible: pointer is null and not null at the same time.");
+            return Err(except); 
         }
     }
     //Returns return type of the function
@@ -164,5 +164,97 @@ impl std::fmt::Display for Method{
             }
         }
         write!(f,")")
+    }
+}
+use core::marker::PhantomData;
+use crate::{InteropRecive,InteropSend};
+use crate::binds::MonoMethod;
+use crate::tupleutilis::*;
+//#![feature(specialization)]
+//New Mehtod type, WIP
+struct NewMethod<Args:InteropSend>{
+    method:*mut MonoMethod,
+    args_type:PhantomData<Args>,
+}
+trait MethodTrait<Args:InteropSend> {
+    fn invoke(&self,object:Option<Object>,args:Args)->Result<Option<Object>,Exception>;
+}
+impl <Args:InteropSend> NewMethod<Args> {
+    pub unsafe fn from_ptr(met_ptr:*mut crate::binds::MonoMethod)->Option<Self>{
+        if met_ptr == core::ptr::null_mut(){
+            return None;
+        }
+        return Some(Self{method:met_ptr,args_type:PhantomData});
+    }
+    pub fn get_ptr(&self)->*mut crate::binds::MonoMethod{
+        return self.method;
+    }
+}
+impl <Args:InteropSend> MethodTrait<Args> for NewMethod<Args>{
+    default fn invoke(&self,object:Option<Object>,args:Args)->Result<Option<Object>,Exception>{
+        use std::ptr::null_mut;
+        use crate::binds::MonoException;
+        //convert object to invoke on to a pointer.
+        let obj_ptr = match object{
+            Some(obj)=>obj.get_ptr(),
+            None=>core::ptr::null_mut(),
+        };
+        let mut expect: *mut MonoException = null_mut();
+        //convert argument types
+        let mut args = <Args as InteropSend>::get_mono_rep(args);
+        //convert arguments to pointers
+        let mut params = unsafe{&mut args as *mut _ as *mut c_void};
+        //invoke the method itself
+        let res_ptr = unsafe{crate::binds::mono_runtime_invoke(
+            self.get_ptr(),
+            obj_ptr as *mut std::os::raw::c_void,
+            &mut params as *mut *mut c_void,
+            &mut expect as *mut *mut MonoException as *mut *mut MonoObject,
+        )};
+        //hold args as long as params lives.
+        drop(args);
+        //get result
+        let res = unsafe{Object::from_ptr(res_ptr)};
+        if expect == null_mut(){
+            return Ok(res);
+        }
+        else {
+            let except = unsafe{Exception::from_ptr(expect).expect("Imposible: pointer is null and not null at the same time.")};
+            return Err(except); 
+        }
+    }
+}
+impl <Args:InteropSend> MethodTrait<Args> for NewMethod<Args> where <Args as InteropSend>::TargetType:TupleToPtrs{
+    default fn invoke(&self,object:Option<Object>,args:Args)->Result<Option<Object>,Exception>{
+        use std::ptr::null_mut;
+        use crate::binds::MonoException;
+        //convert object to invoke on to a pointer.
+        let obj_ptr = match object{
+            Some(obj)=>obj.get_ptr(),
+            None=>core::ptr::null_mut(),
+        };
+        let mut expect: *mut MonoException = null_mut();
+        //convert argument types
+        let mut args = <Args as InteropSend>::get_mono_rep(args);
+        //convert arguments to pointers
+        let mut params = <<Args as InteropSend>::TargetType as TupleToPtrs>::get_ptrs(&mut args as *mut _);
+        //invoke the method itself
+        let res_ptr = unsafe{crate::binds::mono_runtime_invoke(
+            self.get_ptr(),
+            obj_ptr as *mut std::os::raw::c_void,
+            params.as_ptr()  as *mut *mut c_void,
+            &mut expect as *mut *mut MonoException as *mut *mut MonoObject,
+        )};
+        //hold args as long as params lives.
+        drop(args);
+        //get result
+        let res = unsafe{Object::from_ptr(res_ptr)};
+        if expect == null_mut(){
+            return Ok(res);
+        }
+        else {
+            let except = unsafe{Exception::from_ptr(expect).expect("Imposible: pointer is null and not null at the same time.")};
+            return Err(except); 
+        }
     }
 }

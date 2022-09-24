@@ -64,6 +64,7 @@ mod tests{
         }
     }
 }
+/*
 //TODO:extend this function(use symlinks?) to allow for multipile versions of mono to be used.
 fn copy_win_dlls(){
     use std::path::Path;
@@ -76,11 +77,12 @@ fn copy_win_dlls(){
     //check if mscorlib.dll file is present and if not copy
     let mcl_target_path = Path::new("..\\lib\\mono\\4.5\\mscorlib.dll");
     if !mcl_target_path.exists(){
-        std::fs::create_dir_all("..\\lib\\mono\\4.5");
+        std::fs::create_dir_all("..\\lib\\mono\\4.5").expect("Colud not create library directoires");
         let mcl_source_path = Path::new("C:\\Program Files\\Mono\\lib\\mono\\4.5\\mscorlib.dll");
         std::fs::copy(mcl_source_path,mcl_target_path).expect("Could not copy `mscorlib.dll` file. Is mono propely installed on your system?");
     }
 }
+*/
 fn main() {
     #[cfg(not(any(target_os = "linux",target_os = "windows")))]
     panic!("Target OS currently not supported");

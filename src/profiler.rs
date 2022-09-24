@@ -79,7 +79,7 @@ impl<T> _Profiler<T>{
         match this.rtime_init_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
-                let cb = cb(&mut prof);
+                cb(&mut prof);
                 std::mem::forget(prof);
                 let this = &mut *(profiler);
                 println!("Finished calling runtime init callback!");
@@ -112,7 +112,7 @@ impl<T> _Profiler<T>{
         println!("Clenup callback preparation!");
         match this.cleanup_cb{
             Some(cb)=>{
-                let cb = cb(&mut Profiler::<T>::from_ptr(profiler as *mut MonoProfiler));
+                cb(&mut Profiler::<T>::from_ptr(profiler as *mut MonoProfiler));
             }
             None=>panic!("Invalid callback registration state. Callback registered for handler, yet handler has no callback function to call!"),
         }
@@ -140,7 +140,7 @@ impl<T> _Profiler<T>{
         match this.rtime_shutdown_begin_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
-                let cb = cb(&mut prof);
+                cb(&mut prof);
             },
             None=>panic!("Invalid callback registration state. Callback registered for handler, yet handler has no callback function to call!"),
         }
@@ -168,7 +168,7 @@ impl<T> _Profiler<T>{
         match this.rtime_shutdown_end_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
-                let cb = cb(&mut prof);
+                cb(&mut prof);
             },
             None=>panic!("Invalid callback registration state. Callback registered for handler, yet handler has no callback function to call!"),
         }
@@ -196,7 +196,7 @@ impl<T> _Profiler<T>{
         match this.context_loaded_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
-                let cb = cb(&mut prof);
+                cb(&mut prof);
             },
             None=>panic!("Invalid callback registration state. Callback registered for handler, yet handler has no callback function to call!"),
         }
@@ -224,7 +224,7 @@ impl<T> _Profiler<T>{
         match this.context_unloaded_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
-                let cb = cb(&mut prof);
+                cb(&mut prof);
             },
             None=>panic!("Invalid callback registration state. Callback registered for handler, yet handler has no callback function to call!"),
         }
@@ -253,7 +253,7 @@ impl<T> _Profiler<T>{
         match this.domain_loading_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
-                let cb = cb(&mut prof,&mut dom);
+                cb(&mut prof,&mut dom);
             },
             None=>panic!("Invalid callback registration state. Callback registered for handler, yet handler has no callback function to call!"),
         }
@@ -282,7 +282,7 @@ impl<T> _Profiler<T>{
         match this.domain_loaded_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
-                let cb = cb(&mut prof,&mut dom);
+                cb(&mut prof,&mut dom);
             },
             None=>panic!("Invalid callback registration state. Callback registered for handler, yet handler has no callback function to call!"),
         }
@@ -311,7 +311,7 @@ impl<T> _Profiler<T>{
         match this.domain_unloading_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
-                let cb = cb(&mut prof,&mut dom);
+                cb(&mut prof,&mut dom);
             },
             None=>panic!("Invalid callback registration state. Callback registered for handler, yet handler has no callback function to call!"),
         }
@@ -340,7 +340,7 @@ impl<T> _Profiler<T>{
         match this.domain_unloaded_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
-                let cb = cb(&mut prof,&mut dom);
+                cb(&mut prof,&mut dom);
             },
             None=>panic!("Invalid callback registration state. Callback registered for handler, yet handler has no callback function to call!"),
         }
@@ -372,7 +372,7 @@ impl<T> _Profiler<T>{
         match this.domain_set_name_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
-                let cb = cb(&mut prof,&mut dom,&st);
+                cb(&mut prof,&mut dom,&st);
             },
             None=>panic!("Invalid callback registration state. Callback registered for handler, yet handler has no callback function to call!"),
         }
@@ -402,7 +402,7 @@ impl<T> _Profiler<T>{
         match this.jit_begin_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
-                let cb = cb(&mut prof,&method);
+                cb(&mut prof,&method);
             },
             None=>panic!("Invalid callback registration state. Callback registered for hindler, yet hindler has no callback function to call!"),
         }

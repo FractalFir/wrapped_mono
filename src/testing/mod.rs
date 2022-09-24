@@ -45,6 +45,13 @@ rusty_fork_test! {
         let _dom = jit::init("root",None);
         let _dom2 = Domain::create();
     }
+    ///DOES NOT WORK.
+    //#[test]
+    fn unload_domain(){
+        use wrapped_mono::jit;
+        use crate::domain::Domain;
+        let _dom = jit::init("root",None);
+    }
     #[test]
     fn assembly_loading(){
         use wrapped_mono::jit;

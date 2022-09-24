@@ -1,5 +1,4 @@
 use crate::binds::MonoImage;
-use crate::binds::MonoAssembly;
 use crate::class::Class;
 /// Safe representation [`MonoImage`], part of [`MonoAssembly`] holding CLI code.
 #[derive(Copy,Clone)]
@@ -12,8 +11,6 @@ impl Image{
     ///Returns if function at path *path* has return type *rtype* and takes parameters *params*
     ///Not finished yet.
     fn check_fnc_sig(&self,path:&str,rtype:Class,params:&[Class])->bool{
-        use std::ffi::CString;
-        use crate::binds::MonoTableInfo;
         const MONO_TABLE_METHOD:i32 = crate::binds::MonoMetaTableEnum_MONO_TABLE_METHOD as i32;
         const MONO_ASSEMBLYREF_SIZE:usize = crate::binds::MONO_ASSEMBLYREF_SIZE as usize;
         let info = unsafe{crate::binds::mono_image_get_table_info(self.img_ptr,MONO_TABLE_METHOD)};
@@ -61,7 +58,6 @@ impl Image{
     ///Returns name of the image
     pub fn get_name(&self)->String{
         let ptr = unsafe{crate::binds::mono_image_get_name(self.img_ptr)};
-        use std::ffi::CString;
         let cstr = unsafe{CString::from_raw(ptr as *mut i8)};
         let s = cstr.to_str().expect(crate::STR2CSTR_ERR).to_owned();
         let _ = cstr.into_raw();

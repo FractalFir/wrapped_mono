@@ -49,10 +49,25 @@ impl Domain{
     pub unsafe fn get_ptr(&self)->*mut MonoDomain{
         return self.ptr;
     }
+    ///Sets domain as current domain.
+    pub fn set(&self,active:bool){
+        unsafe{crate::binds::mono_domain_set(self.ptr, active as i32)};
+    }
+    ///Attach current thread
+    pub fn attach(&self){
+        unsafe{crate::binds::mono_jit_thread_attach(self.ptr)};
+    }
+    /// [DOES not work]
+    fn unload(self){
+        self.set(true);
+        self.attach();
+        unsafe{crate::binds::mono_domain_unload(self.ptr)};
+        drop(self);
+    }
     /// Releases resources realted to a specific domain. If *force* is true, allows realesing of the root domain. Used during shutdown.
     /// # Safety
     /// Since this function releases all resurces realated to given domain, it means that all references to objects inside it will become invalid.
-    pub fn free(&self,force:bool){
+    fn free(self,force:bool){
         unsafe{crate::binds::mono_domain_free(self.ptr,force as i32)};
         drop(self);
     }

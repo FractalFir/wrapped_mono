@@ -329,3 +329,18 @@ pub fn get_mono_rep_val<T:InteropSend>(input:T)-><T as InteropSend>::TargetType{
 pub fn ref_to_cvoid_ptr<T>(r:&mut T)->*mut c_void{
     return r as *mut T as *mut c_void;
 }
+//use crate::tupleutilis::*;
+//Conversion of a tuple from one format to another
+impl<A:InteropSend,B:InteropSend> InteropSend for (A,B){
+    type TargetType = (A::TargetType,B::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        return (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1));
+    }
+}
+impl<A:InteropSend,B:InteropSend,C:InteropSend> InteropSend for (A,B,C){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        return (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2));
+    }
+}
+

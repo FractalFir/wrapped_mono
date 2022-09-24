@@ -6,7 +6,6 @@ extern crate quote;
 mod tok_vec;
 mod arg_rep;
 mod fn_rep;
-mod method_invoke;
 //use arg_rep::*;
 //use tok_vec::*;
 use fn_rep::*;
@@ -276,7 +275,7 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
 /// 3 have to be size smaller than u64, otherwise 'evaluation of constant value failed' error will be thrown(This error is thrown on purpose, 
 /// since C# enums cant' be bigger than u64. This message means your enum is to big and will cause problems).
 #[proc_macro_derive(InteropSend)]
-pub fn derive_send(mut input: TokenStream) -> TokenStream {
+pub fn derive_send(input: TokenStream) -> TokenStream {
     let mut input = TokVec::from_stream(input);
     while input.len() > 3{
         input.remove(0);
@@ -303,7 +302,6 @@ pub fn derive_send(mut input: TokenStream) -> TokenStream {
     let inner = TokVec::separate_by_separator(inner,',');
     if itype == "struct"{
         let mut ret_self = TokenStream::new();
-        let mut i = 0;
         for memeber in inner{
             let mname = memeber[0].to_string();
             let mtype = memeber[2].to_string();
@@ -316,7 +314,6 @@ pub fn derive_send(mut input: TokenStream) -> TokenStream {
             ret_self.extend(TokenStream::from_str(
                 &format!("{},",mname)
             ).expect(TS_CR_FAIL));
-            i+=1;
         }
         fn_impl_res.extend(TokenStream::from_str("return ").expect(TS_CR_FAIL));
         fn_impl_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,ret_self))));
@@ -324,7 +321,7 @@ pub fn derive_send(mut input: TokenStream) -> TokenStream {
     }
     else if itype == "enum"{
         //Check that enum is trivial and its values are set.
-        let max_val = extract_enum_data(&inner).expect(ENUM_NOT_TRIVIAL);
+        let _max_val = extract_enum_data(&inner).expect(ENUM_NOT_TRIVIAL);
         type_res.extend(TokenStream::from_str(
             &format!("u64")
         ).expect(TS_CR_FAIL));

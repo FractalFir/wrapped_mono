@@ -3,7 +3,6 @@ use crate::binds::MonoObject;
 use crate::method::Method;
 use crate::domain::Domain;
 use crate::exception::ExceptManaged;
-use core::ptr::null_mut;
 ///Safe representation of a refernece to a manged Object. Is **not nullable** when passed between managed and unmanged code(e.g when added as an argument to function exposed as an interna call). 
 ///It means that while it may represent a nullable type, wrapped-mono will automaticly panic when recived null value.
 ///For nullable support use `Option<Object>`.
@@ -139,7 +138,7 @@ impl Object{
                 panic!("tried to unbox class of type `{}` as type `{}`",&self_class.get_name(),&t_class.get_name());
             }
         }
-        let ptr = unsafe{(crate::binds::mono_object_unbox(self.obj_ptr) as *mut <T as InteropRecive>::SourceType)};
+        let ptr = unsafe{crate::binds::mono_object_unbox(self.obj_ptr) as *mut <T as InteropRecive>::SourceType};
         return T::get_rust_rep(unsafe{*ptr});
     }
     unsafe fn box_val_unsafe(domain:&crate::domain::Domain,class:&Class,val:*mut std::ffi::c_void)->crate::object::Object{

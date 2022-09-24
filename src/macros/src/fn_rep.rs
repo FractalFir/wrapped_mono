@@ -27,7 +27,7 @@ impl fmt::Display for FnRep{
     }
 }
 //TODO: Rewrite this function to make it more sensible
-fn tok_vec_pop_return(mut tv:&mut TokVec)->TokenTree{
+fn tok_vec_pop_return(tv:&mut TokVec)->TokenTree{
     let mut is_last_arrow = false;
     let mut res:Vec<TokenTree> = Vec::with_capacity(tv.len());
     while let Some(tok) = tv.pop(){

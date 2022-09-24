@@ -48,15 +48,19 @@
 ## Version 0.2
 - [X] Arrays with more than one dimension. (Multi-dimensional arrays work, but they behave like 1D arrays. This may be a limitation of the mono runtime, or it could be solvable)
 - [X] Autoimplementation of some Interop traits (Interop Send,InteropRecive) for structs. 
-- [ ] Profilier (Data about preformance)
-- [ ] Debugging API
-- [ ] Certain fetures of mono JIT(mostly debugging)
+- [X] Reading of assembly meatdata - primitive API, all features work, but API is hard to use(a lot of steps to retrive data).
+- [ ] Rework of Method type, change invocation API to a safe one and implement Fn tratis/
+- [ ] Delegate support
+- [ ] Event support
 ## Version 0.3
+- [ ] Profilier (Data about preformance) *partaily done*
+- [ ] Debugging API
+- [ ] Certain fetures of mono JIT(mostly debugging) 
+## Version 0.4
 - [ ] Dynamic code generation
-- [ ] Reading of assembly meatdata
 - [ ] Seciurity API
 - [ ] Features related to threads
-
+- [ ] Reading of assembly meatdata - full API, easy to use
 # Examples
 <p align = "center">
     <a href="#Loading">Loading basic assembly<a>&nbsp;
