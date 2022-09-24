@@ -3,10 +3,17 @@ name = "wrapped_mono"
 version = "0.1.0"
 edition = "2021"
 links = "mono-2.0"
+license = "MIT"
+description = "Wrapper around mono library. Allows easy loading and interop between code written for the .NET framework and rust."
+repository = "https://github.com/FractalFir/wrapped_mono"
+readme = "README.md"
+keywords = [".NET","mono","C#","F#"]
+categories = ["api-bindings"]
+authors = ["FractalFir <fractalfirdev@gmail.com>"]
 [build-dependencies]
 bindgen = {version = "0.60.1",optional = true}
 [dependencies]
-macros = {path = "src/macros"}
+macros = {path = "src/macros",version = "0.1"}
 document-features = "0.2.3"
 [dev-dependencies]
 rusty-fork = "0.3.0"

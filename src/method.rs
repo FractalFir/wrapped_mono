@@ -172,11 +172,11 @@ use crate::binds::MonoMethod;
 use crate::tupleutilis::*;
 //#![feature(specialization)]
 //New Mehtod type, WIP
-struct NewMethod<Args:InteropSend>{
+pub struct NewMethod<Args:InteropSend>{
     method:*mut MonoMethod,
     args_type:PhantomData<Args>,
 }
-trait MethodTrait<Args:InteropSend> {
+pub trait MethodTrait<Args:InteropSend> {
     fn invoke(&self,object:Option<Object>,args:Args)->Result<Option<Object>,Exception>;
 }
 impl <Args:InteropSend> NewMethod<Args> {
@@ -188,6 +188,19 @@ impl <Args:InteropSend> NewMethod<Args> {
     }
     pub fn get_ptr(&self)->*mut crate::binds::MonoMethod{
         return self.method;
+    }
+    //Gets method in *class* named *name* with *param_count* params.
+    pub fn get_method_from_name(class:&crate::class::Class,name:&str,param_count:i32)->Option<Self>{
+        let cstr = std::ffi::CString::new(name).expect(crate::STR2CSTR_ERR);
+        let res = unsafe{Self::from_ptr(
+            crate::binds::mono_class_get_method_from_name(class.get_ptr(),cstr.as_ptr(),param_count)
+        )};
+        match &res{
+            Some(res)=>(),
+            None=>(),
+        }
+        drop(cstr);
+        return res;
     }
 }
 impl <Args:InteropSend> MethodTrait<Args> for NewMethod<Args>{

@@ -38,6 +38,20 @@ rusty_fork_test! {
         assert!(res == arg1);
     }
     #[test]
+    fn calling_new_method(){
+        use wrapped_mono::{jit,class::Class,method::*};
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:NewMethod<i32> = NewMethod::get_method_from_name(&class,"GetArg",1).unwrap();
+        let obj = met.invoke(None,7).expect("Got exception").expect("Got null");
+        let res = obj.unbox::<i32>();
+        assert!(res == 7);
+    }
+    #[test]
     fn getting_method_arg_count(){
         use wrapped_mono::*;
         let dom = jit::init("root",None);
