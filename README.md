@@ -49,7 +49,7 @@
 - [X] Arrays with more than one dimension. (Multi-dimensional arrays work, but they behave like 1D arrays. This may be a limitation of the mono runtime, or it could be solvable)
 - [X] Autoimplementation of some Interop traits (Interop Send,InteropRecive) for structs. 
 - [X] Reading of assembly meatdata - primitive API, all features work, but API is hard to use(a lot of steps to retrive data).
-- [ ] Rework of Method type, change invocation API to a safe one and implement Fn tratis/
+- [X] Rework of Method type, change invocation API to a safe one and implement Fn tratis *mostly done, 2 functions need changes*
 - [ ] Delegate support
 - [ ] Event support
 ## Version 0.3

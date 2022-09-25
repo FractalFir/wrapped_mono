@@ -2,7 +2,7 @@ use crate::binds::MonoString;
 use crate::domain::Domain;
 use core::ptr::null_mut;
 use std::ffi::CString;
-use crate::interop::{InteropRecive,InteropSend};
+use crate::interop::{InteropRecive,InteropSend,InteropClass};
 use crate::Class;
 ///needed for docs
 #[allow(unused_imports)]
@@ -89,5 +89,10 @@ impl InteropSend for Option<MString>{
     type TargetType = *mut MonoString;
     fn get_mono_rep(src:Self)->Self::TargetType{
         return match src{Some(src)=>src.s_ptr,None=>null_mut()};
+    }
+}
+impl InteropClass for MString{
+    fn get_mono_class()->Class{
+        return Class::get_string();
     }
 }

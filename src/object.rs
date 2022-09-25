@@ -1,5 +1,5 @@
 use crate::class::Class;
-use crate::binds::MonoObject;
+use crate::binds::{MonoObject};
 use crate::method::Method;
 use crate::domain::Domain;
 use crate::exception::ExceptManaged;
@@ -178,7 +178,7 @@ impl Object{
     ///```
     /// When you call get_vitual_method on object that is instance of **ChildClass** 
     /// and method **ParrentClass::SomeMethod** you will get return value of **ChildClass::SomeMethod**.
-    pub fn get_virtual_method(obj:Object,method:&Method)->Option<Method>{
+    pub fn get_virtual_method<T:InteropSend> (obj:Object,method:&Method<T>)->Option<Method<T>>{
         return unsafe{Method::from_ptr(crate::binds::mono_object_get_virtual_method(
             obj.get_ptr(),method.get_ptr()
         ))};

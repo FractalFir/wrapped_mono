@@ -1,6 +1,4 @@
 //Experimental features:
-#![feature(unboxed_closures)]
-#![feature(fn_traits)]
 #![feature(specialization)]
 //doctest are dissabled, because they do not work with rusty_fork! whcich is required for testing mono runtime
 #![cfg(not(doctest))] 
@@ -68,7 +66,7 @@ pub use class::{Class,ClassField,ClassProperity};
 #[doc(inline)]
 pub use image::Image;
 #[doc(inline)]
-pub use method::Method;
+pub use method::{Method,MethodTrait};
 #[doc(inline)]
 pub use exception::Exception;
 #[doc(inline)]

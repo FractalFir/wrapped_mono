@@ -84,9 +84,10 @@ rusty_fork_test!{
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let ctors = class.get_ctros_recursive();
-        println!("{}",ctors.len());
-        assert!(ctors.len() == 2);//One of 'Object', one of 'TestFunctions'
+        unimplemented!("TODO:fix Class::get_ctors_recursive");
+        //let ctors = class.get_ctros_recursive();
+        //println!("{}",ctors.len());
+        //assert!(ctors.len() == 2);//One of 'Object', one of 'TestFunctions'
     }
     #[test]
     fn ctors_recursive_get(){
@@ -96,12 +97,15 @@ rusty_fork_test!{
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","CtorTestClass").expect("Could not get class");
+        unimplemented!("TODO:fix Class::get_ctors_recursive");
+        /*
         let ctors = class.get_ctros_recursive();
         println!("Found {} constructors!",ctors.len());
         for ctor in &ctors{
             println!("{}",ctor);
         }
         assert!(ctors.len() == 5);
+        */
         //panic!();
     }
 } 

@@ -1,48 +1,36 @@
 use rusty_fork::rusty_fork_test;
 use crate as wrapped_mono;
-rusty_fork_test! { 
+use wrapped_mono::jit;
+use wrapped_mono::object::*;
+rusty_fork_test!{ 
     #[test]
     fn object_creation(){
-        use wrapped_mono::jit;
-        use wrapped_mono::object::*;
         use wrapped_mono::class::Class;
         let main = jit::init("main",None);
         let asm = main.assembly_open("test/dlls/Pinvoke.dll").unwrap();
         let img = asm.get_image();
         let test_class = Class::from_name(&img,"","Secondary").expect("Could not find class!");
-
         let obj = Object::new(&main,&test_class);
         let _hsh = obj.hash();
     }
     #[test]
     fn object_box(){
-        use wrapped_mono::jit;
-        use wrapped_mono::object::*;
         let main = jit::init("main",None);
-
         let _obj = Object::box_val(&main,128);
     }
     #[test]
     fn object_unbox(){
-        use wrapped_mono::jit;
-        use wrapped_mono::object::*;
         let main = jit::init("main",None);
-
         let val:i32 = 128; 
         let obj = Object::box_val(&main,128);
-        
         let unboxed = Object::unbox::<i32>(&obj);
-
         assert!(unboxed == val);
     }
     #[cfg(not(feature = "unsafe_boxing"))]
     #[should_panic]
     #[test]
     fn object_unbox_wrong_type(){   
-        use wrapped_mono::jit;
-        use wrapped_mono::object::*;
         let main = jit::init("main",None);
-
         let val:i32 = 128; 
         let obj = Object::box_val(&main,val);
         let _unboxed = Object::unbox::<i64>(&obj);
@@ -79,14 +67,14 @@ rusty_fork_test! {
     #[test]
     fn get_2D_array(){
         use crate::binds::MonoObject;
-        use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait},array::Array,method::Method};
+        use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait},array::Array,method::{Method,MethodTrait}};
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let mthd = Method::get_method_from_name(&class,"Get2DIntArray",0).expect("Could not load function");
+        let mthd:Method<()> = Method::get_method_from_name(&class,"Get2DIntArray",0).expect("Could not load function");
         let arr:Array<i32> = unsafe{Array::from_ptr((
-            mthd.invoke_unsafe(None,&mut Vec::new()).expect("Exception").expect("got null").get_ptr() as *mut crate::binds::MonoArray
+            mthd.invoke(None,()).expect("Exception").expect("got null").get_ptr() as *mut crate::binds::MonoArray
         ))}.expect("got null again");
         assert!(arr.len() == 8*16);
         //Gets 0 because constructor not called!

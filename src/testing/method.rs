@@ -1,53 +1,36 @@
 use rusty_fork::rusty_fork_test;
 use crate as wrapped_mono;
+use wrapped_mono::{jit,class::Class,method::{Method,MethodTrait}};
 rusty_fork_test! {
     #[test]
     fn getting_method(){
-        use wrapped_mono::{jit,class::Class,method::Method};
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let _met = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+        let _met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
     }
     #[should_panic]
     #[test]
     fn getting_null_from_a_function(){
-        use wrapped_mono::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met = Method::get_method_from_name(&class,"GetObject",0).unwrap();
-        let obj = method_invoke!(met,None).expect("Got exception").expect("Got null as expected!");
+        let met:Method<()> = Method::get_method_from_name(&class,"GetObject",0).unwrap();
+        let obj = met.invoke(None,()).expect("Got exception").expect("Got null as expected!");
         let _res = obj.unbox::<i32>();
     }
     #[test]
     fn calling_method(){
-        use wrapped_mono::{jit,class::Class,method::Method};
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
         use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met = Method::get_method_from_name(&class,"GetArg",1).unwrap();
-        let mut arg1:i32 = 7;
-        let obj = method_invoke!(met,None,arg1).expect("Exception").expect("Got null on a non-nullable!");
-        let res = obj.unbox::<i32>();
-        assert!(res == arg1);
-    }
-    #[test]
-    fn calling_new_method(){
-        use wrapped_mono::{jit,class::Class,method::*};
-        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
-        let dom = jit::init("root",None);
-        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
-        let img = asm.get_image();
-        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:NewMethod<i32> = NewMethod::get_method_from_name(&class,"GetArg",1).unwrap();
-        let obj = met.invoke(None,7).expect("Got exception").expect("Got null");
+        let met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+        let obj = met.invoke(None,7).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i32>();
         assert!(res == 7);
     }
@@ -58,18 +41,17 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+        let met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
         println!("method params:");
         assert!(met.get_param_count() == 1);
     }
     #[test]
     fn getting_method_arg_names(){
-        use wrapped_mono::{jit,class::Class,method::Method};
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+        let met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
         println!("method params:");
         assert!(met.get_param_count() == 1);
         for param in met.get_param_names(){
@@ -79,12 +61,11 @@ rusty_fork_test! {
     #[should_panic]
     #[test]
     fn getting_missing_method(){
-        use wrapped_mono::{jit,class::Class,method::Method};
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let _met = Method::get_method_from_name(&class,"Missing",1).unwrap();
+        let _met:Method<i32> = Method::get_method_from_name(&class,"Missing",1).unwrap();
     }
     #[should_panic]
     #[test]
@@ -94,20 +75,19 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let _met = Method::get_method_from_name(&class,"GetArg",3).unwrap();
+        let _met:Method<i32> = Method::get_method_from_name(&class,"GetArg",3).unwrap();
     }
     #[test]
     fn passing_enum_method(){
-        use wrapped_mono::{jit,class::Class,method::Method};
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
         use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met = Method::get_method_from_name(&class,"GetEnum",1).unwrap();
-        let mut arg1:CLikeEnum = CLikeEnum::Val;
-        let obj = method_invoke!(met,None,arg1).expect("Exception").expect("Got null on a non-nullable!");
+        let met:Method<CLikeEnum> = Method::get_method_from_name(&class,"GetEnum",1).unwrap();
+        let arg1:CLikeEnum = CLikeEnum::Val;
+        let obj = met.invoke(None,arg1).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<CLikeEnum>();
         assert!(res == arg1);
     }
@@ -134,7 +114,6 @@ enum CLikeEnum{
 }
 impl InteropBox for CLikeEnum{}
 use crate::assembly::Assembly;
-use crate::Class;
 impl InteropClass for CLikeEnum{
     fn get_mono_class()-> Class{
         return Class::from_name(&Assembly::assembly_loaded("Test").expect("Could not find assembly").get_image(),"","CLikeEnum").expect("Could not get class!");

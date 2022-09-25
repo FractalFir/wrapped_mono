@@ -1,6 +1,6 @@
 [package]
 name = "wrapped_mono"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 links = "mono-2.0"
 license = "MIT"
@@ -13,7 +13,7 @@ authors = ["FractalFir <fractalfirdev@gmail.com>"]
 [build-dependencies]
 bindgen = {version = "0.60.1",optional = true}
 [dependencies]
-macros = {path = "src/macros",version = "0.1"}
+macros = {path = "src/macros"}
 document-features = "0.2.3"
 [dev-dependencies]
 rusty-fork = "0.3.0"

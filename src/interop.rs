@@ -217,6 +217,12 @@ impl InteropSend for bool{
         return rust_arg;
     }
 }
+impl InteropSend for (){
+    type TargetType = ();
+    fn get_mono_rep(rust_arg:Self)->Self::TargetType{
+        return rust_arg;
+    }
+}
 use crate::class::Class;
 ///Trait allowing for boxing and unboxing type from objects 
 /// # Safety

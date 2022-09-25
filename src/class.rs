@@ -1,6 +1,5 @@
 use crate::binds::MonoClass;
-use crate::Image;
-use crate::Method;
+use crate::{Image,Method,InteropSend};
 
 use std::ffi::CString;
 use core::ffi::c_void;
@@ -67,6 +66,7 @@ impl Class{
         let _ = cstr.into_raw();
         return res;
     }
+    /* TODO: Change get_ctos to include new funcion generic arguments
     ///Gets all of the constuctors of this class. **Does not get parent class construtors!**
     pub fn get_ctors(&self)->Vec<Method>{
         let mut gptr = 0 as *mut std::os::raw::c_void;
@@ -80,6 +80,7 @@ impl Class{
         }
         return res;
     }
+    
     ///Gets all of the constuctors of this class, including parent class construtors.
     pub fn get_ctros_recursive(&self)->Vec<Method>{
         let mut ctors = self.get_ctors();
@@ -92,6 +93,7 @@ impl Class{
             None=>ctors,
         }
     }
+    */
     ///Gets the image this type exists in.
     pub fn get_image(&self)->Image{
         return unsafe{Image::from_ptr(crate::binds:: mono_class_get_image(self.class_ptr))};
@@ -352,6 +354,7 @@ impl Class{
         }
         return None;
     }
+    /* TODO: Fix it to use the new method type
     ///Returns all methods of a class
     pub fn get_methods(&self)->Vec<Method>{
         let mut gptr = 0 as *mut std::os::raw::c_void;
@@ -363,6 +366,7 @@ impl Class{
         }
         return res;
     }
+    */
     //Gets all types nested inside this class.
     ///Returns all methods of a class
     pub fn get_nested_types(&self)->Vec<Class>{
@@ -594,11 +598,11 @@ impl ClassProperity{
         }
     }
     ///Gets properities getter method.
-    pub fn get_get_method(&self)->Option<Method>{
+    pub fn get_get_method<T:InteropSend>(&self)->Option<Method<T>>{
         return unsafe{Method::from_ptr(crate::binds::mono_property_get_get_method(self.prop_ptr))};
     }
     ///Gets properities setter method.
-    pub fn get_set_method(&self)->Option<Method>{
+    pub fn get_set_method<T:InteropSend>(&self)->Option<Method<T>>{
         return unsafe{Method::from_ptr(crate::binds::mono_property_get_get_method(self.prop_ptr))};
     }
     ///Gets class this properity is attached to 
