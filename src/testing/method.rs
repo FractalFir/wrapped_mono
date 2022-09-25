@@ -35,6 +35,45 @@ rusty_fork_test! {
         assert!(res == 7);
     }
     #[test]
+    fn calling_method_2_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i32,i32)> = Method::get_method_from_name(&class,"Mul",2).unwrap();
+        let obj = met.invoke(None,(1,2)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i32>();
+        assert!(res == 1*2);
+    }
+    #[test]
+    fn calling_method_3_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i32,i32,i32)> = Method::get_method_from_name(&class,"Mul",3).unwrap();
+        let obj = met.invoke(None,(1,2,3)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i32>();
+        assert!(res == 1*2*3);
+    }
+    #[test]
+    fn calling_method_4_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i32,i32,i32,i32)> = Method::get_method_from_name(&class,"Mul",4).unwrap();
+        let obj = met.invoke(None,(1,2,3,4)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i32>();
+        assert!(res == 1*2*3*4);
+    }
+    #[test]
     fn getting_method_arg_count(){
         use wrapped_mono::*;
         let dom = jit::init("root",None);

@@ -44,6 +44,15 @@ class TestFunctions : IInterfaceOne{
     public static int GetArg(int arg){
         return arg;
     }
+    public static int Mul(int arg,int arg2){
+        return arg * arg2;
+    }
+    public static int Mul(int arg,int arg2,int arg3){
+        return arg * arg2 * arg3;
+    }
+    public static int Mul(int arg,int arg2,int arg3,int arg4){
+        return arg * arg2 * arg3 * arg4;
+    }
 } 
 static class TestMainEntry{
     public static void Main(string[] ars){

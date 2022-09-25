@@ -349,4 +349,10 @@ impl<A:InteropSend,B:InteropSend,C:InteropSend> InteropSend for (A,B,C){
         return (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2));
     }
 }
+impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend> InteropSend for (A,B,C,D){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType,D::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        return (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),D::get_mono_rep(rust_arg.3));
+    }
+}
 
