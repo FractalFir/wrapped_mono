@@ -59,9 +59,9 @@ pub fn config_parse_memory(config:&str){
 /// Gets runtime version and build date as a string in format `VERSION (FULL_VERSION BUILD_DATE)`
 pub fn get_runtime_build_info()->String{
     let cstr = unsafe{CString::from_raw(crate::binds::mono_get_runtime_build_info())};
-    let s = cstr.to_str().expect("Could not create String").to_owned();
+    let build_info_msg = cstr.to_str().expect("Could not create String").to_owned();
     drop(cstr);
-    return s;
+    build_info_msg
 }
 /// Enable/Disable signal chaing. If it is enabled, runtime saves original singal handlers and passes ceratin signals to them. 
 /// # Constraints
@@ -75,13 +75,13 @@ pub fn set_signal_chaining(chain_signals:bool){
 ///Checks if currently loaded version of corelib will work with this runtime. Returns nothing if it will, and error message if it will not.
 pub fn check_corelib()->Result<(),String>{
     let ptr = unsafe{crate::binds::mono_check_corlib_version()};
-    if ptr == null_mut(){
-        return Ok(());
+    if ptr.is_null(){
+        Ok(())
     }
     else {
         let cstr = unsafe{CString::from_raw(ptr as *mut i8)};
         let res = cstr.to_str().expect("Could not create String.").to_owned();
         let _ptr = cstr.into_raw();
-        return Err(res);
+        Err(res)
     }
 }

@@ -21,14 +21,7 @@ impl MString{
 
         )}.expect(crate::STR2CSTR_ERR);
         drop(cstr);
-        return res;
-    }
-    ///Converts [`MString`] to [`String`]  
-    pub fn to_string(&self)->String{
-        let cstr = unsafe{CString::from_raw(crate::binds::mono_string_to_utf8(self.s_ptr))};
-        let s = cstr.to_str().expect("Colud not create String!").to_owned();
-        unsafe{crate::binds::mono_free(cstr.into_raw() as *mut std::os::raw::c_void)};
-        return s;
+        res
     }
     ///Cast [`Object`] to [`String`]. Returns [`None`] if cast failed. 
     pub fn cast_from_object(obj:&Object)->Option<MString>{
@@ -36,33 +29,33 @@ impl MString{
         if obj.get_class() != Class::get_string(){
             return None;
         }
-        return Some(Self{s_ptr:obj.get_ptr() as *mut MonoString});
+        Some(Self{s_ptr:obj.get_ptr() as *mut MonoString})
     }
     ///Compares two managed strings. Returns true if their **content** is equal, not if they are the same **object**.
     pub fn is_equal(&self,other:&Self)->bool{
-        return unsafe{crate::binds::mono_string_equal(self.s_ptr,other.s_ptr) != 0};
+        unsafe{crate::binds::mono_string_equal(self.s_ptr,other.s_ptr) != 0}
     }
     ///Creates hash of a [`String`].
     pub fn hash(&self)->u32{
-        return unsafe{crate::binds::mono_string_hash(self.s_ptr)};
+        unsafe{crate::binds::mono_string_hash(self.s_ptr)}
     }
     //Cretes [`MString`] form pointer , or returns None if pointer equal to null.
     /// # Safety
     /// *ptr* must be either a valid [`MonoString`] pointer or null. Pasing any other value will lead to undefined behaviour.
     pub unsafe fn from_ptr(ptr:*mut MonoString)->Option<Self>{
-        if ptr == null_mut(){
-            return None;
+        if ptr.is_null(){
+            None
         }
         else{
-            return Some(Self{s_ptr:ptr});
+            Some(Self{s_ptr:ptr})
         }
     }
     pub fn get_ptr(&self)->*mut MonoString{
-        return self.s_ptr;
+        self.s_ptr
     }
     ///Returns this [`MString`] as [`Object`]. Both original and return value still reference the same managed object.
     pub fn to_object(&self)->Object{
-        return unsafe{Object::from_ptr(self.s_ptr as *mut crate::binds::MonoObject)}.expect("Impossible condition reached! object null and not null at the same time!");
+        unsafe{Object::from_ptr(self.s_ptr as *mut crate::binds::MonoObject)}.expect("Impossible condition reached! object null and not null at the same time!")
     }
 }
 impl InteropRecive for MString{
@@ -70,29 +63,38 @@ impl InteropRecive for MString{
     fn get_rust_rep(src:Self::SourceType)->Self{
         use crate::exception::ExceptManaged;
         let opt = unsafe{Self::from_ptr(src)};
-        return <MString as ExceptManaged<MString>>::expect_managed_arg(opt,"got null in a non-nullable string. For nullabe support use Option<MString>");
+        <MString as ExceptManaged<MString>>::expect_managed_arg(opt,"got null in a non-nullable string. For nullabe support use Option<MString>")
     }
 }
 impl InteropRecive for Option<MString>{
     type SourceType = *mut MonoString;
     fn get_rust_rep(src:Self::SourceType)->Self{
-        return unsafe{MString::from_ptr(src)};
+        unsafe{MString::from_ptr(src)}
     }
 }
 impl InteropSend for MString{
     type TargetType = *mut MonoString;
     fn get_mono_rep(src:Self)->Self::TargetType{
-        return src.s_ptr;
+        src.s_ptr
     }
 }
 impl InteropSend for Option<MString>{
     type TargetType = *mut MonoString;
     fn get_mono_rep(src:Self)->Self::TargetType{
-        return match src{Some(src)=>src.s_ptr,None=>null_mut()};
+        match src{Some(src)=>src.s_ptr,None=>null_mut()}
     }
 }
 impl InteropClass for MString{
     fn get_mono_class()->Class{
-        return Class::get_string();
+        Class::get_string()
+    }
+}
+impl ToString for MString{
+    ///Converts [`MString`] to [`String`]  
+    fn to_string(&self)->String{
+        let cstr = unsafe{CString::from_raw(crate::binds::mono_string_to_utf8(self.s_ptr))};
+        let res = cstr.to_str().expect("Colud not create String!").to_owned();
+        unsafe{crate::binds::mono_free(cstr.into_raw() as *mut std::os::raw::c_void)};
+        res
     }
 }

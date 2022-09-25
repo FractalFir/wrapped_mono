@@ -1,6 +1,5 @@
 use crate::binds::{MonoProfilerHandle,MonoProfiler,_MonoProfiler,MonoProfilerCallContext};
-use std::ptr::null_mut; 
-use crate::{Object,Domain,Method,MethodTrait,Array,MString};
+use crate::{Object,Domain,Method,Array,MString};
 use crate::interop::InteropRecive;
 //TODO: fix to allow arc.
 struct _Profiler<T>{
@@ -19,57 +18,50 @@ struct _Profiler<T>{
     jit_begin_cb:Option<fn (profiler:&mut Profiler<T>,&Method<Array<MString>>)>,
     pub data:T,
 } 
-struct ProfilerCallContext{
+pub struct ProfilerCallContext{
     ptr:*mut MonoProfilerCallContext,
 }
 impl ProfilerCallContext{
     pub fn get_this(&self)->Option<Object>{
-        return unsafe{Object::from_ptr(crate::binds::mono_profiler_call_context_get_this(self.ptr) as *mut crate::binds::MonoObject)};
+        unsafe{Object::from_ptr(crate::binds::mono_profiler_call_context_get_this(self.ptr) as *mut crate::binds::MonoObject)}
     }
     ///Returns *index* argument of current call context. *index* must be within argument count of current method. Type must match argument.
     pub fn get_arg<T:InteropRecive>(&self,index:u32)->T{
         let ptr = unsafe{crate::binds:: mono_profiler_call_context_get_argument(self.ptr,index)} as *const <T as InteropRecive>::SourceType;
         let src:<T as InteropRecive>::SourceType = unsafe{*(ptr)};
-        return <T as InteropRecive>::get_rust_rep(src);
+        <T as InteropRecive>::get_rust_rep(src)
     }
     ///Return local argument from current call contex at *index*. Index must be valid and type must match.
     pub fn get_local<T:InteropRecive>(&self,index:u32)->T{
         let ptr = unsafe{crate::binds::mono_profiler_call_context_get_local(self.ptr,index)} as *const <T as InteropRecive>::SourceType;
         let src:<T as InteropRecive>::SourceType = unsafe{*(ptr)};
-        return <T as InteropRecive>::get_rust_rep(src);
+        <T as InteropRecive>::get_rust_rep(src)
     }
 }
-// mono_profiler_set_sample_mode(
+use std::alloc::{alloc, dealloc, Layout};
 impl<T> _Profiler<T>{
     pub fn create(mut data:T)->*mut Self{
-        use std::alloc::{alloc, dealloc, Layout};
-        use std::mem::ManuallyDrop;
-        let ptr = unsafe{
+        unsafe{
             let ptr = alloc(Layout::new::<Self>());
             for i in 0..std::mem::size_of::<Self>(){
                 *((ptr as usize + i) as *mut u8) = 0;
             }
             let ptr = ptr as *mut Self;
             (*ptr).handle = crate::binds::mono_profiler_create(ptr as *mut MonoProfiler);
-            let src:&mut T = (&mut data);
-            let dst:&mut T = (&mut (*ptr).data);
+            let src:&mut T = &mut data;
+            let dst:&mut T = &mut (*ptr).data;
             std::mem::swap(src,dst);
             std::mem::forget(data);
             ptr
-        };
-        return ptr;
+        }
     }
     pub fn destroy(profiler:*mut Self){
-        use std::alloc::{alloc, dealloc, Layout};
         let prof = unsafe{&mut *profiler};
-        match prof.rtime_init_cb{
-            Some(_)=>unsafe{crate::binds::mono_profiler_set_runtime_initialized_callback(prof.handle,None)},
-            None=>(),
-        }
-        match prof.cleanup_cb{
-            Some(_)=>unsafe{crate::binds::mono_profiler_set_cleanup_callback(prof.handle,None)},
-            None=>(),
-        }
+        Self::remove_rtime_init_cb(prof);
+        Self::remove_jit_begin_cb(prof);
+        Self::remove_domain_loaded_cb(prof);
+        Self::remove_domain_loading_cb(prof);
+        Self::remove_domain_name_cb(prof);
         unsafe{dealloc(profiler as *mut u8, Layout::new::<Self>())};
     }
     //#####################################################################
@@ -80,15 +72,13 @@ impl<T> _Profiler<T>{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
                 cb(&mut prof);
-                std::mem::forget(prof);
-                let this = &mut *(profiler);
                 println!("Finished calling runtime init callback!");
             }
             None=>panic!("Invalid callback registration state. Callback registered for handler, yet handler has no callback function to call!"),
         }
     }
     pub fn remove_rtime_init_cb(&mut self){
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe{
             crate::binds::mono_profiler_set_runtime_initialized_callback(self.handle,None);
             self.rtime_init_cb = None;
@@ -249,7 +239,7 @@ impl<T> _Profiler<T>{
     //Domain loading callback
     unsafe extern "C" fn domain_loading_callback(profiler:*mut _Profiler<T>,dom:*mut crate::binds::MonoDomain){
         let this = &mut *(profiler);
-        let mut dom = unsafe{Domain::from_ptr(dom)};
+        let mut dom = Domain::from_ptr(dom);
         match this.domain_loading_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
@@ -278,7 +268,7 @@ impl<T> _Profiler<T>{
     //Domain loaded callback
     unsafe extern "C" fn domain_loaded_callback(profiler:*mut _Profiler<T>,dom:*mut crate::binds::MonoDomain){
         let this = &mut *(profiler);
-        let mut dom = unsafe{Domain::from_ptr(dom)};
+        let mut dom = Domain::from_ptr(dom);
         match this.domain_loaded_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
@@ -307,7 +297,7 @@ impl<T> _Profiler<T>{
     //Domain unloading callback
     unsafe extern "C" fn domain_unloading_callback(profiler:*mut _Profiler<T>,dom:*mut crate::binds::MonoDomain){
         let this = &mut *(profiler);
-        let mut dom = unsafe{Domain::from_ptr(dom)};
+        let mut dom = Domain::from_ptr(dom);
         match this.domain_unloading_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
@@ -336,7 +326,7 @@ impl<T> _Profiler<T>{
     //Domain unloaded callback
     unsafe extern "C" fn domain_unloaded_callback(profiler:*mut _Profiler<T>,dom:*mut crate::binds::MonoDomain){
         let this = &mut *(profiler);
-        let mut dom = unsafe{Domain::from_ptr(dom)};
+        let mut dom = Domain::from_ptr(dom);
         match this.domain_unloaded_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
@@ -368,7 +358,7 @@ impl<T> _Profiler<T>{
         let cstr = CString::from_raw(str_ptr as *mut i8);
         use std::ffi::CString;
         let st = cstr.to_str().expect("Could not create String!").to_owned();
-        let mut dom = unsafe{Domain::from_ptr(dom)};
+        let mut dom = Domain::from_ptr(dom);
         match this.domain_set_name_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
@@ -431,11 +421,11 @@ pub struct Profiler<T>{
 }
 impl<T> Profiler<T>{
     fn from_ptr(profiler:*mut MonoProfiler)->Self{
-        return Self{ptr:profiler as *mut _Profiler<T>};
+        Self{ptr:profiler as *mut _Profiler<T>}
     }
     ///Creates a new profiler with *data*. Data is user defined struct used to pass data to callbacks.
     pub fn create(data:T)->Profiler<T>{
-        return Self{ptr:_Profiler::<T>::create(data)};
+        Self{ptr:_Profiler::<T>::create(data)}
     }
     /// Destroys the profiler.
     /// # Safety 
@@ -445,7 +435,7 @@ impl<T> Profiler<T>{
     }
     ///Returns refernece to internal data.
     pub fn get_internal_data(&mut self)->&mut T{
-        return unsafe{(&mut (*self.ptr).data)};
+        unsafe{&mut (*self.ptr).data}
     }
     ///Removes callback added by [`add_runtime_initialized_callback`]
     pub fn remove_runtime_initialized_callback(&mut self){

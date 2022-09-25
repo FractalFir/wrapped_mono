@@ -35,7 +35,7 @@ fn get_fn_path_string(input:TokVec)->Result<String,String>{
             _=>return Err(format!("function path can't contain '{}' token!",tok)),
         }
     }
-    return Ok(res);
+    Ok(res)
 }
 /// Macro equivalent of mono_add_internal_call with automatic support for type conversion. 
 /// Allows you to expose a function as an internal call
@@ -89,7 +89,7 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
         drop(cstr);",&method,&fnc_name,&fnc_name)).expect("Could not create token stream");
     #[cfg(feature = "dump_macro_results")]
     dumping::dump_stream(&res);
-    return res;
+    res
 }
 /// Macro creating a wrapper around a function making it able to be exposed as internal call.
 /// # Restrictions
@@ -118,7 +118,7 @@ pub fn invokable(_attr_ts: TokenStream, fn_ts: TokenStream) -> TokenStream{
     handler.extend(fnc.tok_backup);
     #[cfg(feature = "dump_macro_results")]
     dumping::dump_stream(&handler);
-    return handler;
+    handler
 }
 ///Invokes method guessing its signature based on types of provided varaibles. 
 /// # Parameters
@@ -155,7 +155,7 @@ pub fn method_invoke(args: TokenStream) -> TokenStream {
     );
     #[cfg(feature = "dump_macro_results")]
     dumping::dump_stream(&res);
-    return res;
+    res
 } 
 const TS_CR_FAIL:&str = "Colud not create TokenStream!";
 const ENUM_NOT_TRIVIAL:&str = "Could not derive a trait for an non-trivial enum. Trivial enums must be value only and have user set values for compatibility reasons.";
@@ -183,7 +183,7 @@ fn extract_enum_data(inner:&Vec<Vec<TokenTree>>)->Option<u32>{
             _=>return None,
         }
     }
-    return Some(max_val);
+    Some(max_val)
 }
 /// Autoimplement [`InteropRecive`] trait for any type containing only [`IteropRecive`] implementing memebers. Currently supports only structs, and trivial enums(C-like enums) of size less than u64(C# max enum size).
 /// # Rust enums
@@ -223,8 +223,7 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
     let inner = TokVec::separate_by_separator(inner,',');
     if itype == "struct"{
         let mut ret_self = TokenStream::new();
-        let mut i = 0;
-        for memeber in inner{
+        for (i,memeber) in inner.into_iter().enumerate(){
             let mname = memeber[0].to_string();
             let mtype = memeber[2].to_string();
             type_res.extend(TokenStream::from_str(
@@ -236,7 +235,6 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
             ret_self.extend(TokenStream::from_str(
                 &format!("{}:{},",mname,mname)
             ).expect(TS_CR_FAIL));
-            i+=1;
         }
         fn_impl_res.extend(TokenStream::from_str("return Self").expect(TS_CR_FAIL));
         fn_impl_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,ret_self))));
@@ -246,7 +244,7 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
         //Check that enum is trivial and its values are set.
         let max_val = extract_enum_data(&inner).expect(ENUM_NOT_TRIVIAL);
         type_res.extend(TokenStream::from_str(
-            &format!("u64")
+            "u64"
         ).expect(TS_CR_FAIL));
         fn_impl_res.extend(TokenStream::from_str(&format!("unsafe{{let ptr = &arg as *const u64; assert!(arg < {},\"Error:Recived enum out of range!\");
          const _: [(); 0 - !{{ const ASSERT: bool = (std::mem::size_of::<{}>() <= std::mem::size_of::<u64>()); ASSERT }} as usize] = [];
@@ -254,17 +252,17 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
     }
     else {panic!("{} is not a valid type!",itype);}
     let mut res = TokenStream::from_str(&format!("impl InteropRecive for {}",iname)).expect(TS_CR_FAIL);
-    let mut inner_res = TokenStream::from_str(&"type SourceType = ").expect(TS_CR_FAIL);
+    let mut inner_res = TokenStream::from_str("type SourceType = ").expect(TS_CR_FAIL);
     inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,type_res))));
 
-    inner_res.extend(TokenStream::from_str(&";").expect(TS_CR_FAIL));
+    inner_res.extend(TokenStream::from_str(";").expect(TS_CR_FAIL));
     inner_res.extend(TokenStream::from_str("fn get_rust_rep(arg:Self::SourceType)->Self").expect(TS_CR_FAIL));
 
     inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,fn_impl_res))));
     res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner_res))));
     #[cfg(feature = "dump_macro_results")]
     dumping::dump_stream(&res);
-    return res;
+    res
 }
 /// Autoimplement [`InteropSend`] trait for any type containing only [`IteroSend`] implementing memebers. Currently supports only structs, and trivial enums(C-like enums) of size less than u64(C# max enum size).
 /// # Rust enums
@@ -323,7 +321,7 @@ pub fn derive_send(input: TokenStream) -> TokenStream {
         //Check that enum is trivial and its values are set.
         let _max_val = extract_enum_data(&inner).expect(ENUM_NOT_TRIVIAL);
         type_res.extend(TokenStream::from_str(
-            &format!("u64")
+            "u64"
         ).expect(TS_CR_FAIL));
         fn_impl_res.extend(TokenStream::from_str(&format!("unsafe{{let mut res:u64 = 0;
             *(&mut res as *mut u64 as *mut {}) = arg;
@@ -332,17 +330,17 @@ pub fn derive_send(input: TokenStream) -> TokenStream {
     }
     else {panic!("{} is not a valid type!",itype);}
     let mut res = TokenStream::from_str(&format!("impl InteropSend for {}",iname)).expect(TS_CR_FAIL);
-    let mut inner_res = TokenStream::from_str(&"type TargetType = ").expect(TS_CR_FAIL);
+    let mut inner_res = TokenStream::from_str("type TargetType = ").expect(TS_CR_FAIL);
     inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,type_res))));
 
-    inner_res.extend(TokenStream::from_str(&";").expect(TS_CR_FAIL));
+    inner_res.extend(TokenStream::from_str(";").expect(TS_CR_FAIL));
     inner_res.extend(TokenStream::from_str("fn get_mono_rep(arg:Self)->Self::TargetType").expect(TS_CR_FAIL));
 
     inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,fn_impl_res))));
     res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner_res))));
     #[cfg(feature = "dump_macro_results")]
     dumping::dump_stream(&res);
-    return res;
+    res
 }
 #[cfg(feature = "dump_macro_results")]
 mod dumping{
@@ -351,31 +349,29 @@ mod dumping{
         use proc_macro::Span;
         use std::io::Write;
         let mut file = get_dump_file();
-        write!(file,"//##############################################################################\n");
+        writeln!(file,"//##############################################################################");
         let span = Span::call_site();
-        write!(file,"// inserted in file `{}` at `{}:{}`\n",span.source_file().path().display(),span.end().line,span.end().column);
-        write!(file,"{}\n",stream);
+        writeln!(file,"// inserted in file `{}` at `{}:{}`",span.source_file().path().display(),span.end().line,span.end().column);
+        writeln!(file,"{}",stream);
     }
     pub fn get_dump_file()->std::fs::File{
         use std::fs::OpenOptions;
         let path = "macro.dump";
-        return {
-            if unsafe{HAS_BEGUN_DUMP}{
-                OpenOptions::new()
-                .write(true)
-                .append(true)
-                .open(path)
-                .expect("Could not open macro dump file!")
-            }
-            else{
-                unsafe{HAS_BEGUN_DUMP = true};
-                std::fs::File::create(path).expect("Could not create macro dump file!");
-                OpenOptions::new()
-                .write(true)
-                .open(path)
-                .expect("Could not create macro dump file!")
-            }
-        };
+        if unsafe{HAS_BEGUN_DUMP}{
+            OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open(path)
+            .expect("Could not open macro dump file!")
+        }
+        else{
+            unsafe{HAS_BEGUN_DUMP = true};
+            std::fs::File::create(path).expect("Could not create macro dump file!");
+            OpenOptions::new()
+            .write(true)
+            .open(path)
+            .expect("Could not create macro dump file!")
+        }
     }
 }
 

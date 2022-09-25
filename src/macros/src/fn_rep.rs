@@ -180,12 +180,8 @@ impl FnRep{
             TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,call_args))
         ));
         inner.extend(TokenStream::from_str(&format!(";")));
-        match &self.ret{
-            Some(ret)=>{inner.extend(TokenStream::from_str(
-                &format!("return <{} as InteropSend>::get_mono_rep(fnc_call_res_val);",ret)
-            ));},
-            _=>(),
-        }
+        if let Some(ret) = &self.ret {inner.extend(TokenStream::from_str(&format!("return <{} as InteropSend>::get_mono_rep(fnc_call_res_val);",ret)));}
+            
         stream.extend(TokenStream::from(
             TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,inner))
         ));

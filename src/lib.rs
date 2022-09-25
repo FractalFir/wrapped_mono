@@ -1,6 +1,6 @@
 //Experimental features:
 #![feature(specialization)]
-#![feature(generic_const_exprs)]
+//#![feature(generic_const_exprs)]
 //doctest are dissabled, because they do not work with rusty_fork! whcich is required for testing mono runtime
 #![cfg(not(doctest))] 
 //! `wrapped_mono` is a lightweight wrapper around the mono runtime, allowing emmbeding code from lagnages from the .NET frameawork into rust code.
@@ -86,7 +86,6 @@ pub use macros::{add_internal_call,invokable,method_invoke,InteropRecive,Interop
     1: tests are run using rusty-fork - they are separate proceses an thus may or may not be superivsed by valgrind(depending on how spawning another process is handled - is it checked to or not?)
     2: memory may be freed by mono when runtime stops? But that depends on mono runtime "sensing" that application is closing and automaticaly cleaning-up
 */
-#[doc(hide)]
 static STR2CSTR_ERR:&str = "Cold not create CString!";
-#[doc(hide)]
 static CSTR2STR_ERR:&str = "Could not convert CString to String";
+fn hold<T>(_:&T){}

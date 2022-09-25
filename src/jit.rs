@@ -20,15 +20,15 @@ pub fn init(name:&str,version:Option<&str>)->Domain{
         Some(s)=>{
             let v_cstr = CString::new(s).expect(crate::STR2CSTR_ERR);
             let ptr = mono_jit_init_version(n_cstr.as_ptr(),v_cstr.as_ptr());
-            drop(v_cstr);
+            crate::hold(&v_cstr);
             ptr
         },
         None=>{
             mono_jit_init(n_cstr.as_ptr())
         }
     })};
-    drop(n_cstr);
-    return res;
+    crate::hold(&n_cstr);
+    res
 }
 /// This function shuts down MonoRuntime.
 /// **WARNING!** after it is called, MonoRuntime **will not be** able to be used again in the same process, since it can be only started up once.
@@ -71,6 +71,6 @@ pub fn exec(domain:&Domain,assembly:&Assembly,args:Vec<&str>)->i32{
         cstr_args.push(cstr_arg); 
     }
     let res = unsafe{mono_jit_exec(domain.get_ptr(),assembly.get_ptr(),argc,argv.as_mut_ptr())};
-    drop(cstr_args);
-    return res;
+    crate::hold(&cstr_args);
+    res
 }

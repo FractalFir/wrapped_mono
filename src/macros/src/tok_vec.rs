@@ -12,14 +12,14 @@ impl TokVecTraits for TokVec{
         for tok in vec{
             write!(f,"{}",tok.to_string())?;
         }
-        return fmt::Result::Ok(());
+        fmt::Result::Ok(())
     }
     fn from_stream(stream:TokenStream)->Self{
         let mut res = Vec::new();
         for tok in stream{
             res.push(tok);
         }
-        return res;
+        res
     }
     fn to_string(&self)->String{
         use std::fmt::Write;
@@ -27,7 +27,7 @@ impl TokVecTraits for TokVec{
         for tok in self{
             write!(&mut res,"{} ",tok.to_string()).expect("formatting error!");
         }
-        return res;
+        res
     }
     fn separate_by_separator(s:Self,separator:char)->Vec<TokVec>{
         let mut tmp:TokVec = Vec::new();
@@ -47,6 +47,6 @@ impl TokVecTraits for TokVec{
         if tmp.len() > 0{
             res.push(tmp);
         }
-        return res;
+        res
     }
 }

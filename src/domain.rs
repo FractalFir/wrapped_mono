@@ -1,6 +1,5 @@
 use crate::binds::{MonoDomain, mono_domain_create,mono_domain_assembly_open};
 use crate::assembly::{Assembly};
-use core::ptr::null_mut;
 /// Safe representation of MonoDoamin type.
 #[derive(Eq)]
 pub struct Domain{
@@ -16,11 +15,11 @@ impl Domain{
         //!```
         let cstr = CString::new(path).expect(crate::STR2CSTR_ERR);
         let ptr = unsafe{mono_domain_assembly_open(self.get_ptr(),cstr.as_ptr())};
-        if ptr == null_mut(){
+        if ptr.is_null(){
             return None;
         }
-        drop(cstr);
-        return Some(unsafe{Assembly::from_ptr(ptr)});
+        crate::hold(&cstr);
+        Some(unsafe{Assembly::from_ptr(ptr)})
     }
     /// Creates new empty domain
     /// # Example
@@ -29,25 +28,25 @@ impl Domain{
     /// let domain2 = Domain::create();
     /// ```
     pub fn create()->Domain{      
-        return unsafe{Self::from_ptr(mono_domain_create())};
+        unsafe{Self::from_ptr(mono_domain_create())}
     }
     /// Sets domain confing to one loaded from file *filename* in directory *base_directory*.
     pub fn set_config(&self,base_directory:&str,filename:&str){
         let bd_cstr = CString::new(base_directory).expect(crate::STR2CSTR_ERR);
-        let fnme_cstr =CString::new(filename).expect(crate::STR2CSTR_ERR);
+        let fnme_cstr = CString::new(filename).expect(crate::STR2CSTR_ERR);
         unsafe{crate::binds::mono_domain_set_config(self.ptr,bd_cstr.as_ptr(),fnme_cstr.as_ptr())};
         drop(bd_cstr);
         drop(fnme_cstr);
     }
     /// Function creating MonoDomain type from a pointer.
-    /// #Safety
+    /// # Safety
     /// Pointer must be a valid pointer to MonoDomain.
     pub unsafe fn from_ptr(ptr:*mut MonoDomain)->Domain{
-        return Self{ptr:ptr};
+        Self{ptr}
     }
     /// Function returning internal pointer to MonoDomain
-    pub unsafe fn get_ptr(&self)->*mut MonoDomain{
-        return self.ptr;
+    pub fn get_ptr(&self)->*mut MonoDomain{
+        self.ptr
     }
     ///Sets domain as current domain.
     pub fn set(&self,active:bool){
@@ -57,6 +56,7 @@ impl Domain{
     pub fn attach(&self){
         unsafe{crate::binds::mono_jit_thread_attach(self.ptr)};
     }
+    /* TODO: fix domain unloading/freeing
     /// [DOES not work]
     fn unload(self){
         self.set(true);
@@ -71,17 +71,18 @@ impl Domain{
         unsafe{crate::binds::mono_domain_free(self.ptr,force as i32)};
         drop(self);
     }
+    */
     ///Returns current domain or None if jit not initialized yet.
     pub fn get_curr()->Option<Domain>{
         let ptr = unsafe{crate::binds::mono_domain_get()};
-        if ptr == null_mut(){
-            return None;
+        if ptr.is_null(){
+            None
         }
-        else {return unsafe{Some(Self::from_ptr(ptr))}};
+        else {unsafe{Some(Self::from_ptr(ptr))}}
     }
 }
 impl std::cmp::PartialEq for Domain{
     fn eq(&self, other: &Self) -> bool {
-        return self.ptr == other.ptr;
+        self.ptr == other.ptr
     }
 }

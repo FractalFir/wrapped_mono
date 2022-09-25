@@ -21,7 +21,8 @@ mod binds{
         file.write_all(
             b"#![allow(improper_ctypes)]\n#![allow(non_upper_case_globals)]\n
             #![allow(non_camel_case_types)]\n
-            #![allow(non_snake_case)]\n"
+            #![allow(non_snake_case)]\n
+            #![allow(clippy)]"
         ).expect("Could not write bindings prefix");
         bindings.write(Box::new(file)).expect("Couldn't write bindings!");
     }
