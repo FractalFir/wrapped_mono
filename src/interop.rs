@@ -355,4 +355,41 @@ impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend> InteropSend for (A
         return (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),D::get_mono_rep(rust_arg.3));
     }
 }
+impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend,E:InteropSend> InteropSend for (A,B,C,D,E){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType,D::TargetType,E::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        return (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),
+        D::get_mono_rep(rust_arg.3),E::get_mono_rep(rust_arg.4)
+    );
+    }
+}
+impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend,E:InteropSend,F:InteropSend> InteropSend for (A,B,C,D,E,F){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType,D::TargetType,E::TargetType,F::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        return (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),
+        D::get_mono_rep(rust_arg.3),E::get_mono_rep(rust_arg.4),F::get_mono_rep(rust_arg.5)
+    );
+    }
+}
+impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend,E:InteropSend,F:InteropSend,G:InteropSend> InteropSend 
+for (A,B,C,D,E,F,G){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType,D::TargetType,E::TargetType,F::TargetType,G::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        return (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),
+        D::get_mono_rep(rust_arg.3),E::get_mono_rep(rust_arg.4),F::get_mono_rep(rust_arg.5),G::get_mono_rep(rust_arg.6),
+    );
+    }
+}
+impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend,E:InteropSend,F:InteropSend,G:InteropSend,H:InteropSend> 
+InteropSend for (A,B,C,D,E,F,G,H){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType,D::TargetType,E::TargetType,F::TargetType,G::TargetType,
+    H::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        return (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),
+        D::get_mono_rep(rust_arg.3),E::get_mono_rep(rust_arg.4),F::get_mono_rep(rust_arg.5),G::get_mono_rep(rust_arg.6),
+        H::get_mono_rep(rust_arg.7),
+    );
+    }
+}
+
 

@@ -1,5 +1,6 @@
 //Experimental features:
 #![feature(specialization)]
+#![feature(generic_const_exprs)]
 //doctest are dissabled, because they do not work with rusty_fork! whcich is required for testing mono runtime
 #![cfg(not(doctest))] 
 //! `wrapped_mono` is a lightweight wrapper around the mono runtime, allowing emmbeding code from lagnages from the .NET frameawork into rust code.

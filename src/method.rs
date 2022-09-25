@@ -140,13 +140,12 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args> where <Args as Intero
         let mut expect: *mut MonoException = null_mut();
         //convert argument types
         let mut args = <Args as InteropSend>::get_mono_rep(args);
-        //convert arguments to pointers
         let mut params = <<Args as InteropSend>::TargetType as TupleToPtrs>::get_ptrs(&mut args as *mut _);
         //invoke the method itself
         let res_ptr = unsafe{crate::binds::mono_runtime_invoke(
             self.get_ptr(),
             obj_ptr as *mut std::os::raw::c_void,
-            params.as_ptr()  as *mut *mut c_void,
+            &mut params as *mut _ as *mut *mut c_void,
             &mut expect as *mut *mut MonoException as *mut *mut MonoObject,
         )};
         //hold args as long as params lives.
