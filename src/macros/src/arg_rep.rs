@@ -14,17 +14,14 @@ impl ArgRep{
         let mut arg_type = Vec::with_capacity(tokens.len());
         let mut in_type:bool = false;
         for token in tokens{
-            match &token {
-                TokenTree::Punct(p)=>{
-                    if p.as_char() == ':'{in_type = true; continue;}
-                },
-                _=>{},
-            }
+            if let TokenTree::Punct(p) = &token {
+                if p.as_char() == ':'{in_type = true; continue}
+            }   
             (match in_type{true=>&mut arg_type,false=>&mut name_part }).push(token);
         }
         assert!(name_part.len()<3);
         let name = name_part[name_part.len() - 1].to_string();
-        return ArgRep{name:name,arg_type:arg_type};
+        ArgRep{name,arg_type}
     }
     pub fn from_arg_vec(tokens: TokVec)->Vec<ArgRep>{
         let mut args = Vec::new();
@@ -52,15 +49,15 @@ impl ArgRep{
                 }
             }
         }
-        if tmp.len() > 0 {args.push(Self::from_vec(tmp))};
-        return args;
+        if !tmp.is_empty(){args.push(Self::from_vec(tmp))};
+        args
     }
     pub fn get_type_string(&self)->String{
-        return self.arg_type.to_string();
+        self.arg_type.to_string()
     }
     pub fn create_handler(&self)->TokenStream{
         let s_type:String = self.arg_type.to_string();
-        return TokenStream::from_str(&format!("let {} = <{}>::get_rust_rep({});",&self.name,s_type,&self.name)).expect("Could not create token stream!");
+        TokenStream::from_str(&format!("let {} = <{}>::get_rust_rep({});",&self.name,s_type,&self.name)).expect("Could not create token stream!")
     }
 } 
 use std::fmt;

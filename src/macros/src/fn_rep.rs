@@ -23,7 +23,7 @@ impl fmt::Display for FnRep{
             write!(f,"{}",arg)?;
         }
         write!(f,"}}}}")?;
-        return fmt::Result::Ok(());
+        fmt::Result::Ok(())
     }
 }
 //TODO: Rewrite this function to make it more sensible
@@ -37,27 +37,25 @@ fn tok_vec_pop_return(tv:&mut TokVec)->TokenTree{
                     is_last_arrow = true;
                     res.push(tok.clone());
                 }
-                else if p.as_char() == '-'{
-                    if is_last_arrow{
-                        res.pop();
-                        res.pop();
-                        let mut ser  = Vec::with_capacity(res.len()); //iverted res
-                        while let Some(tok) = res.pop(){
-                            ser.push(tok);
-                        }
-                        let val = ser.pop().unwrap();
-                        match val{
-                            TokenTree::Punct(ref p)=>{
-                                if p.as_char() != '>'{
-                                    ser.push(val);
-                                }    
-                            },
-                            _=>ser.push(val),
-                        }
-                        let mut tmp = TokenStream::new();
-                        tmp.extend(ser);
-                        return TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,tmp));
+                else if p.as_char() == '-' && is_last_arrow{
+                    res.pop();
+                    res.pop();
+                    let mut ser  = Vec::with_capacity(res.len()); //iverted res
+                    while let Some(tok) = res.pop(){
+                        ser.push(tok);
                     }
+                    let val = ser.pop().unwrap();
+                    match val{
+                        TokenTree::Punct(ref p)=>{
+                            if p.as_char() != '>'{
+                                ser.push(val);
+                            }    
+                        },
+                        _=>ser.push(val),
+                    }
+                    let mut tmp = TokenStream::new();
+                    tmp.extend(ser);
+                    return TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,tmp));
                 }
                 res.push(tok.clone());
             },
@@ -75,16 +73,13 @@ impl FnRep{
         let mut tokens = TokVec::from_stream(fn_ts); 
         //check if public
         let mut _is_pub = false;
-        match &tokens[0]{
-            TokenTree::Ident(i)=>{
-                if i.to_string() == "pub"{
-                    //println!("public function!");
-                    _is_pub = true;
-                    tokens.remove(0);
-                }
-            },
-            _=>(),
-        }       
+        if let TokenTree::Ident(i) = &tokens[0] {
+            if i.to_string() == "pub"{
+                //println!("public function!");
+                _is_pub = true;
+                tokens.remove(0);
+            }
+        }    
         //body
         tokens.pop();
         //return type
@@ -99,20 +94,18 @@ impl FnRep{
             _=>panic!("unexpected token'{}' in place of function args!",args_tok)});
         //name
         let name = tokens.pop().expect("not enough tokens to form a function").to_string();
-        return FnRep{tok_backup:tok_backup,ret:ret,args:ArgRep::from_arg_vec(args),name:name}
+        FnRep{tok_backup,ret,name,args:ArgRep::from_arg_vec(args)}
     }
     pub fn create_in_arg_list(&self)->TokenStream{
         let mut inner:TokenStream = TokenStream::new();
         let len = self.args.len();
-        let mut curr = 0;
-        for arg in &self.args{
+        for (curr, arg) in self.args.iter().enumerate(){
             let separator = if curr < len - 1{','}else{' '};
             inner.extend(
                 TokenStream::from_str(&format!("{}:<{} as InteropRecive>::SourceType{}",arg.name,arg.get_type_string(),separator)));
-            curr+=1;
         }
         let group = TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,inner));
-        return TokenStream::from(group);
+        TokenStream::from(group)
     }
     /*
         function creating function type(e.g. pub type name_fnc_type = extern "C" fn(arg_type_1,arg_type_2,...)->return_type;
@@ -142,7 +135,7 @@ impl FnRep{
             None=>(),
         }
         res.extend(TokenStream::from_str(";"));
-        return res;
+        res
     }
     /*
         function creating a function wrapper around souce function
@@ -175,12 +168,12 @@ impl FnRep{
         //let arg_count = self.args.len();
         for arg in &self.args{
             //let c = if curr < arg_count - 1{','}else{' '};
-            call_args.extend(TokenStream::from_str(&format!("{}",&arg.name)));
+            call_args.extend(TokenStream::from_str(&arg.name));
         }
         inner.extend(TokenStream::from(
             TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,call_args))
         ));
-        inner.extend(TokenStream::from_str(&format!(";")));
+        inner.extend(TokenStream::from_str(";"));
         if let Some(ret) = &self.ret {inner.extend(TokenStream::from_str(&format!("return <{} as InteropSend>::get_mono_rep(fnc_call_res_val);",ret)));}
             
         stream.extend(TokenStream::from(
@@ -188,6 +181,6 @@ impl FnRep{
         ));
         stream.extend(self.create_function_type());
         //println!("{}",stream);
-        return stream;
+        stream
     }
 }

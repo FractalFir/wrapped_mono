@@ -10,7 +10,7 @@ rusty_fork_test! {
     #[test]
     fn internal_call(){
         #[invokable]
-        fn string_test(s:String) -> i32{
+        pub fn string_test(s:String) -> i32{
             assert!(s == "|one,two,three,four,");
             return 5;
         }
@@ -60,6 +60,5 @@ rusty_fork_test! {
         add_internal_call!("Test::SomeFN",some_mod::some_fn);
 
         let _res = jit::exec(&dom,&asm,args);
-
     } 
 }

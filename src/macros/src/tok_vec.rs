@@ -10,7 +10,7 @@ pub trait TokVecTraits{
 impl TokVecTraits for TokVec{
     fn fmt_tok_vec(f:&mut fmt::Formatter<'_>,vec:&TokVec)->fmt::Result{
         for tok in vec{
-            write!(f,"{}",tok.to_string())?;
+            write!(f,"{}",tok)?;
         }
         fmt::Result::Ok(())
     }
@@ -25,7 +25,7 @@ impl TokVecTraits for TokVec{
         use std::fmt::Write;
         let mut res = String::new();
         for tok in self{
-            write!(&mut res,"{} ",tok.to_string()).expect("formatting error!");
+            write!(&mut res,"{} ",tok).expect("formatting error!");
         }
         res
     }
@@ -44,7 +44,7 @@ impl TokVecTraits for TokVec{
                 _=>{tmp.push(tok);},
             }
         }
-        if tmp.len() > 0{
+        if !tmp.is_empty(){
             res.push(tmp);
         }
         res
