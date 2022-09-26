@@ -1,5 +1,5 @@
-# wrapped_mono
- `wrapped_mono` is a safe lightweight wrapper around the mono library. It allows embedding the mono runtime(an open-source .NET runtime) inside rust code, and running code written in languages from the .NET framework. `wrapped_mono` allows for easy interop between managed and unmanaged code. Built-in macros automaticaly convert types when passing data between native code and code run inside the runtime.
+﻿# wrapped_mono
+ `wrapped_mono` is a safe lightweight wrapper around the mono library. It allows embedding the mono runtime(an open-source .NET runtime) inside rust code, and running code written in languages from the .NET framework. `wrapped_mono` allows for easy interop between managed and unmanaged code. Built-in macros automatically convert types when passing data between native code and code run inside the runtime.
 ## W.I.P
  While `wrapped_mono` is mostly finished, there are still a few rough edges that need some polish. Some more obscure features do not have safe wrappers yet. In order to avoid problems with changes to API during development, add wrapped_mono to Cargo.toml in the following way:`wrapped_mono = {git = "https://github.com/FractalFir/wrapped_mono.git",tag = "VERSION_NUMBER"}`. This will make you stay at release *VERSION_NUMBER*.
 ## What `wrapped_mono` **is not**
@@ -9,11 +9,11 @@
 # Supported platforms
  `wrapped_mono` works well with Linux, but windows support is not finished(some files have to be manually copied).
 # Unstable Compiler Features
-`wrapped_mono` uses a couple of unstable compiler features to provide best user experience. Many key safet improvements(Managed Method types with generic arguments, diffrent types for diffrently sized arrays) require nightly compiler. Usage of those features should not introduce any bugs, because those features are used only where necesary, and in as simple form as possible.
+`wrapped_mono` uses a couple of unstable compiler features to provide best user experience. Many key safety improvements(Managed Method types with generic arguments, different types for differently sized arrays) require nightly compiler. Usage of those features should not introduce any bugs, because those features are used only where necessary, and in as simple form as possible.
 ## Windows Issues
   Outside the crate, in the directory containing it a directory named `lib` must be created(for example, in case of a crate called `my_crate` `lib` should be in the same directory `my_crate` is in). This folder is the default location of 'mscorlib.dll'. To change this location, call `runtime::set_dirs` before `jit::init`. This folder must contain a copy of file `mscorlib.dll` from `C:\Program Files\Mono\lib\mono\{MONO_RUNTIME_VERSION}\mscorlib.dll`. Root folder of a crate using `wrapped_mono` must contain copy of file `mono-2.0-sgen.dll` from `C:\Program Files\Mono\bin\mono-2.0-sgen.dll`.
 ## MacOS Support
-  `wrapped_mono` likely works on MacOS with Linux compilation flags, but since I have no access to a Mac computer, it was not tested yet. (because of that, compilation will stop with "your OS is not supported" message, change `build.rs` to enable compiling on MacOS).
+  `wrapped_mono` likely works on Mac OS with Linux compilation flags, but since I have no access to a Mac computer, it was not tested yet. (because of that, compilation will stop with "your OS is not supported" message, change `build.rs` to enable compiling on Mac OS).
 ## Cross-Compilation
   Cross compiling `warpped_mono` is not supported yet(flags set by `build.rs` assume target system is also the host system), but support for it can be added by setting proper flags.
 ## Any other platform
@@ -23,7 +23,7 @@
 # Fetures and planned features
 ## Version 0.1
 - [x] Runtime initialization/shutdown
-- [x] Creating multpile domains
+- [x] Creating multiple domains
 - [x] Loading assemblies from disk
 - [x] Searching for a specific class in assembly
 - [x] Creating new object of a given type
@@ -44,25 +44,25 @@
 - [x] Signal chaining
 - [x] Exposing unmanged functions as internal calls in managed code
 - [x] Passing data between managed and unmanaged code
-- [X] Support for properities (getters,setters, etc)
+- [X] Support for properties (getters,setters, etc)
 - [X] Implementation of Inertop Traits for all simple types.
-- [X] Full documentaion for all features
+- [X] Full documentation for all features
 ## Version 0.2
 - [X] Arrays with more than one dimension. (Multi-dimensional arrays work, but they behave like 1D arrays. This may be a limitation of the mono runtime, or it could be solvable)
 - [X] Autoimplementation of some Interop traits (Interop Send,InteropRecive) for structs. 
-- [X] Reading of assembly meatdata - primitive API, all features work, but API is hard to use(a lot of steps to retrive data).
-- [X] Rework of Method type, change invocation API to a safe one and implement Fn tratis *mostly done, 2 functions need changes*
+- [X] Reading of assembly meatadata - primitive API, all features work, but API is hard to use(a lot of steps to retrieve data).
+- [X] Rework of Method type, change invocation API to a safe one and implement Fn traits *mostly done, 2 functions need changes*
 - [ ] Delegate support
 - [ ] Event support
 ## Version 0.3
-- [ ] Profilier (Data about preformance) *partaily done*
+- [ ] Profilier (Data about performance) *partially done*
 - [ ] Debugging API
-- [ ] Certain fetures of mono JIT(mostly debugging) 
+- [ ] Certain features of mono JIT(mostly debugging) 
 ## Version 0.4
 - [ ] Dynamic code generation
 - [ ] Seciurity API
 - [ ] Features related to threads
-- [ ] Reading of assembly meatdata - full API, easy to use
+- [ ] Reading of assembly metadata - full API, easy to use
 # Examples
 <p align = "center">
     <a href="#Loading">Loading basic assembly<a>&nbsp;
@@ -76,7 +76,7 @@
 ```rust
 use wraped_mono::*;
 fn main(){
-    //Initializing mono JIT and creating root domain with name "root" and no version specifincation (default runtime version)
+    //Initializing mono JIT and creating root domain with name "root" and no version specification (default runtime version)
     let domain = jit::init("root",None);
     //Loading assembly 'Test.dll'
     let assembly = domain.asembly_open("Test.dll").unwrap();
@@ -94,7 +94,7 @@ fn main(){
 ## Executing manged code
 ```rust
 fn main(){
-    //initalizing jit
+    //initializing jit
     let domain = jit::init("root",None);
     //opening assembly
     let assemmbly = domain.assembly_open("Some.dll").unwrap();
@@ -149,7 +149,7 @@ fn main(){
         println!("recived UTF-8 char!(supports symbols like ó ö ❤️)",arg);
     }
     #[invokable]
-    fn array_function(arg:Array<i32>)->i32{
+    fn array_function(arg:Array<i32,1>)->i32{
         let len = arg.len();
         for i in 0..len{
             println!("element number {} is :'{}'!",arg.get(i));
@@ -212,12 +212,12 @@ class TestFunctions{
         //find class method is in
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
         //get method from class
-        let met = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+        let met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
         let mut arg1:i32 = 7;
-        //this macro gueses C# signature bassed on passed arguments
-        let obj = method_invoke!(met,None,arg1).expect("Exception").expect("Got null on a non-nullable!");
+        let obj = met.invoke(None,arg1).expect("Exception").expect("Got null on a non-nullable!");
         //unbox result to get value from object
         let res = obj.unbox::<i32>();
         assert!(res == arg1);
     }
 ```
+
