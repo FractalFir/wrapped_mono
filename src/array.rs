@@ -1,6 +1,6 @@
 use crate::interop::{InteropRecive,InteropSend,InteropClass};
 use crate::Class;
-use crate::Object;
+use crate::{Object,ObjectTrait};
 use core::marker::PhantomData;
 use crate::binds::MonoArray;
 /// Safe representation of MonoArray(a reference to a managed array). Reqiures it's generic argument to implement InvokePass in order to automaticaly convert value from managed type to rust type.
@@ -11,11 +11,11 @@ use crate::binds::MonoArray;
 /// # More dimensions
 /// Arrays with any given number of dimmensions bechave the same as a one dimensional array of length equvalent to ammount of elemnts in a n-dimensional array, 
 /// besides the `class` of the object being diffrent.
-pub struct Array<T:InteropSend + InteropRecive + InteropClass>{
+pub struct Array<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32>{
     arr_ptr:*mut MonoArray,
     pd:PhantomData<T>,
 } 
-impl<T:InteropSend + InteropRecive + InteropClass> Array<T>{
+impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> Array<T,dimensions>{
     ///Function returning element at *index*
     /// # Example
     ///```rust
@@ -81,7 +81,7 @@ impl<T:InteropSend + InteropRecive + InteropClass> Array<T>{
         Some(res)
     }
     ///Cast [`Object`] to [`Array`]. Returns [`None`] if cast failed. 
-    pub fn cast_from_object(object:&Object)->Option<Array<T>>{
+    pub fn cast_from_object(object:&Object)->Option<Array<T,dimensions>>{
         use crate::object::ObjectTrait;
         let sclass = object.get_class(); 
         let tclass = <Self as InteropClass>::get_mono_class();
@@ -113,11 +113,10 @@ impl<T:InteropSend + InteropRecive + InteropClass> Array<T>{
     /// let arr = Array<i32>::new(&domain,&int_managed_class,arr_len);
     /// assert!(arr.len() == arr_len);
     ///```
-    pub fn new_dimensions(domain:&crate::domain::Domain,n:usize,dimensions:&[usize])->Self{
-        assert!(dimensions.len() == n,"Dimension array size mus be equal to nuymber of dimensions!");
-        let class = <T as InteropClass>::get_mono_class().get_array_class(n as u32);
+    pub fn new_dimensions(domain:&crate::domain::Domain,size:&[usize;dimensions as usize])->Self{
+        let class = <T as InteropClass>::get_mono_class().get_array_class(dimensions as u32);
         unsafe{Self::from_ptr(
-            crate::binds::mono_array_new_full(domain.get_ptr(),class.get_ptr(),dimensions as *const [usize] as *mut usize,null_mut())
+            crate::binds::mono_array_new_full(domain.get_ptr(),class.get_ptr(),size as *const [usize] as *mut usize,null_mut())
         )}.expect("could not create a new array!")
     }
     ///Function returning a copy of internal pointer to MonoArray
@@ -134,21 +133,21 @@ impl<T:InteropSend + InteropRecive + InteropClass> Array<T>{
         Class::get_array_class(&<T as InteropClass>::get_mono_class(),1)
     }
 }
-impl<T:InteropSend + InteropRecive + InteropClass> InteropRecive for Array<T>{
+impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> InteropRecive for Array<T,dimensions>{
     type SourceType = *mut crate::binds::MonoArray;
     fn get_rust_rep(arg:Self::SourceType)->Self{
         use crate::exception::ExceptManaged;
         let opt = unsafe{Self::from_ptr(arg)};
-        <Array<T> as ExceptManaged<Array<T>>>::expect_managed_arg(opt,"Got null in an not nullable type. For nullable support use Option<Array>")
+        <Array<T,dimensions> as ExceptManaged<Array<T,dimensions>>>::expect_managed_arg(opt,"Got null in an not nullable type. For nullable support use Option<Array>")
     }
 }
-impl<T:InteropSend + InteropRecive + InteropClass> InteropSend for Array<T>{
+impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> InteropSend for Array<T,dimensions>{
     type TargetType = *mut crate::binds::MonoArray;
     fn get_mono_rep(arg:Self)->Self::TargetType{
         arg.get_ptr()
     }
 }
-impl<T:InteropSend + InteropRecive + InteropClass> InteropClass for Array<T>{
+impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> InteropClass for Array<T,dimensions>{
     fn get_mono_class()->Class{
         Self::get_class()
     }
@@ -157,7 +156,7 @@ use core::ptr::null_mut;
 use crate::binds::MonoObject;
 use crate::mstring::MString;
 use crate::Exception;
-impl<T:InteropSend + InteropRecive + InteropClass> crate::object::ObjectTrait for Array<T>{
+impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> crate::object::ObjectTrait for Array<T,dimensions>{
     fn hash(&self)->i32{
         unsafe{crate::binds::mono_object_hash(self.arr_ptr as *mut MonoObject)}
     }
@@ -192,15 +191,21 @@ impl<T:InteropSend + InteropRecive + InteropClass> crate::object::ObjectTrait fo
         }
     }
 }
-impl<T:InteropSend + InteropRecive + InteropClass> InteropRecive for Option<Array<T>>{
+impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> InteropRecive for Option<Array<T,dimensions>>{
     type SourceType = *mut crate::binds::MonoArray;
     fn get_rust_rep(arg:Self::SourceType)->Self{
-        unsafe{Array::<T>::from_ptr(arg)}
+        match unsafe{Array::<T,dimensions>::from_ptr(arg)}{
+            Some(dim)=>{
+                assert!(dim.get_class().get_rank() == dimensions,"Array size mismatch");
+                Some(dim)
+            },
+            None=>None,
+        }
     }
 }
-impl<T:InteropSend + InteropRecive + InteropClass> InteropSend for Option<Array<T>>{
+impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> InteropSend for Option<Array<T,dimensions>>{
     type TargetType = *mut crate::binds::MonoArray;
     fn get_mono_rep(arg:Self)->Self::TargetType{
-        match arg{ Some(arg)=>arg.get_ptr(),None=>null_mut()}
+        match arg{Some(arg)=>arg.get_ptr(),None=>null_mut()}
     }
 }

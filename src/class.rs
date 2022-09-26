@@ -146,8 +146,8 @@ impl Class{
     /// Gets number of dimmension of array.
     /// # Constrains 
     /// *self* must be an array type, otherwise returns 0.
-    pub fn get_rank(&self)->i32{
-        unsafe{crate::binds::mono_class_get_rank(self.class_ptr)}
+    pub fn get_rank(&self)->u32{
+        unsafe{crate::binds::mono_class_get_rank(self.class_ptr) as u32}
     }
     ///Return size of static data of this class
     pub fn data_size(&self)->i32{

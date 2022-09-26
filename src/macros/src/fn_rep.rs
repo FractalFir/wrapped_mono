@@ -148,6 +148,7 @@ impl FnRep{
         function creating a function wrapper around souce function
     */
     pub fn create_wrapper(&self) ->TokenStream{
+        println!("{}",self);
         //function signature
         let mut stream:TokenStream = TokenStream::from_str(&format!("pub extern \"C\" fn {}_invokable",&self.name)).expect("Could not create token stream!");
         //function args

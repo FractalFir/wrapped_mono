@@ -7,7 +7,10 @@ pub struct ArgRep{
 use std::str::FromStr;
 impl ArgRep{
     pub fn from_vec(tokens: TokVec)->ArgRep{
+        println!("arg:'{}'",tokens.to_string());
+        //argument names
         let mut name_part = Vec::with_capacity(tokens.len());
+        //argument types
         let mut arg_type = Vec::with_capacity(tokens.len());
         let mut in_type:bool = false;
         for token in tokens{
@@ -26,13 +29,21 @@ impl ArgRep{
     pub fn from_arg_vec(tokens: TokVec)->Vec<ArgRep>{
         let mut args = Vec::new();
         let mut tmp = Vec::new(); 
+        let mut depth = 0;
         for tok in tokens{
             match tok{
                 TokenTree::Punct(t)=>{
-                    if t.as_char() == ','{
-                        args.push(Self::from_vec(tmp));
-                        tmp = Vec::new(); 
-                        continue;
+                    match t.as_char(){
+                        ','=>{
+                            if depth == 0{
+                                args.push(Self::from_vec(tmp));
+                                tmp = Vec::new(); 
+                                continue;
+                            }
+                        },
+                        '<'=>depth += 1,
+                        '>'=>depth -= 1,
+                        _=>(),
                     }
                     tmp.push(TokenTree::Punct(t));
                 }
