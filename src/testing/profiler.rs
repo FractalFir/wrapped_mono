@@ -55,7 +55,7 @@ profiler_test!{add_domain_loaded,{},(&mut Domain)}
 //profiler_test!{add_domain_name,{},(&mut Domain)}
 //{let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();jit::exec(dom,asm,vec!["1","2"]);},
 profiler_test!{add_jit_begin,{},
-    (&Method<Array<MString,1>>)}
+    (&Method<Array<1,MString>>)}
 rusty_fork_test! {
     #[test]
     fn profiler_arc(){

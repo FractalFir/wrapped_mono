@@ -26,7 +26,7 @@ rusty_fork_test! {
         use wrapped_mono::object::ObjectTrait;
         use wrapped_mono::object::Object;
         #[invokable]
-        fn pass_data_array(input:Array<i32,1>){
+        fn pass_data_array(input:Array<1,i32>){
             let len = input.len();
             let size = input.get_size();
             println!("size:{}",size);

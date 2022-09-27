@@ -8,14 +8,14 @@ use crate::binds::MonoArray;
 /// It is possible to use wrong type Array (e.g. casting float[] to Array<String>) and either cause a crash or read a garbage value.
 /// # Nullable support
 /// [`Array<T>`] is non-nullable on defult and will panic when null passed as argument form managed code. For nullable support use [`Option<Array<T>>`].
-/// # More dimensions
+/// # More DIMENSIONS
 /// Arrays with any given number of dimmensions bechave the same as a one dimensional array of length equvalent to ammount of elemnts in a n-dimensional array, 
 /// besides the `class` of the object being diffrent.
-pub struct Array<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32>{
+pub struct Array< const DIMENSIONS:u32,T:InteropSend + InteropRecive + InteropClass,>{
     arr_ptr:*mut MonoArray,
     pd:PhantomData<T>,
 } 
-impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> Array<T,dimensions>{
+impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<DIMENSIONS,T>{
     ///Function returning element at *index*
     /// # Example
     ///```rust
@@ -81,7 +81,7 @@ impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> Array<T
         Some(res)
     }
     ///Cast [`Object`] to [`Array`]. Returns [`None`] if cast failed. 
-    pub fn cast_from_object(object:&Object)->Option<Array<T,dimensions>>{
+    pub fn cast_from_object(object:&Object)->Option<Array<DIMENSIONS,T>>{
         use crate::object::ObjectTrait;
         let sclass = object.get_class(); 
         let tclass = <Self as InteropClass>::get_mono_class();
@@ -106,15 +106,15 @@ impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> Array<T
             crate::binds::mono_array_new(domain.get_ptr(),<T as InteropClass>::get_mono_class().get_ptr(),n)
         )}.expect("could not create a new array!")
     }
-    ///Alocate new array in *domain* with *n* dimensions and size *dimensions* with elements of type *class*. 
+    ///Alocate new array in *domain* with *n* DIMENSIONS and size *DIMENSIONS* with elements of type *class*. 
     /// # Example
     ///```rust
     /// let arr_len = 8;
     /// let arr = Array<i32>::new(&domain,&int_managed_class,arr_len);
     /// assert!(arr.len() == arr_len);
     ///```
-    pub fn new_dimensions(domain:&crate::domain::Domain,size:&[usize;dimensions as usize])->Self{
-        let class = <T as InteropClass>::get_mono_class().get_array_class(dimensions as u32);
+    pub fn new_dimensions(domain:&crate::domain::Domain,size:&[usize;DIMENSIONS as usize])->Self{
+        let class = <T as InteropClass>::get_mono_class().get_array_class(DIMENSIONS as u32);
         unsafe{Self::from_ptr(
             crate::binds::mono_array_new_full(domain.get_ptr(),class.get_ptr(),size as *const [usize] as *mut usize,null_mut())
         )}.expect("could not create a new array!")
@@ -133,21 +133,21 @@ impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> Array<T
         Class::get_array_class(&<T as InteropClass>::get_mono_class(),1)
     }
 }
-impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> InteropRecive for Array<T,dimensions>{
+impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> InteropRecive for Array<DIMENSIONS,T>{
     type SourceType = *mut crate::binds::MonoArray;
     fn get_rust_rep(arg:Self::SourceType)->Self{
         use crate::exception::ExceptManaged;
         let opt = unsafe{Self::from_ptr(arg)};
-        <Array<T,dimensions> as ExceptManaged<Array<T,dimensions>>>::expect_managed_arg(opt,"Got null in an not nullable type. For nullable support use Option<Array>")
+        <Array<DIMENSIONS,T> as ExceptManaged<Array<DIMENSIONS,T>>>::expect_managed_arg(opt,"Got null in an not nullable type. For nullable support use Option<Array>")
     }
 }
-impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> InteropSend for Array<T,dimensions>{
+impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> InteropSend for Array<DIMENSIONS,T>{
     type TargetType = *mut crate::binds::MonoArray;
     fn get_mono_rep(arg:Self)->Self::TargetType{
         arg.get_ptr()
     }
 }
-impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> InteropClass for Array<T,dimensions>{
+impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> InteropClass for Array<DIMENSIONS,T>{
     fn get_mono_class()->Class{
         Self::get_class()
     }
@@ -156,7 +156,7 @@ use core::ptr::null_mut;
 use crate::binds::MonoObject;
 use crate::mstring::MString;
 use crate::Exception;
-impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> crate::object::ObjectTrait for Array<T,dimensions>{
+impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> crate::object::ObjectTrait for Array<DIMENSIONS,T>{
     fn hash(&self)->i32{
         unsafe{crate::binds::mono_object_hash(self.arr_ptr as *mut MonoObject)}
     }
@@ -191,19 +191,19 @@ impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> crate::
         }
     }
 }
-impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> InteropRecive for Option<Array<T,dimensions>>{
+impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> InteropRecive for Option<Array<DIMENSIONS,T>>{
     type SourceType = *mut crate::binds::MonoArray;
     fn get_rust_rep(arg:Self::SourceType)->Self{
-        match unsafe{Array::<T,dimensions>::from_ptr(arg)}{
+        match unsafe{Array::<DIMENSIONS,T>::from_ptr(arg)}{
             Some(dim)=>{
-                assert!(dim.get_class().get_rank() == dimensions,"Array size mismatch");
+                assert!(dim.get_class().get_rank() == DIMENSIONS,"Array size mismatch");
                 Some(dim)
             },
             None=>None,
         }
     }
 }
-impl<T:InteropSend + InteropRecive + InteropClass, const dimensions:u32> InteropSend for Option<Array<T,dimensions>>{
+impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> InteropSend for Option<Array<DIMENSIONS,T>>{
     type TargetType = *mut crate::binds::MonoArray;
     fn get_mono_rep(arg:Self)->Self::TargetType{
         match arg{Some(arg)=>arg.get_ptr(),None=>null_mut()}
