@@ -149,7 +149,7 @@ fn main(){
         println!("recived UTF-8 char!(supports symbols like ó ö ❤️)",arg);
     }
     #[invokable]
-    fn array_function(arg:Array<i32,1>)->i32{
+    fn array_function(arg:Array<1,i32>)->i32{
         let len = arg.len();
         for i in 0..len{
             println!("element number {} is :'{}'!",arg.get(i));
