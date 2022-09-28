@@ -21,6 +21,20 @@ pub struct Array<const DIMENSIONS:u32,T:InteropSend + InteropRecive + InteropCla
     lengths:[u32;DIMENSIONS as usize],
 } 
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
+    pub fn get_index(&self,indices:[usize;DIMENSIONS as usize])->usize{
+        //size of current dimension
+        let mut size = 1;
+        let mut index = 0;
+        for n in 0..(DIMENSIONS as usize){
+            let ind = indices[n];
+            let len = self.lengths[n] as usize;
+            #[cfg(not(feature = "unsafe_arrays"))]
+            assert!(ind < len,"index ({}) outside of array bound ({})",ind,len);
+            index += ind * size;
+            size *= len;
+        }
+        return index;
+    }
     ///Function returning element at *index*
     /// # Example
     ///```rust
@@ -30,7 +44,8 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  Array<
     ///     return a + b;  
     ///}
     ///```
-    pub fn get(&self,index:usize)->T{
+    pub fn get(&self,indices:[usize;DIMENSIONS as usize])->T{
+        let index = self.get_index(indices);
         let src:T::SourceType = unsafe{*(crate::binds::mono_array_addr_with_size(self.arr_ptr,std::mem::size_of::<T::SourceType>() as i32,index) as *const T::SourceType)};
         T::get_rust_rep(src)
     }
@@ -42,8 +57,9 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  Array<
     ///     input.set(1,1);
     /// }
     ///```
-    pub fn set(&mut self,index:usize,value:T){
+    pub fn set(&mut self,indices:[usize;DIMENSIONS as usize],value:T){
         let tmp = T::get_mono_rep(value);
+        let index = self.get_index(indices);
         let ptr =  unsafe{crate::binds::mono_array_addr_with_size(
             self.arr_ptr,std::mem::size_of::<T::TargetType>() as i32,index)
             as *mut T::TargetType};

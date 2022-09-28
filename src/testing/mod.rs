@@ -6,6 +6,7 @@ mod method;
 mod exception;
 mod class;
 mod profiler;
+mod array;
 use crate as wrapped_mono;
 use wrapped_mono::*;
 use mstring::MString;

@@ -34,7 +34,7 @@ rusty_fork_test! {
             assert!(len == 6);
             for i in 0..len{
                 println!("i:{}",i);
-                assert!(input.get(i) == i as i32);
+                assert!(input.get([i]) == i as i32);
             }
         }
         ///invokable macro does not work with <>
