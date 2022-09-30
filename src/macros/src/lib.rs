@@ -120,43 +120,6 @@ pub fn invokable(_attr_ts: TokenStream, fn_ts: TokenStream) -> TokenStream{
     dumping::dump_stream(&handler);
     handler
 }
-///Invokes method guessing its signature based on types of provided varaibles. 
-/// # Parameters
-/// | Name | Type | Purpose|
-/// --- | --- | ---|
-/// *method* | Method | method to invoke |
-/// *object* | Option<Object> | the *this* parameter of invoked function. Pass `None` if static. |
-/// *params*  | Any type implementing `IneropSend`. | Arguments of the function. Pass them in the same order and with corresponidng types to managed method *method*|
-#[proc_macro]
-pub fn method_invoke(args: TokenStream) -> TokenStream {
-    let mut tokens = TokVec::separate_by_separator(TokVec::from_stream(args),',');
-    let params = tokens.split_off(2);
-    assert!(tokens.len() == 2);
-    let mut res = TokenStream::from_str(&format!("let mut params:Vec<*mut core::ffi::c_void> = Vec::with_capacity({});",params.len())).expect("Could not create token stream!");
-    for param in &params{
-        let name = param.to_string();
-        res.extend(TokenStream::from_str(&format!(
-            "let mut param_{} = get_mono_rep_val({});
-            \nparams.push(ref_to_cvoid_ptr(&mut {}));",name,name,name
-        )));
-    }
-    res.extend(TokenStream::from_str(&format!(
-        "let res = unsafe{{{}.invoke_unsafe({},&params)}};",&tokens[0].to_string(),&tokens[1].to_string()
-    )));
-    for param in &params{
-        let name = param.to_string();
-        res.extend(TokenStream::from_str(&format!(
-            "drop(param_{});",name
-        )));
-    }
-    res.extend(TokenStream::from_str("res"));
-    let res = TokenStream::from(
-        TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,res))
-    );
-    #[cfg(feature = "dump_macro_results")]
-    dumping::dump_stream(&res);
-    res
-} 
 const TS_CR_FAIL:&str = "Colud not create TokenStream!";
 const ENUM_NOT_TRIVIAL:&str = "Could not derive a trait for an non-trivial enum. Trivial enums must be value only and have user set values for compatibility reasons.";
 //Extracts enum max value or return None.
