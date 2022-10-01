@@ -84,23 +84,36 @@ fn copy_win_dlls(){
     }
 }
 */
+use std::path::Path;
+//This is a hack. It will not work if not building using deafult rust toolchain.
+fn target_dir()->String{
+    use std::env;
+    return Path::new(&env::var("OUT_DIR").unwrap())
+    .parent().unwrap() //wrapped-mono
+    .parent().unwrap() //build
+    .parent().unwrap() //debug
+    .parent().unwrap() //target
+    .to_str().unwrap().to_owned();
+}
 fn main() {
+    use std::fmt::Write;
+    match os_specific::check_files_present(){
+        Ok(_)=>(),
+        Err(errors)=>{
+            let mut res = "files: ".to_owned();
+            for error in errors{
+                write!(res,"\"{}\" ",error);
+            }
+            write!(res,"are missing. Is mono installed propely? It cna be downloaded here: https://www.mono-project.com/download/stable/");
+            panic!("{}",res);
+        }
+    }
+    os_specific::insert_link_args();
+    os_specific::copy_dlls();
     #[cfg(not(any(target_os = "linux",target_os = "windows")))]
     panic!("Target OS currently not supported");
-    #[cfg(target_os = "linux")]
-    {
-        println!("cargo:rustc-link-lib=mono-2.0");
-    }
-    #[cfg(target_os = "windows")]
-    {
-        //Windows support experimental
-        println!("cargo:rustc-link-lib=mono-2.0-sgen");
-        println!("cargo:rustc-link-search=C:\\Program Files\\Mono\\lib");
-        copy_win_dlls();
-    }
     #[cfg(feature = "regen_binds")]
     binds::gen_binds();
-   
     #[cfg(feature = "build_test_dlls")]
     std::fs::create_dir_all("test/dlls").expect("Could not create test directory");
     #[cfg(feature = "build_test_dlls")]
@@ -110,6 +123,75 @@ fn main() {
         tests::compile_test_lib();
     }
 }
+#[cfg(target_os = "linux")]
+mod os_specific{
+    pub fn check_files_present()->Result<(),Vec<String>>{
+        use std::path::Path;
+        let mut errors = Vec::new();
+        if !Path::new("/usr/include/mono-2.0/mono/").exists(){
+            errors.push("/usr/include/mono-2.0/mono/".to_owned());
+        }
+        if !Path::new("/usr/lib/mono/").exists(){
+            errors.push("/usr/lib/mono/".to_owned());
+        }
+        if errors.is_empty(){
+            return Ok(());
+        }
+        return Err(errors);
+    }
+    pub fn insert_link_args(){
+        println!("cargo:rustc-link-lib=mono-2.0");
+    }
+    pub fn copy_dlls(){
+
+    }
+}
+#[cfg(target_os = "windows")]
+mod os_specific{
+    pub fn check_files_present()->Result<(),Vec<String>>{
+        use std::path::Path;
+        let mut errors = Vec::new();
+        if !Path::new("C:\\Program Files\\Mono\\lib\\mono").exists(){
+            errors.push("C:\\Program Files\\Mono\\lib\\mono".to_owned());
+        }
+        if !Path::new("C:\\Program Files\\Mono\\lib\\mono\\4.8-api").exists(){
+            errors.push("C:\\Program Files\\Mono\\lib\\mono\\4.8-api".to_owned());
+        }
+        if errors.is_empty(){
+            return Ok(());
+        }
+        return Err(errors);
+    }
+    pub fn insert_link_args(){
+        println!("cargo:rustc-link-search=C:\\Program Files\\Mono\\lib");
+
+        println!("cargo:rustc-link-lib=libmono-static-sgen");
+        println!("cargo:rustc-link-lib=winmm");
+        println!("cargo:rustc-link-lib=ole32");
+        println!("cargo:rustc-link-lib=user32");
+        println!("cargo:rustc-link-lib=oleaut32");
+        println!("cargo:rustc-link-lib=shell32");
+        println!("cargo:rustc-link-lib=version");
+    }
+    pub fn copy_dlls(){
+        use std::path::Path;
+        let versions = ["2.0-api","4.0","4.0-api","4.5","4.5.1-api","4.5.2-api","4.6-api","4.7.1-api","4.7.2-api",
+        "4.7-api","4.8-api"];
+        let trgt_dir = crate::target_dir();
+        for version in versions{
+            let spath_str = ("C:\\Program Files\\Mono\\lib\\mono\\".to_owned()+version+"\\mscorlib.dll");
+            let spath = Path::new(&spath_str);
+            let tpath_str = (&trgt_dir).to_owned()+"\\lib\\mono\\"+version+"\\mscorlib.dll";
+            let tpath = Path::new(&tpath_str);
+            std::fs::create_dir_all(Path::new(&((&trgt_dir).to_owned()+"\\lib\\mono\\"+version)));
+            match std::fs::copy(spath,tpath){
+                Ok(_)=>(),
+                Err(_)=>panic!("Could not copy mscorlib.dll from \"{}\" to \"{}\". Is mono installed propely?",spath_str,tpath_str),
+            }
+        }
+    }
+}
+
 
   
   

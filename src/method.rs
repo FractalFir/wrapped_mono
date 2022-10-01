@@ -125,7 +125,8 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args>{
         }
     }
 }
-impl <Args:InteropSend> MethodTrait<Args> for Method<Args> where <Args as InteropSend>::TargetType:TupleToPtrs{
+impl <Args:InteropSend> MethodTrait<Args> for Method<Args> where <Args as InteropSend>::TargetType:CompareClasses + TupleToPtrs
+{
     default fn invoke(&self,object:Option<Object>,args:Args)->Result<Option<Object>,Exception>{
         //convert object to invoke on to a pointer.
         let obj_ptr = match object{

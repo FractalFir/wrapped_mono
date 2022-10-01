@@ -242,3 +242,74 @@ impl<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P> TupleToPtrs for (A,B,C,D,E,F,G,H,I,J,K,L,M
             n as VoidPtr,o as VoidPtr,p as VoidPtr]
     }
 } 
+use crate::{Class,InteropClass};
+pub trait CompareClasses{
+    type In;
+    fn compare(clases:Self::In)->bool;
+}
+impl<A:InteropClass,B:InteropClass> CompareClasses for (A,B) where (A,B):TupleToPtrs{
+    type In = [Class;2];
+    fn compare(clases:Self::In)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass> CompareClasses for (A,B,C) where (A,B,C):TupleToPtrs{
+    type In = [Class;3];
+    fn compare(clases:Self::In)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass> CompareClasses for (A,B,C,D) where (A,B,C,D):TupleToPtrs{
+    type In = [Class;4];
+    fn compare(clases:Self::In)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        else if clases[3] != D::get_mono_class(){
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass> CompareClasses for (A,B,C,D,E) where (A,B,C,D,E):TupleToPtrs{
+    type In = [Class;5];
+    fn compare(clases:Self::In)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        else if clases[3] != D::get_mono_class(){
+            return false;
+        }
+        else if clases[4] != E::get_mono_class(){
+            return false;
+        }
+        return true;
+    }
+}

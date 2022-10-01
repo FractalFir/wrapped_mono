@@ -10,8 +10,8 @@
  `wrapped_mono` works well with Linux, but windows support is not finished(some files have to be manually copied).
 # Unstable Compiler Features
 `wrapped_mono` uses a couple of unstable compiler features to provide best user experience. Many key safety improvements(Managed Method types with generic arguments, different types for differently sized arrays) require nightly compiler. Usage of those features should not introduce any bugs, because those features are used only where necessary, and in as simple form as possible.
-## Windows Issues
-  Outside the crate, in the directory containing it a directory named `lib` must be created(for example, in case of a crate called `my_crate` `lib` should be in the same directory `my_crate` is in). This folder is the default location of 'mscorlib.dll'. To change this location, call `runtime::set_dirs` before `jit::init`. This folder must contain a copy of file `mscorlib.dll` from `C:\Program Files\Mono\lib\mono\{MONO_RUNTIME_VERSION}\mscorlib.dll`. Root folder of a crate using `wrapped_mono` must contain copy of file `mono-2.0-sgen.dll` from `C:\Program Files\Mono\bin\mono-2.0-sgen.dll`.
+## Windows Support
+Windows is now fully supported. As long as mono is installed in the default location, and standard rust toolchain is used, there schould be no issues.
 ## MacOS Support
   `wrapped_mono` likely works on Mac OS with Linux compilation flags, but since I have no access to a Mac computer, it was not tested yet. (because of that, compilation will stop with "your OS is not supported" message, change `build.rs` to enable compiling on Mac OS).
 ## Cross-Compilation
