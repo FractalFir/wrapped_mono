@@ -1,6 +1,6 @@
 use crate::interop::{InteropRecive,InteropSend,InteropClass};
 use crate::Class;
-use crate::{Object,ObjectTrait};
+use crate::{Object};
 use core::marker::PhantomData;
 use crate::binds::MonoArray;
 /// Safe representation of MonoArray(a reference to a managed array). Reqiures it's generic argument to implement InvokePass in order to automaticaly convert value from managed type to rust type.

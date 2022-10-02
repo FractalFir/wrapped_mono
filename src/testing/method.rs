@@ -1,5 +1,6 @@
 use rusty_fork::rusty_fork_test;
 use crate as wrapped_mono;
+use wrapped_mono::wrapped_mono_macros::*;
 use wrapped_mono::{jit,class::Class,method::{Method,MethodTrait}};
 rusty_fork_test! {
     #[test]
@@ -41,7 +42,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -54,7 +54,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_2_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -67,7 +66,6 @@ rusty_fork_test! {
     #[test]
     fn getting_method_2_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -78,7 +76,6 @@ rusty_fork_test! {
     #[test]
     fn getting_method_2_wrong_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -88,7 +85,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_3_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -101,7 +97,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_4_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -114,7 +109,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_5_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -127,7 +121,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_6_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -140,7 +133,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_7_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -153,7 +145,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_8_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -166,7 +157,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_9_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -179,7 +169,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_10_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -192,7 +181,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_11_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -205,7 +193,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_12_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -218,7 +205,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_13_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -231,7 +217,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_14_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -244,7 +229,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_15_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -257,7 +241,6 @@ rusty_fork_test! {
     #[test]
     fn calling_method_16_args(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
@@ -313,7 +296,6 @@ rusty_fork_test! {
     #[test]
     fn passing_enum_method(){
         use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
-        use macros::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();

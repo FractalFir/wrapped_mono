@@ -7,7 +7,6 @@ pub struct ArgRep{
 use std::str::FromStr;
 impl ArgRep{
     pub fn from_vec(tokens: TokVec)->ArgRep{
-        println!("arg:'{}'",tokens.to_string());
         //argument names
         let mut name_part = Vec::with_capacity(tokens.len());
         //argument types

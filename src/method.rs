@@ -1,5 +1,5 @@
 use core::{marker::PhantomData,ffi::c_void};
-use crate::{InteropSend,InteropClass,Object,Exception,Class};
+use crate::{InteropSend,Object,Exception,Class};
 use crate::tupleutilis::*;
 use crate::binds::{MonoMethod,MonoException,MonoObject};
 use std::ptr::null_mut;
@@ -125,7 +125,7 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args>{
             use std::fmt::Write;
             let mut msg = format!("Expected method accepting 1 argument but got a method accepting {} arguments of types:",params.len());
             for param in params{
-                write!(msg,",\"{}\"",param.get_name_sig());
+                write!(msg,",\"{}\"",param.get_name_sig()).expect("Could not print inproper function argument types!");
             }
             panic!("{}",msg);
         }
@@ -187,6 +187,9 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args> where <Args as Intero
         }
         let res = Self{method:met_ptr,args_type:PhantomData};
         let params = res.get_params();
+        if !(<<Args as InteropSend>::TargetType as CompareClasses>::compare(params)){
+            return None;
+        }
         Some(res)
     }
 }

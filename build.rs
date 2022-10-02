@@ -84,9 +84,11 @@ fn copy_win_dlls(){
     }
 }
 */
-use std::path::Path;
+
 //This is a hack. It will not work if not building using deafult rust toolchain.
+#[cfg(target_os = "windows")]
 fn target_dir()->String{
+    use std::path::Path;
     use std::env;
     return Path::new(&env::var("OUT_DIR").unwrap())
     .parent().unwrap() //wrapped-mono
@@ -104,7 +106,7 @@ fn main() {
             for error in errors{
                 write!(res,"\"{}\" ",error);
             }
-            write!(res,"are missing. Is mono installed propely? It cna be downloaded here: https://www.mono-project.com/download/stable/");
+            write!(res,"are missing. Is mono installed propely? It cna be downloaded here: https://www.mono-project.com/download/stable/").unwrap();
             panic!("{}",res);
         }
     }

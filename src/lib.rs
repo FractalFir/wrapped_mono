@@ -55,7 +55,7 @@ pub mod metadata;
 mod tupleutilis;
 pub mod profiler;
 mod testing;
-pub use macros;
+pub use wrapped_mono_macros;
 #[doc(inline)]
 pub use object::{Object,ObjectTrait};
 #[doc(inline)]
@@ -75,7 +75,7 @@ pub use exception::Exception;
 #[doc(inline)]
 pub use mstring::MString;
 #[doc(inline)]
-pub use macros::{add_internal_call,invokable,InteropRecive,InteropSend};
+pub use wrapped_mono_macros::{add_internal_call,invokable,InteropRecive,InteropSend};
 //for 0.2 TODO:create event object functionalites
 //for 0.2 TODO:create delegate related functionalites
 //for 0.2 TODO:create wrapper around MonoType. It is not necesary for basic functionalities, but is nice to have.

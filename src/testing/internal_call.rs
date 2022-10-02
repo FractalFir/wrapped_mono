@@ -1,8 +1,8 @@
 use rusty_fork::rusty_fork_test;
-use macros::*;
+use wrapped_mono_macros::*;
 use crate as wrapped_mono;
 mod some_mod{
-    use macros::*;
+    use wrapped_mono_macros::*;
     #[invokable]
     pub fn some_fn(){}
 }
