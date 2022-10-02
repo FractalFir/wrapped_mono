@@ -1,5 +1,5 @@
 use crate::binds::MonoClass;
-use crate::{Image,Method,InteropSend};
+use crate::{Image,Method,MethodTrait,InteropSend};
 
 use std::ffi::CString;
 use core::ffi::c_void;

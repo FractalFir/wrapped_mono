@@ -44,14 +44,50 @@ class TestFunctions : IInterfaceOne{
     public static int GetArg(int arg){
         return arg;
     }
-    public static int Mul(int arg,int arg2){
+    public static long Mul(long arg,long arg2){
         return arg * arg2;
     }
-    public static int Mul(int arg,int arg2,int arg3){
+    public static long Mul(long arg,long arg2,long arg3){
         return arg * arg2 * arg3;
     }
-    public static int Mul(int arg,int arg2,int arg3,int arg4){
+    public static long Mul(long arg,long arg2,long arg3,long arg4){
         return arg * arg2 * arg3 * arg4;
+    }
+    public static long Mul(long arg,long arg2,long arg3,long arg4,long arg5){
+        return arg * arg2 * arg3 * arg4 * arg5;
+    }
+    public static long Mul(long arg,long arg2,long arg3,long arg4,long arg5,long arg6){
+        return arg * arg2 * arg3 * arg4 * arg5 * arg6;
+    }
+    public static long Mul(long arg,long arg2,long arg3,long arg4,long arg5,long arg6,long arg7){
+        return arg * arg2 * arg3 * arg4 * arg5 * arg6 * arg7;
+    }
+    public static long Mul(long arg,long arg2,long arg3,long arg4,long arg5,long arg6,long arg7,long arg8){
+        return arg * arg2 * arg3 * arg4 * arg5 * arg6 * arg7 * arg8;
+    }
+    public static long Mul(long arg,long arg2,long arg3,long arg4,long arg5,long arg6,long arg7,long arg8,long arg9){
+        return arg * arg2 * arg3 * arg4 * arg5 * arg6 * arg7 * arg8 * arg9;
+    }
+    public static long Mul(long arg,long arg2,long arg3,long arg4,long arg5,long arg6,long arg7,long arg8,long arg9,long arg10){
+        return arg * arg2 * arg3 * arg4 * arg5 * arg6 * arg7 * arg8 * arg9 * arg10;
+    }
+    public static long Mul(long arg,long arg2,long arg3,long arg4,long arg5,long arg6,long arg7,long arg8,long arg9,long arg10,long arg11){
+        return arg * arg2 * arg3 * arg4 * arg5 * arg6 * arg7 * arg8 * arg9 * arg10 * arg11;
+    }
+    public static long Mul(long arg,long arg2,long arg3,long arg4,long arg5,long arg6,long arg7,long arg8,long arg9,long arg10,long arg11,long arg12){
+        return arg * arg2 * arg3 * arg4 * arg5 * arg6 * arg7 * arg8 * arg9 * arg10 * arg11 * arg12;
+    }
+    public static long Mul(long arg,long arg2,long arg3,long arg4,long arg5,long arg6,long arg7,long arg8,long arg9,long arg10,long arg11,long arg12,long arg13){
+        return arg * arg2 * arg3 * arg4 * arg5 * arg6 * arg7 * arg8 * arg9 * arg10 * arg11 * arg12 * arg13;
+    }
+    public static long Mul(long arg,long arg2,long arg3,long arg4,long arg5,long arg6,long arg7,long arg8,long arg9,long arg10,long arg11,long arg12,long arg13,long arg14){
+        return arg * arg2 * arg3 * arg4 * arg5 * arg6 * arg7 * arg8 * arg9 * arg10 * arg11 * arg12 * arg13 * arg14;
+    }
+    public static long Mul(long arg,long arg2,long arg3,long arg4,long arg5,long arg6,long arg7,long arg8,long arg9,long arg10,long arg11,long arg12,long arg13,long arg14,long arg15){
+        return arg * arg2 * arg3 * arg4 * arg5 * arg6 * arg7 * arg8 * arg9 * arg10 * arg11 * arg12 * arg13 * arg14 * arg15;
+    }
+    public static long Mul(long arg,long arg2,long arg3,long arg4,long arg5,long arg6,long arg7,long arg8,long arg9,long arg10,long arg11,long arg12,long arg13,long arg14,long arg15,long arg16){
+        return arg * arg2 * arg3 * arg4 * arg5 * arg6 * arg7 * arg8 * arg9 * arg10 * arg11 * arg12 * arg13 * arg14 * arg15 * arg16;
     }
 } 
 static class TestMainEntry{

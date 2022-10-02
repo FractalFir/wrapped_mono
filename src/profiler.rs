@@ -1,5 +1,5 @@
 use crate::binds::{MonoProfilerHandle,MonoProfiler,_MonoProfiler,MonoProfilerCallContext};
-use crate::{Object,Domain,Method,Array,MString};
+use crate::{Object,Domain,Method,MethodTrait,Array,MString};
 use crate::interop::InteropRecive;
 //TODO: fix to allow arc.
 struct _Profiler<T>{

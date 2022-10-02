@@ -1,5 +1,5 @@
 use core::{marker::PhantomData,ffi::c_void};
-use crate::{InteropSend,Object,Exception,Class};
+use crate::{InteropSend,InteropClass,Object,Exception,Class};
 use crate::tupleutilis::*;
 use crate::binds::{MonoMethod,MonoException,MonoObject};
 use std::ptr::null_mut;
@@ -10,21 +10,12 @@ pub struct Method<Args:InteropSend>{
     method:*mut MonoMethod,
     args_type:PhantomData<Args>,
 }
-pub trait MethodTrait<Args:InteropSend> {
+pub trait MethodTrait<Args:InteropSend> where Self: Sized{
     fn invoke(&self,object:Option<Object>,args:Args)->Result<Option<Object>,Exception>;
+    unsafe fn from_ptr(met_ptr:*mut MonoMethod)->Option<Self>;
+    unsafe fn from_ptr_checked(met_ptr:*mut MonoMethod)->Option<Self>;
 }
 impl<Args:InteropSend> Method<Args> {
-    ///Creates [`Method`] from [`MonoMethod`] pointer
-    /// # Safety
-    /// *met_ptr* must be either a valid pointer to [`MonoMethod`] **with right argument types** or null.
-    pub unsafe fn from_ptr(met_ptr:*mut MonoMethod)->Option<Self>{
-        if met_ptr.is_null(){
-            return None;
-        }
-        let res = Self{method:met_ptr,args_type:PhantomData};
-        let params = res.get_params();
-        Some(res)
-    }
     ///Gets the internal pointer to [`MonoMethod`]
     pub fn get_ptr(&self)->*mut MonoMethod{
         self.method
@@ -124,8 +115,33 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args>{
             Err(except)
         }
     }
+    default unsafe fn from_ptr(met_ptr:*mut MonoMethod)->Option<Self>{
+        if met_ptr.is_null(){
+            return None;
+        }
+        let res = Self{method:met_ptr,args_type:PhantomData};
+        let params = res.get_params();
+        if params.len() != 1 && params.len() != 0{
+            use std::fmt::Write;
+            let mut msg = format!("Expected method accepting 1 argument but got a method accepting {} arguments of types:",params.len());
+            for param in params{
+                write!(msg,",\"{}\"",param.get_name_sig());
+            }
+            panic!("{}",msg);
+        }
+        //assert!(params[0] == <Args as InteropClass>::get_mono_class());
+        Some(res)
+    }
+    default unsafe fn from_ptr_checked(met_ptr:*mut MonoMethod)->Option<Self>{
+        if met_ptr.is_null(){
+            return None;
+        }
+        let res = Self{method:met_ptr,args_type:PhantomData};
+        let params = res.get_params();
+        Some(res)
+    }
 }
-impl <Args:InteropSend> MethodTrait<Args> for Method<Args> where <Args as InteropSend>::TargetType:CompareClasses + TupleToPtrs
+impl <Args:InteropSend> MethodTrait<Args> for Method<Args> where <Args as InteropSend>::TargetType:TupleToPtrs+CompareClasses
 {
     default fn invoke(&self,object:Option<Object>,args:Args)->Result<Option<Object>,Exception>{
         //convert object to invoke on to a pointer.
@@ -155,5 +171,22 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args> where <Args as Intero
             let except = unsafe{Exception::from_ptr(expect).expect("Imposible: pointer is null and not null at the same time.")};
             Err(except)
         }
+    }
+    default unsafe fn from_ptr(met_ptr:*mut MonoMethod)->Option<Self>{
+        if met_ptr.is_null(){
+            return None;
+        }
+        let res = Self{method:met_ptr,args_type:PhantomData};
+        let params = res.get_params();
+        assert!(<<Args as InteropSend>::TargetType as CompareClasses>::compare(params));
+        Some(res)
+    }
+    default unsafe fn from_ptr_checked(met_ptr:*mut MonoMethod)->Option<Self>{
+        if met_ptr.is_null(){
+            return None;
+        }
+        let res = Self{method:met_ptr,args_type:PhantomData};
+        let params = res.get_params();
+        Some(res)
     }
 }

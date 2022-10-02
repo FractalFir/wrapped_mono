@@ -244,24 +244,24 @@ impl<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P> TupleToPtrs for (A,B,C,D,E,F,G,H,I,J,K,L,M
 } 
 use crate::{Class,InteropClass};
 pub trait CompareClasses{
-    type In;
-    fn compare(clases:Self::In)->bool;
+    fn compare(clases:Vec<Class>)->bool;
 }
 impl<A:InteropClass,B:InteropClass> CompareClasses for (A,B) where (A,B):TupleToPtrs{
-    type In = [Class;2];
-    fn compare(clases:Self::In)->bool{
+    fn compare(clases:Vec<Class>)->bool{
         if clases[0] != A::get_mono_class(){
             return false;
         }
         else if clases[1] != B::get_mono_class(){
             return false;
         }
+        else if clases.len() != 2{
+            return false;
+        }
         return true;
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass> CompareClasses for (A,B,C) where (A,B,C):TupleToPtrs{
-    type In = [Class;3];
-    fn compare(clases:Self::In)->bool{
+    fn compare(clases:Vec<Class>)->bool{
         if clases[0] != A::get_mono_class(){
             return false;
         }
@@ -271,12 +271,14 @@ impl<A:InteropClass,B:InteropClass,C:InteropClass> CompareClasses for (A,B,C) wh
         else if clases[2] != C::get_mono_class(){
             return false;
         }
+        else if clases.len() != 3{
+            return false;
+        }
         return true;
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass> CompareClasses for (A,B,C,D) where (A,B,C,D):TupleToPtrs{
-    type In = [Class;4];
-    fn compare(clases:Self::In)->bool{
+    fn compare(clases:Vec<Class>)->bool{
         if clases[0] != A::get_mono_class(){
             return false;
         }
@@ -289,12 +291,14 @@ impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass> CompareClasses
         else if clases[3] != D::get_mono_class(){
             return false;
         }
+        else if clases.len() != 4{
+            return false;
+        }
         return true;
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass> CompareClasses for (A,B,C,D,E) where (A,B,C,D,E):TupleToPtrs{
-    type In = [Class;5];
-    fn compare(clases:Self::In)->bool{
+    fn compare(clases:Vec<Class>)->bool{
         if clases[0] != A::get_mono_class(){
             return false;
         }
@@ -308,6 +312,476 @@ impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass>
             return false;
         }
         else if clases[4] != E::get_mono_class(){
+            return false;
+        }
+        else if clases.len() != 5{
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass> CompareClasses for (A,B,C,D,E,F) where (A,B,C,D,E,F):TupleToPtrs{
+    fn compare(clases:Vec<Class>)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        else if clases[3] != D::get_mono_class(){
+            return false;
+        }
+        else if clases[4] != E::get_mono_class(){
+            return false;
+        }
+        else if clases[5] != F::get_mono_class(){
+            return false;
+        }
+        else if clases.len() != 6{
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass> CompareClasses 
+for (A,B,C,D,E,F,G) where (A,B,C,D,E,F,G):TupleToPtrs{
+    fn compare(clases:Vec<Class>)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        else if clases[3] != D::get_mono_class(){
+            return false;
+        }
+        else if clases[4] != E::get_mono_class(){
+            return false;
+        }
+        else if clases[5] != F::get_mono_class(){
+            return false;
+        }
+        else if clases[6] != G::get_mono_class(){
+            return false;
+        }
+        else if clases.len() != 7{
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass> CompareClasses 
+for (A,B,C,D,E,F,G,H) where (A,B,C,D,E,F,G,H):TupleToPtrs{
+    fn compare(clases:Vec<Class>)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        else if clases[3] != D::get_mono_class(){
+            return false;
+        }
+        else if clases[4] != E::get_mono_class(){
+            return false;
+        }
+        else if clases[5] != F::get_mono_class(){
+            return false;
+        }
+        else if clases[6] != G::get_mono_class(){
+            return false;
+        }
+        else if clases[7] != H::get_mono_class(){
+            return false;
+        }
+        else if clases.len() != 8{
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass> CompareClasses 
+for (A,B,C,D,E,F,G,H,I) where (A,B,C,D,E,F,G,H,I):TupleToPtrs{
+    fn compare(clases:Vec<Class>)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        else if clases[3] != D::get_mono_class(){
+            return false;
+        }
+        else if clases[4] != E::get_mono_class(){
+            return false;
+        }
+        else if clases[5] != F::get_mono_class(){
+            return false;
+        }
+        else if clases[6] != G::get_mono_class(){
+            return false;
+        }
+        else if clases[7] != H::get_mono_class(){
+            return false;
+        }
+        else if clases[8] != I::get_mono_class(){
+            return false;
+        }
+        else if clases.len() != 9{
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass> CompareClasses 
+for (A,B,C,D,E,F,G,H,I,J) where (A,B,C,D,E,F,G,H,I,J):TupleToPtrs{
+    fn compare(clases:Vec<Class>)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        else if clases[3] != D::get_mono_class(){
+            return false;
+        }
+        else if clases[4] != E::get_mono_class(){
+            return false;
+        }
+        else if clases[5] != F::get_mono_class(){
+            return false;
+        }
+        else if clases[6] != G::get_mono_class(){
+            return false;
+        }
+        else if clases[7] != H::get_mono_class(){
+            return false;
+        }
+        else if clases[8] != I::get_mono_class(){
+            return false;
+        }
+        else if clases[9] != J::get_mono_class(){
+            return false;
+        }
+        else if clases.len() != 10{
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
+K:InteropClass> CompareClasses 
+for (A,B,C,D,E,F,G,H,I,J,K) where (A,B,C,D,E,F,G,H,I,J,K):TupleToPtrs{
+    fn compare(clases:Vec<Class>)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        else if clases[3] != D::get_mono_class(){
+            return false;
+        }
+        else if clases[4] != E::get_mono_class(){
+            return false;
+        }
+        else if clases[5] != F::get_mono_class(){
+            return false;
+        }
+        else if clases[6] != G::get_mono_class(){
+            return false;
+        }
+        else if clases[7] != H::get_mono_class(){
+            return false;
+        }
+        else if clases[8] != I::get_mono_class(){
+            return false;
+        }
+        else if clases[9] != J::get_mono_class(){
+            return false;
+        }
+        else if clases[10] != K::get_mono_class(){
+            return false;
+        }
+        else if clases.len() != 11{
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
+K:InteropClass,L:InteropClass> CompareClasses 
+for (A,B,C,D,E,F,G,H,I,J,K,L) where (A,B,C,D,E,F,G,H,I,J,K,L):TupleToPtrs{
+    fn compare(clases:Vec<Class>)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        else if clases[3] != D::get_mono_class(){
+            return false;
+        }
+        else if clases[4] != E::get_mono_class(){
+            return false;
+        }
+        else if clases[5] != F::get_mono_class(){
+            return false;
+        }
+        else if clases[6] != G::get_mono_class(){
+            return false;
+        }
+        else if clases[7] != H::get_mono_class(){
+            return false;
+        }
+        else if clases[8] != I::get_mono_class(){
+            return false;
+        }
+        else if clases[9] != J::get_mono_class(){
+            return false;
+        }
+        else if clases[10] != K::get_mono_class(){
+            return false;
+        }
+        else if clases[11] != L::get_mono_class(){
+            return false;
+        }
+        else if clases.len() != 12{
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
+K:InteropClass,L:InteropClass,M:InteropClass> CompareClasses 
+for (A,B,C,D,E,F,G,H,I,J,K,L,M) where (A,B,C,D,E,F,G,H,I,J,K,L,M):TupleToPtrs{
+    fn compare(clases:Vec<Class>)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        else if clases[3] != D::get_mono_class(){
+            return false;
+        }
+        else if clases[4] != E::get_mono_class(){
+            return false;
+        }
+        else if clases[5] != F::get_mono_class(){
+            return false;
+        }
+        else if clases[6] != G::get_mono_class(){
+            return false;
+        }
+        else if clases[7] != H::get_mono_class(){
+            return false;
+        }
+        else if clases[8] != I::get_mono_class(){
+            return false;
+        }
+        else if clases[9] != J::get_mono_class(){
+            return false;
+        }
+        else if clases[10] != K::get_mono_class(){
+            return false;
+        }
+        else if clases[11] != L::get_mono_class(){
+            return false;
+        }
+        else if clases[12] != M::get_mono_class(){
+            return false;
+        }
+        else if clases.len() != 13{
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
+K:InteropClass,L:InteropClass,M:InteropClass,N:InteropClass> CompareClasses 
+for (A,B,C,D,E,F,G,H,I,J,K,L,M,N) where (A,B,C,D,E,F,G,H,I,J,K,L,M,N):TupleToPtrs{
+    fn compare(clases:Vec<Class>)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        else if clases[3] != D::get_mono_class(){
+            return false;
+        }
+        else if clases[4] != E::get_mono_class(){
+            return false;
+        }
+        else if clases[5] != F::get_mono_class(){
+            return false;
+        }
+        else if clases[6] != G::get_mono_class(){
+            return false;
+        }
+        else if clases[7] != H::get_mono_class(){
+            return false;
+        }
+        else if clases[8] != I::get_mono_class(){
+            return false;
+        }
+        else if clases[9] != J::get_mono_class(){
+            return false;
+        }
+        else if clases[10] != K::get_mono_class(){
+            return false;
+        }
+        else if clases[11] != L::get_mono_class(){
+            return false;
+        }
+        else if clases[12] != M::get_mono_class(){
+            return false;
+        }
+        else if clases[13] != N::get_mono_class(){
+            return false;
+        }
+        else if clases.len() != 14{
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
+K:InteropClass,L:InteropClass,M:InteropClass,N:InteropClass,O:InteropClass> CompareClasses 
+for (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O) where (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O):TupleToPtrs{
+    fn compare(clases:Vec<Class>)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        else if clases[3] != D::get_mono_class(){
+            return false;
+        }
+        else if clases[4] != E::get_mono_class(){
+            return false;
+        }
+        else if clases[5] != F::get_mono_class(){
+            return false;
+        }
+        else if clases[6] != G::get_mono_class(){
+            return false;
+        }
+        else if clases[7] != H::get_mono_class(){
+            return false;
+        }
+        else if clases[8] != I::get_mono_class(){
+            return false;
+        }
+        else if clases[9] != J::get_mono_class(){
+            return false;
+        }
+        else if clases[10] != K::get_mono_class(){
+            return false;
+        }
+        else if clases[11] != L::get_mono_class(){
+            return false;
+        }
+        else if clases[12] != M::get_mono_class(){
+            return false;
+        }
+        else if clases[13] != N::get_mono_class(){
+            return false;
+        }
+        else if clases[14] != O::get_mono_class(){
+            return false;
+        }
+        else if clases.len() != 15{
+            return false;
+        }
+        return true;
+    }
+}
+impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
+K:InteropClass,L:InteropClass,M:InteropClass,N:InteropClass,O:InteropClass,P:InteropClass> CompareClasses 
+for (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P) where (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P):TupleToPtrs{
+    fn compare(clases:Vec<Class>)->bool{
+        if clases[0] != A::get_mono_class(){
+            return false;
+        }
+        else if clases[1] != B::get_mono_class(){
+            return false;
+        }
+        else if clases[2] != C::get_mono_class(){
+            return false;
+        }
+        else if clases[3] != D::get_mono_class(){
+            return false;
+        }
+        else if clases[4] != E::get_mono_class(){
+            return false;
+        }
+        else if clases[5] != F::get_mono_class(){
+            return false;
+        }
+        else if clases[6] != G::get_mono_class(){
+            return false;
+        }
+        else if clases[7] != H::get_mono_class(){
+            return false;
+        }
+        else if clases[8] != I::get_mono_class(){
+            return false;
+        }
+        else if clases[9] != J::get_mono_class(){
+            return false;
+        }
+        else if clases[10] != K::get_mono_class(){
+            return false;
+        }
+        else if clases[11] != L::get_mono_class(){
+            return false;
+        }
+        else if clases[12] != M::get_mono_class(){
+            return false;
+        }
+        else if clases[13] != N::get_mono_class(){
+            return false;
+        }
+        else if clases[14] != O::get_mono_class(){
+            return false;
+        }
+        else if clases[15] != P::get_mono_class(){
+            return false;
+        }
+        else if clases.len() != 16{
             return false;
         }
         return true;

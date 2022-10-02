@@ -391,5 +391,103 @@ InteropSend for (A,B,C,D,E,F,G,H){
         )
     }
 }
-
+impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend,E:InteropSend,F:InteropSend,G:InteropSend,H:InteropSend,I:InteropSend> 
+InteropSend for (A,B,C,D,E,F,G,H,I){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType,D::TargetType,E::TargetType,F::TargetType,G::TargetType,
+    H::TargetType,I::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),
+        D::get_mono_rep(rust_arg.3),E::get_mono_rep(rust_arg.4),F::get_mono_rep(rust_arg.5),G::get_mono_rep(rust_arg.6),
+        H::get_mono_rep(rust_arg.7),I::get_mono_rep(rust_arg.8),
+        )
+    }
+}
+impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend,E:InteropSend,F:InteropSend,G:InteropSend,H:InteropSend,I:InteropSend,J:InteropSend> 
+InteropSend for (A,B,C,D,E,F,G,H,I,J){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType,D::TargetType,E::TargetType,F::TargetType,G::TargetType,
+    H::TargetType,I::TargetType,J::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),
+        D::get_mono_rep(rust_arg.3),E::get_mono_rep(rust_arg.4),F::get_mono_rep(rust_arg.5),G::get_mono_rep(rust_arg.6),
+        H::get_mono_rep(rust_arg.7),I::get_mono_rep(rust_arg.8),J::get_mono_rep(rust_arg.9),
+        )
+    }
+}
+impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend,E:InteropSend,F:InteropSend,G:InteropSend,H:InteropSend,I:InteropSend,J:InteropSend,K:InteropSend> 
+InteropSend for (A,B,C,D,E,F,G,H,I,J,K){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType,D::TargetType,E::TargetType,F::TargetType,G::TargetType,
+    H::TargetType,I::TargetType,J::TargetType,K::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),
+        D::get_mono_rep(rust_arg.3),E::get_mono_rep(rust_arg.4),F::get_mono_rep(rust_arg.5),G::get_mono_rep(rust_arg.6),
+        H::get_mono_rep(rust_arg.7),I::get_mono_rep(rust_arg.8),J::get_mono_rep(rust_arg.9),K::get_mono_rep(rust_arg.10),
+        )
+    }
+}
+impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend,E:InteropSend,F:InteropSend,G:InteropSend,H:InteropSend,I:InteropSend,J:InteropSend,K:InteropSend,
+L:InteropSend> 
+InteropSend for (A,B,C,D,E,F,G,H,I,J,K,L){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType,D::TargetType,E::TargetType,F::TargetType,G::TargetType,
+    H::TargetType,I::TargetType,J::TargetType,K::TargetType,L::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),
+        D::get_mono_rep(rust_arg.3),E::get_mono_rep(rust_arg.4),F::get_mono_rep(rust_arg.5),G::get_mono_rep(rust_arg.6),
+        H::get_mono_rep(rust_arg.7),I::get_mono_rep(rust_arg.8),J::get_mono_rep(rust_arg.9),K::get_mono_rep(rust_arg.10),
+        L::get_mono_rep(rust_arg.11),
+        )
+    }
+}
+impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend,E:InteropSend,F:InteropSend,G:InteropSend,H:InteropSend,I:InteropSend,J:InteropSend,K:InteropSend,
+L:InteropSend,M:InteropSend> 
+InteropSend for (A,B,C,D,E,F,G,H,I,J,K,L,M){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType,D::TargetType,E::TargetType,F::TargetType,G::TargetType,
+    H::TargetType,I::TargetType,J::TargetType,K::TargetType,L::TargetType,M::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),
+        D::get_mono_rep(rust_arg.3),E::get_mono_rep(rust_arg.4),F::get_mono_rep(rust_arg.5),G::get_mono_rep(rust_arg.6),
+        H::get_mono_rep(rust_arg.7),I::get_mono_rep(rust_arg.8),J::get_mono_rep(rust_arg.9),K::get_mono_rep(rust_arg.10),
+        L::get_mono_rep(rust_arg.11),M::get_mono_rep(rust_arg.12),
+        )
+    }
+}
+impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend,E:InteropSend,F:InteropSend,G:InteropSend,H:InteropSend,I:InteropSend,J:InteropSend,K:InteropSend,
+L:InteropSend,M:InteropSend,N:InteropSend> 
+InteropSend for (A,B,C,D,E,F,G,H,I,J,K,L,M,N){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType,D::TargetType,E::TargetType,F::TargetType,G::TargetType,
+    H::TargetType,I::TargetType,J::TargetType,K::TargetType,L::TargetType,M::TargetType,N::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),
+        D::get_mono_rep(rust_arg.3),E::get_mono_rep(rust_arg.4),F::get_mono_rep(rust_arg.5),G::get_mono_rep(rust_arg.6),
+        H::get_mono_rep(rust_arg.7),I::get_mono_rep(rust_arg.8),J::get_mono_rep(rust_arg.9),K::get_mono_rep(rust_arg.10),
+        L::get_mono_rep(rust_arg.11),M::get_mono_rep(rust_arg.12),N::get_mono_rep(rust_arg.13),
+        )
+    }
+}
+impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend,E:InteropSend,F:InteropSend,G:InteropSend,H:InteropSend,I:InteropSend,J:InteropSend,K:InteropSend,
+L:InteropSend,M:InteropSend,N:InteropSend,O:InteropSend> 
+InteropSend for (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType,D::TargetType,E::TargetType,F::TargetType,G::TargetType,
+    H::TargetType,I::TargetType,J::TargetType,K::TargetType,L::TargetType,M::TargetType,N::TargetType,O::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),
+        D::get_mono_rep(rust_arg.3),E::get_mono_rep(rust_arg.4),F::get_mono_rep(rust_arg.5),G::get_mono_rep(rust_arg.6),
+        H::get_mono_rep(rust_arg.7),I::get_mono_rep(rust_arg.8),J::get_mono_rep(rust_arg.9),K::get_mono_rep(rust_arg.10),
+        L::get_mono_rep(rust_arg.11),M::get_mono_rep(rust_arg.12),N::get_mono_rep(rust_arg.13),O::get_mono_rep(rust_arg.14),
+        )
+    }
+}
+impl<A:InteropSend,B:InteropSend,C:InteropSend,D:InteropSend,E:InteropSend,F:InteropSend,G:InteropSend,H:InteropSend,I:InteropSend,J:InteropSend,K:InteropSend,
+L:InteropSend,M:InteropSend,N:InteropSend,O:InteropSend,P:InteropSend> 
+InteropSend for (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P){
+    type TargetType = (A::TargetType,B::TargetType,C::TargetType,D::TargetType,E::TargetType,F::TargetType,G::TargetType,
+    H::TargetType,I::TargetType,J::TargetType,K::TargetType,L::TargetType,M::TargetType,N::TargetType,O::TargetType,P::TargetType);
+    fn  get_mono_rep(rust_arg:Self)->Self::TargetType{
+        (A::get_mono_rep(rust_arg.0),B::get_mono_rep(rust_arg.1),C::get_mono_rep(rust_arg.2),
+        D::get_mono_rep(rust_arg.3),E::get_mono_rep(rust_arg.4),F::get_mono_rep(rust_arg.5),G::get_mono_rep(rust_arg.6),
+        H::get_mono_rep(rust_arg.7),I::get_mono_rep(rust_arg.8),J::get_mono_rep(rust_arg.9),K::get_mono_rep(rust_arg.10),
+        L::get_mono_rep(rust_arg.11),M::get_mono_rep(rust_arg.12),N::get_mono_rep(rust_arg.13),O::get_mono_rep(rust_arg.14),
+        P::get_mono_rep(rust_arg.15)
+        )
+    }
+}
 

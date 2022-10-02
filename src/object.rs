@@ -1,6 +1,6 @@
 use crate::class::Class;
 use crate::binds::{MonoObject};
-use crate::method::Method;
+use crate::method::{Method,MethodTrait};
 use crate::domain::Domain;
 use crate::exception::ExceptManaged;
 ///Safe representation of a refernece to a manged Object. Is **not nullable** when passed between managed and unmanged code(e.g when added as an argument to function exposed as an interna call). 

@@ -10,6 +10,23 @@ rusty_fork_test! {
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
         let _met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
     }
+    #[test]
+    fn getting_method_no_gargs(){
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        //let _met:Method<()> = Method::get_method_from_name(&class,"GetArg",0).unwrap();
+    }
+    #[test]
+    #[should_panic]
+    fn getting_method_wrong_garg_count(){
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let _met:Method<(i32,i64)> = Method::get_method_from_name(&class,"GetArg",2).unwrap();
+    }
     #[should_panic]
     #[test]
     fn getting_null_from_a_function(){
@@ -42,10 +59,31 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i32,i32)> = Method::get_method_from_name(&class,"Mul",2).unwrap();
+        let met:Method<(i64,i64)> = Method::get_method_from_name(&class,"Mul",2).unwrap();
         let obj = met.invoke(None,(1,2)).expect("Exception").expect("Got null on a non-nullable!");
-        let res = obj.unbox::<i32>();
+        let res = obj.unbox::<i64>();
         assert!(res == 1*2);
+    }
+    #[test]
+    fn getting_method_2_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let _met:Method<(i64,i64)> = Method::get_method_from_name(&class,"Mul",2).unwrap();
+    }
+    #[should_panic]
+    #[test]
+    fn getting_method_2_wrong_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let _met:Method<(u32,i32)> = Method::get_method_from_name(&class,"Mul",2).unwrap();
     }
     #[test]
     fn calling_method_3_args(){
@@ -55,9 +93,9 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i32,i32,i32)> = Method::get_method_from_name(&class,"Mul",3).unwrap();
+        let met:Method<(i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",3).unwrap();
         let obj = met.invoke(None,(1,2,3)).expect("Exception").expect("Got null on a non-nullable!");
-        let res = obj.unbox::<i32>();
+        let res = obj.unbox::<i64>();
         assert!(res == 1*2*3);
     }
     #[test]
@@ -68,10 +106,166 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i32,i32,i32,i32)> = Method::get_method_from_name(&class,"Mul",4).unwrap();
+        let met:Method<(i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",4).unwrap();
         let obj = met.invoke(None,(1,2,3,4)).expect("Exception").expect("Got null on a non-nullable!");
-        let res = obj.unbox::<i32>();
+        let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4);
+    }
+    #[test]
+    fn calling_method_5_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",5).unwrap();
+        let obj = met.invoke(None,(1,2,3,4,5)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i64>();
+        assert!(res == 1*2*3*4*5);
+    }
+    #[test]
+    fn calling_method_6_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",6).unwrap();
+        let obj = met.invoke(None,(1,2,3,4,5,6)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i64>();
+        assert!(res == 1*2*3*4*5*6);
+    }
+    #[test]
+    fn calling_method_7_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",7).unwrap();
+        let obj = met.invoke(None,(1,2,3,4,5,6,7)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i64>();
+        assert!(res == 1*2*3*4*5*6*7);
+    }
+    #[test]
+    fn calling_method_8_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",8).unwrap();
+        let obj = met.invoke(None,(1,2,3,4,5,6,7,8)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i64>();
+        assert!(res == 1*2*3*4*5*6*7*8);
+    }
+    #[test]
+    fn calling_method_9_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",9).unwrap();
+        let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i64>();
+        assert!(res == 1*2*3*4*5*6*7*8*9);
+    }
+    #[test]
+    fn calling_method_10_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",10).unwrap();
+        let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i64>();
+        assert!(res == 1*2*3*4*5*6*7*8*9*10);
+    }
+    #[test]
+    fn calling_method_11_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",11).unwrap();
+        let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i64>();
+        assert!(res == 1*2*3*4*5*6*7*8*9*10*11);
+    }
+    #[test]
+    fn calling_method_12_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",12).unwrap();
+        let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i64>();
+        assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12);
+    }
+    #[test]
+    fn calling_method_13_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",13).unwrap();
+        let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12,13)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i64>();
+        assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12*13);
+    }
+    #[test]
+    fn calling_method_14_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",14).unwrap();
+        let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12,13,14)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i64>();
+        assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12*13*14);
+    }
+    #[test]
+    fn calling_method_15_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",15).unwrap();
+        let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i64>();
+        assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12*13*14*15);
+    }
+    #[test]
+    fn calling_method_16_args(){
+        use crate::interop::{get_mono_rep_val,ref_to_cvoid_ptr};
+        use macros::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",16).unwrap();
+        let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i64>();
+        assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12*13*14*15*16);
     }
     #[test]
     fn getting_method_arg_count(){
