@@ -6,34 +6,82 @@ use std::ptr::null_mut;
 use std::ffi::CString;
 //Depends on: #![feature(specialization)]
 //New Mehtod type, WIP
+/// Rust representation of a managed method(function of code loaded into mono runtime).
+/// Args - Tuple type of types of all arguments accepted by this particular method.
+/// **Warning** while when a method is recived from mono runtime it's argument types are checked, those checks are not yet made for a method with eiher 1 or no arguments.
+/// This is a result of a limitation of rust type system, and it can't be worked around in a nice way, but will be adressed in the futute.
 pub struct Method<Args:InteropSend>{
     method:*mut MonoMethod,
     args_type:PhantomData<Args>,
 }
+/// Trait implemented only for [`Method`] type. Spiliting it from main [`Method`] type allows for diffrent ammount of function arguments.
 pub trait MethodTrait<Args:InteropSend> where Self: Sized{
+    /// Invoke this method on object *object* with arguments *args*
+    /// # Arguments
+    /// |Name   |Type   |Purpse|
+    /// |-------|-------|------|
+    /// |self   |&`Self`|Reference to method to invoke.|
+    /// |object |[`Option<Object>`]|Object to invoke method on. Pass [`None`] if method is static.|
+    /// |args |`Args`|Arguments to pass to method|
     fn invoke(&self,object:Option<Object>,args:Args)->Result<Option<Object>,Exception>;
+    /// Creates new Method type from a *mut MonoMethod, checks if arguments of [`MonoMethod`] and rust representation of a [`Method`] match and if not panic. 
+    /// Returns [`None`] if pointer is null.
+    /// # Arguments
+    /// |Name   |Type   |Purpse|
+    /// |-------|-------|------|
+    /// |met_ptr|*mut [`MonoMethod`]|Pointer to method to create a representation for.|
+    /// # Safety 
+    /// Pointer must be either a valid pointer to [`MonoMethod`] recived from mono runtime, or a null pointer.
+    /// **WARNING** argument types not yet checked for methods with 1 or 0 arguments. This results from limitations of Rust type system, and can't be solved without some realy nasty hacks,
+    /// but will be fixed in the future
     unsafe fn from_ptr(met_ptr:*mut MonoMethod)->Option<Self>;
+    /// Creates new Method type from a *mut MonoMethod, checks if arguments of [`MonoMethod`] and rust representation of a [`Method`] match and returns [`None`] if so. 
+    /// Returns [`None`] if pointer is null.
+    /// # Arguments
+    /// |Name   |Type   |Purpse|
+    /// |-------|-------|------|
+    /// |met_ptr|*mut [`MonoMethod`]|Pointer to method to create a representation for.|
+    /// # Safety 
+    /// Pointer must be either a valid pointer to [`MonoMethod`] recived from mono runtime, or a null pointer.
+    /// **WARNING** argument types not yet checked for methods with 1 or 0 arguments. This results from limitations of Rust type system, and can't be solved without some realy nasty hacks,
+    /// but will be fixed in the future
     unsafe fn from_ptr_checked(met_ptr:*mut MonoMethod)->Option<Self>;
 }
 impl<Args:InteropSend> Method<Args> {
-    ///Gets the internal pointer to [`MonoMethod`]
+    /// Gets the internal pointer to [`MonoMethod`].
+    /// # Arguments
+    /// |Name   |Type   |Purpse|
+    /// |-------|-------|------|
+    /// |self|&[`Method`]|Rust representation of a method to get pointer to.|
     pub fn get_ptr(&self)->*mut MonoMethod{
         self.method
     }
-    ///Function returning true if method *self* can call method *called*.
+    /// Checks if method *self* can call method *called*.
+    /// # Arguments
+    /// |Name   |Type   |Purpse|
+    /// |-------|-------|------|
+    /// |self   |&[`Method`]|   Rust representation of the method preforiming the call.|
+    /// |called |&[`Method`]|   Rust representation of the method beeing called.|
     pub fn can_acces_method<T:InteropSend>(&self,called:&Method<T>)->bool{
         (unsafe{crate::binds::mono_method_can_access_method(
             self.method,called.method,
         ) } != 0)
     }
+    ///Metadata token. Not working without MetadataAPI
+    #[doc(hidden)]
     pub fn get_token(&self)->u32{
         unsafe{crate::binds::mono_method_get_token(self.method)}
     }
-    //TODO:finish this documentaion
+    //??? mono docs do not say what does it do, nut the educated guess is that it returns which method of a class it is.
+    #[doc(hidden)]
     pub fn get_index(&self)->u32{
         unsafe{crate::binds::mono_method_get_index(self.method)}
     }
-    ///Get ammount of parameters of this [`Method`]
+    /// Counts number of parameters(arguments) this function accepts.
+    /// # Arguments
+    /// |Name   |Type   |Purpse|
+    /// |-------|-------|------|
+    /// |self|&[`Method`]|Rust representation of a method to get argument count of|
     pub fn get_param_count(&self)->u32{
         let sig = unsafe{crate::binds::mono_method_signature(self.method)};
         unsafe{crate::binds::mono_signature_get_param_count(sig)}
@@ -121,7 +169,8 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args>{
         }
         let res = Self{method:met_ptr,args_type:PhantomData};
         let params = res.get_params();
-        if params.len() != 1 && params.len() != 0{
+        //TODO: Add checks for Methods with less than 2 arguments
+        if params.len() != 1 && !params.is_empty(){
             use std::fmt::Write;
             let mut msg = format!("Expected method accepting 1 argument but got a method accepting {} arguments of types:",params.len());
             for param in params{
