@@ -5,7 +5,6 @@ use crate::binds::{MonoMethod,MonoException,MonoObject};
 use std::ptr::null_mut;
 use std::ffi::CString;
 //Depends on: #![feature(specialization)]
-//New Mehtod type, WIP
 /// Rust representation of a managed method(function of code loaded into mono runtime).
 /// Args - Tuple type of types of all arguments accepted by this particular method.
 /// **Warning** while when a method is recived from mono runtime it's argument types are checked, those checks are not yet made for a method with eiher 1 or no arguments.
@@ -18,16 +17,16 @@ pub struct Method<Args:InteropSend>{
 pub trait MethodTrait<Args:InteropSend> where Self: Sized{
     /// Invoke this method on object *object* with arguments *args*
     /// # Arguments
-    /// |Name   |Type   |Purpse|
-    /// |-------|-------|------|
-    /// |self   |&`Self`|Reference to method to invoke.|
-    /// |object |[`Option<Object>`]|Object to invoke method on. Pass [`None`] if method is static.|
-    /// |args |`Args`|Arguments to pass to method|
+    /// | Name   | Type   | Description|
+    /// |--------|--------|-------|
+    /// | self   | &`Self`|Reference to method to invoke. |
+    /// | object | [`Option<Object>`] |Object to invoke method on. Pass [`None`] if method is static. |
+    /// | args   | `Args`|Arguments to pass to method |
     fn invoke(&self,object:Option<Object>,args:Args)->Result<Option<Object>,Exception>;
     /// Creates new Method type from a *mut MonoMethod, checks if arguments of [`MonoMethod`] and rust representation of a [`Method`] match and if not panic. 
     /// Returns [`None`] if pointer is null.
     /// # Arguments
-    /// |Name   |Type   |Purpse|
+    /// |Name   |Type   |Description|
     /// |-------|-------|------|
     /// |met_ptr|*mut [`MonoMethod`]|Pointer to method to create a representation for.|
     /// # Safety 
@@ -38,7 +37,7 @@ pub trait MethodTrait<Args:InteropSend> where Self: Sized{
     /// Creates new Method type from a *mut MonoMethod, checks if arguments of [`MonoMethod`] and rust representation of a [`Method`] match and returns [`None`] if so. 
     /// Returns [`None`] if pointer is null.
     /// # Arguments
-    /// |Name   |Type   |Purpse|
+    /// |Name   |Type   |Description|
     /// |-------|-------|------|
     /// |met_ptr|*mut [`MonoMethod`]|Pointer to method to create a representation for.|
     /// # Safety 
@@ -50,7 +49,7 @@ pub trait MethodTrait<Args:InteropSend> where Self: Sized{
 impl<Args:InteropSend> Method<Args> {
     /// Gets the internal pointer to [`MonoMethod`].
     /// # Arguments
-    /// |Name   |Type   |Purpse|
+    /// |Name   |Type   |Description|
     /// |-------|-------|------|
     /// |self|&[`Method`]|Rust representation of a method to get pointer to.|
     pub fn get_ptr(&self)->*mut MonoMethod{
@@ -58,7 +57,7 @@ impl<Args:InteropSend> Method<Args> {
     }
     /// Checks if method *self* can call method *called*.
     /// # Arguments
-    /// |Name   |Type   |Purpse|
+    /// |Name   |Type   |Description|
     /// |-------|-------|------|
     /// |self   |&[`Method`]|   Rust representation of the method preforiming the call.|
     /// |called |&[`Method`]|   Rust representation of the method beeing called.|
@@ -79,23 +78,33 @@ impl<Args:InteropSend> Method<Args> {
     }
     /// Counts number of parameters(arguments) this function accepts.
     /// # Arguments
-    /// |Name   |Type   |Purpse|
+    /// |Name   |Type   |Description|
     /// |-------|-------|------|
     /// |self|&[`Method`]|Rust representation of a method to get argument count of|
     pub fn get_param_count(&self)->u32{
         let sig = unsafe{crate::binds::mono_method_signature(self.method)};
         unsafe{crate::binds::mono_signature_get_param_count(sig)}
     }
-    ///Gets method in *class* named *name* with *param_count* params.
+    /// Gets method in *class* named *name* with *param_count* parameters. Returns None if could not find method or if its arguments did not match.
+    // # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |class|&[`Class`]|Class the sought method belongs to|
+    /// |name|&[`str`]|Name of the method|
+    /// |param_count|&[`i32`]|Ammount of parameters(arguments) method accepts|
     pub fn get_method_from_name(class:&crate::class::Class,name:&str,param_count:i32)->Option<Self>{
         let cstr = CString::new(name).expect(crate::STR2CSTR_ERR);
-        let res = unsafe{Self::from_ptr(
+        let res = unsafe{Self::from_ptr_checked(
             crate::binds::mono_class_get_method_from_name(class.get_ptr(),cstr.as_ptr(),param_count)
         )};
         drop(cstr);
         res
     }
-    //Gets names of parameters method *self* accepts.
+    /// Gets names of all parameters method *self* accepts.
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self|&[`Method`]|Rust representation of a method to get names of arguments off|
     pub fn get_param_names(&self)->Vec<String>{
         let pcount = self.get_param_count() as usize;
         let mut ptrs:Vec<*const i8> = Vec::with_capacity(pcount);
@@ -110,7 +119,11 @@ impl<Args:InteropSend> Method<Args> {
         drop(ptrs);
         res
     }
-    ///Returns list of types of parameters of method *self*.
+    /// Returns list of classes of parameters of method *self*.
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self|&[`Method`]|Rust representation of a method to get argument types off|
     pub fn get_params(&self)->Vec<Class>{
         let sig = unsafe{crate::binds::mono_method_signature(self.method)};
         let mut iter:usize = 0;
@@ -125,11 +138,15 @@ impl<Args:InteropSend> Method<Args> {
         }
         res
     } 
-    ///Returns the return type ofmethod *self*
-    pub fn get_return(&self)->Option<Class>{
+    /// Returns the return type of method *self*, if no return type returns *System.Void*
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self|&[`Method`]|Rust representation of a method to get return type off|
+    pub fn get_return(&self)->Class{
         let sig = unsafe{crate::binds::mono_method_signature(self.method)};
         let ptr = unsafe{crate::binds:: mono_signature_get_return_type(sig)};
-        unsafe{Class::from_ptr(if ptr.is_null(){null_mut()}else{crate::binds::mono_class_from_mono_type(ptr)})}
+        unsafe{Class::from_ptr(crate::binds::mono_class_from_mono_type(ptr)).expect("Got no method return type, but no return type should be signaled by System.Void type!")}
     } 
 }
 impl <Args:InteropSend> MethodTrait<Args> for Method<Args>{

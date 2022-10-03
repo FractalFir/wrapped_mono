@@ -17,7 +17,25 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        //let _met:Method<()> = Method::get_method_from_name(&class,"GetArg",0).unwrap();
+        let _met:Method<()> = Method::get_method_from_name(&class,"GetSomeFiled",0).unwrap();
+    }
+    #[test]
+    fn getting_method_return_no_return(){
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<()> = Method::get_method_from_name(&class,"SomeInterfaceFunction",0).unwrap();
+        assert!(met.get_return() == Class::get_void());
+    }
+    #[test]
+    fn getting_method_return(){
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+        assert!(met.get_return() == Class::get_int_32());
     }
     #[test]
     #[should_panic]
