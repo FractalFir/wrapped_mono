@@ -24,7 +24,7 @@ members = ["src/wrapped_mono_macros"]
 unsafe_boxing = []
 ## Disables array safety checks. Normaly, when an array is created, it will make checks to enusre that its managed type maches its unmanaged type.
 unsafe_arrays = []
-## Disables all safety checks to speed `wrapped_mono` up. USE WITH CAUTION.
+## Disables all safety checks to slightly speed `wrapped_mono` up. Gains are ususaly neglegible and potential errors will have more criptic messages(Segfaluts instead of failed assertions).  USE WITH CAUTION.
 unsafe_speedup = ["unsafe_boxing","unsafe_arrays"]
 ## Build test dlls. Enable only for tests, if you want to change test .cs files.
 build_test_dlls = []

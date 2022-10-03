@@ -7,10 +7,9 @@
 #![cfg(not(doctest))] 
 //! `wrapped_mono` is a lightweight wrapper around the mono runtime, allowing emmbeding code from lagnages from the .NET frameawork into rust code.
 //! Besides simple warppers around most functions, this crate also contains copule tratis and macros allowing easy interop between managed and unmanged code.
-//! #Safety 
-//! Most functions are safe and when invalid data is passed will fail in a controled way with an error message. Some error checks hoewer have ceratin, small preformance inpact,
-//! and can be disabled. There are still some pitfalls, because not all errors can be caught without substanntial overhead. Those errors are hard to come by, and are almost always clearly 
-//! marked in the documentaion(for example accesing an object after delting it by delting domain it is in). 
+//! # Safety 
+//! Most functions are safe and when invalid data is passed will fail in a controled way with an error message. There are still some pitfalls, because not all errors can be caught without substanntial overhead. Those errors are hard to come by, and schould be always clearly 
+//! marked in the documentaion(for example accesing an object after delting it by delting domain it is in), and be generaly obvius mistakes(deleting something and then accesing it). 
 //! # Definitions of ceartain words used in documentation:
 //!
 //! **Managed Code** - code which runs in the runtime(e.g. C# code)
@@ -90,4 +89,5 @@ pub use wrapped_mono_macros::{add_internal_call,invokable,InteropRecive,InteropS
 */
 static STR2CSTR_ERR:&str = "Cold not create CString!";
 static CSTR2STR_ERR:&str = "Could not convert CString to String";
+#[doc(hidden)]
 fn hold<T>(_:&T){}

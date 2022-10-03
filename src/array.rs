@@ -2,15 +2,12 @@ use crate::interop::{InteropRecive,InteropSend,InteropClass};
 use crate::Class;
 use crate::{Object};
 use core::marker::PhantomData;
+use crate::domain::Domain;
 use crate::binds::MonoArray;
 /// Safe representation of MonoArray(a reference to a managed array). Reqiures it's generic argument to implement InvokePass in order to automaticaly convert value from managed type to rust type.
-/// # Safety
-/// It is possible to use wrong type Array (e.g. casting float[] to Array<String>) and either cause a crash or read a garbage value.
+/// Will panic on creating an array with type mismatch betwen runtime and rust.
 /// # Nullable support
 /// [`Array<T>`] is non-nullable on defult and will panic when null passed as argument form managed code. For nullable support use [`Option<Array<T>>`].
-/// # More DIMENSIONS
-/// Arrays with any given number of dimmensions bechave the same as a one dimensional array of length equvalent to ammount of elemnts in a n-dimensional array, 
-/// besides the `class` of the object being diffrent.
 /*
     why is there a wierd constraint "where [();DIMENSIONS as usize]:Copy" in array type? It gurantes that Dimensions is higer than 0 and size array is larger than 0, 
     so Array<DIMENSIONS,T> can exist.
@@ -21,7 +18,7 @@ pub struct Array<const DIMENSIONS:u32,T:InteropSend + InteropRecive + InteropCla
     lengths:[u32;DIMENSIONS as usize],
 } 
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
-    pub fn get_index(&self,indices:[usize;DIMENSIONS as usize])->usize{
+    fn get_index(&self,indices:[usize;DIMENSIONS as usize])->usize{
         //size of current dimension
         let mut size = 1;
         let mut index = 0;
@@ -35,28 +32,54 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  Array<
         }
         return index;
     }
-    ///Function returning element at *index*
-    /// # Example
-    ///```rust
-    /// fn some_fn(input:&Array<f32>)->f32{
-    ///     let a = input.get(0);  
-    ///     let b = input.get(1);
+    /// Function returning element at *index* 
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self|&Self|[`Array`] to read from.|
+    /// |indices|`[usize;DIMENSIONS as usize]`| An n-dimensional array containing indices to read value at|
+    /// # Examples
+    /// ```rust
+    /// fn some_get_fn(input:&Array<1,f32>)->f32{
+    ///     let a = input.get(&[0]);  
+    ///     let b = input.get(&[1]);
     ///     return a + b;  
-    ///}
-    ///```
+    /// }
+    /// ```
+    /// ```rust
+    /// fn some_get_fn_2D(input:&Array<2,f32>)->f32{
+    ///     let a = input.get(&[0,0]);  
+    ///     let b = input.get(&[1,1]);
+    ///     let b = input.get(&[0,1]);
+    ///     return a + b + c;  
+    /// }
+    /// ```
     pub fn get(&self,indices:[usize;DIMENSIONS as usize])->T{
         let index = self.get_index(indices);
         let src:T::SourceType = unsafe{*(crate::binds::mono_array_addr_with_size(self.arr_ptr,std::mem::size_of::<T::SourceType>() as i32,index) as *const T::SourceType)};
         T::get_rust_rep(src)
     }
-    ///Function seting element at *index* to *value*
+    /// Function seting element at *index* of [`Array`] to *value*
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self|&Self|[`Array`] to write value to.|
+    /// |indices|`[usize;DIMENSIONS as usize]`| An n-dimensional array containing indices to set value at|
+    /// |value  |`T`|value to set element at index to.|
     /// # Example
-    ///```rust
-    /// fn set_fn(input:&mut Array<i32>){
-    ///     input.set(0,0);
-    ///     input.set(1,1);
+    /// ```rust
+    /// fn set_fn(input:&mut Array<1,i32>){
+    ///     input.set(&[0],0);
+    ///     input.set(&[1],1);
     /// }
-    ///```
+    /// ```
+    /// ```rust
+    /// fn set_fn_2D(input:&mut Array<2,i32>){
+    ///     input.set(&[0,0],0);
+    ///     input.set(&[1,1],1);
+    ///     input.set(&[1,0],9);
+    /// }
+    /// ```
     pub fn set(&mut self,indices:[usize;DIMENSIONS as usize],value:T){
         let tmp = T::get_mono_rep(value);
         let index = self.get_index(indices);
@@ -65,26 +88,39 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  Array<
             as *mut T::TargetType};
         unsafe{(*ptr) = tmp};
     }
-    ///Function returning length of the array.
+    /// Function returning 1D length of the array(element count).
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self|&Self|[`Array`] to get length of|
     /// # Example
-    ///```rust
-    /// fn get_avg(input:&Array<f32>)->f32{
+    /// ```rust
+    /// fn get_avg(input:&Array<1,f32>)->f32{
     ///     let mut sum = 0.0;
     ///     for i in 0..input.len{
-    ///         sum+=input.get(i);
+    ///         sum+=input.get(&[i]);
     ///     }
     ///     return sum/(input.len() as f32);
     /// }
-    ///```
+    /// ```
     pub fn len(&self)->usize{
         unsafe{crate::binds::mono_array_length(self.arr_ptr) as usize}
     }
+    /// Checks if [`Array`] is empty.
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self|&Self|[`Array`] to check if is empty|
     pub fn is_empty(&self)->bool{
         0 == self.len()
     }
-    ///Function creating Array<T> from a pointer to MonoArray
+    /// Function creating Array<T> from a pointer to [`MonoArray`]
     /// # Safety
-    /// Pointer must be either a pointer to valid MonoAray of the same type, or a null pointer. Invalid values may lead to undefined behaviour and crashes.
+    /// Pointer must be either a pointer to valid [`MonoArray`] of the same type, or a null pointer. Invalid values may lead to undefined behaviour and crashes.
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |ptr| *mut [`MonoArray`] | pointer to array to create representation for|
     pub unsafe fn from_ptr(ptr:*mut MonoArray)->Option<Self>{
         use crate::{Method,MethodTrait};
         if ptr.is_null(){
@@ -113,7 +149,11 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  Array<
         }
         Some(res)
     }
-    ///Cast [`Object`] to [`Array`]. Returns [`None`] if cast failed. 
+    /// Cast [`Object`] to [`Array`]. Returns [`None`] if cast failed. 
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |object| &Object | object to cast from |
     pub fn cast_from_object(object:&Object)->Option<Array<DIMENSIONS,T>>{
         use crate::object::ObjectTrait;
         let sclass = object.get_class(); 
@@ -123,49 +163,58 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  Array<
         }
         unsafe{Self::from_ptr(object.get_ptr() as *mut crate::binds::MonoArray)}
     } 
-    ///Converts [`Array`] to [`Object`]
+    /// Converts [`Array`] to [`Object`]
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self| &Array | array to cast to object|
     pub fn to_object(&self)->Object{
         unsafe{Object::from_ptr(self.arr_ptr as *mut crate::binds::MonoObject)}.expect("Could not create object from array!")
     } 
-    ///Alocate new array in *domain* holding *n* elements of type *class*. 
+    ///Alocate new array in *domain* with size *DIMENSIONS* with elements of type *class*. 
     /// # Example
     ///```rust
     /// let arr_len = 8;
     /// let arr = Array<i32>::new(&domain,&int_managed_class,arr_len);
     /// assert!(arr.len() == arr_len);
     ///```
-    pub fn new(domain:&crate::domain::Domain,n:usize)->Self{
-        unsafe{Self::from_ptr(
-            crate::binds::mono_array_new(domain.get_ptr(),<T as InteropClass>::get_mono_class().get_ptr(),n)
-        )}.expect("could not create a new array!")
-    }
-    ///Alocate new array in *domain* with *n* DIMENSIONS and size *DIMENSIONS* with elements of type *class*. 
-    /// # Example
-    ///```rust
-    /// let arr_len = 8;
-    /// let arr = Array<i32>::new(&domain,&int_managed_class,arr_len);
-    /// assert!(arr.len() == arr_len);
-    ///```
-    pub fn new_dimensions(domain:&crate::domain::Domain,size:&[usize;DIMENSIONS as usize])->Self{
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |domain| &[`Domain`] | domain to create array in|
+    /// |size|`&[usize;DIMENSIONS as usize]`| size of the array to create|
+    pub fn new(domain:&Domain,size:&[usize;DIMENSIONS as usize])->Self{
         let class = <T as InteropClass>::get_mono_class().get_array_class(DIMENSIONS as u32);
         unsafe{Self::from_ptr(
             crate::binds::mono_array_new_full(domain.get_ptr(),class.get_ptr(),size as *const [usize] as *mut usize,null_mut())
         )}.expect("could not create a new array!")
     }
-    ///Function returning a copy of internal pointer to MonoArray
+    /// Function returning a copy of internal pointer to MonoArray
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self| &Array | Rust represenation of Array to get internal pointer to|
     pub fn get_ptr(&self)->*mut crate::binds::MonoArray{
         self.arr_ptr
     }
-    ///Clones managed array, **not** the refernece to it.
+    /// Clones managed array, **not** the refernece to it.
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self|&Array|Array to clone|
     pub fn clone_managed_array(&self)->Self{
         unsafe{Self::from_ptr(crate::binds::mono_array_clone(self.arr_ptr))}.expect("coud not create copy of an array!")
     }
-    ///returns class of the type
+    ///Returns class of this array
     pub fn get_class()->Class{
-        //TDOD: change array to support multidimensional arrays.
-        Class::get_array_class(&<T as InteropClass>::get_mono_class(),1)
+        //TODO: change array to support multidimensional arrays.
+        Class::get_array_class(&<T as InteropClass>::get_mono_class(),DIMENSIONS)
     }
-    ///Returns size of this array
+    /// Returns n-dimensional length of this array.
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self|&Array|Array to get size of|
     pub fn get_lenghts(&self)->[u32; DIMENSIONS as usize]{
         return self.lengths;
     }
