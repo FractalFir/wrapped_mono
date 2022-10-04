@@ -1,5 +1,6 @@
 use crate::Object;
-///Preform collection on *generation* and any generation lower than that.
+/// Preform collection on *generation* and any generation lower than that.
+/// WARNING: All references in wrapped_mono are temporary and do not survive collection. To make objects persistant set 
 pub fn collect(generation:i32){
     unsafe{crate::binds::mono_gc_collect(generation)};
 }
@@ -8,7 +9,7 @@ pub fn collection_count(generation:i32)->i32{
     unsafe{crate::binds::mono_gc_collection_count(generation)}
 }
 ///Get the maximum generation used by garbage collector.
-pub fn mono_gc_max_generation()->i32{
+pub fn max_generation()->i32{
     unsafe{crate::binds::mono_gc_max_generation()}
 }
 ///Get generation *object* belongs to. It is only a hint and may not be exact.

@@ -353,3 +353,42 @@ impl core::fmt::Debug for Exception{
         unimplemented!("TODO: get exception string and write it");
     }
 }
+use crate::MString;
+impl crate::object::ObjectTrait for Exception{
+    fn hash(&self)->i32{
+        unsafe{crate::binds::mono_object_hash(self.exc_ptr as *mut MonoObject)}
+    }
+    fn get_domain(&self)->crate::domain::Domain{
+        unsafe{crate::domain::Domain::from_ptr(crate::binds::mono_object_get_domain(self.exc_ptr as *mut MonoObject))}
+    }
+    fn get_size(&self)->u32{
+        unsafe{crate::binds:: mono_object_get_size(self.exc_ptr as *mut MonoObject)}
+    }
+    fn reflection_get_token(&self)->u32{
+        unsafe{crate::binds::mono_reflection_get_token(self.exc_ptr as *mut MonoObject)}
+    }
+    fn get_class(&self)->crate::class::Class{
+        unsafe{crate::class::Class::from_ptr(
+            crate::binds::mono_object_get_class(self.exc_ptr as *mut MonoObject)
+        ).expect("Could not get class of an object")}
+    }
+    fn is_inst(&self,class:&crate::class::Class)->Option<crate::object::Object>{
+        unsafe{crate::object::Object::from_ptr(
+            crate::binds::mono_object_isinst(self.get_ptr() as *mut crate::binds::MonoObject,class.get_ptr())
+        )}
+    }
+    fn to_mstring(&self)->Result<Option<MString>,Exception>{
+        let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
+        let res = unsafe{MString::from_ptr(
+            crate::binds::mono_object_to_string(self.exc_ptr as *mut crate::binds::MonoObject,&mut exc as *mut *mut crate::binds::MonoException as *mut *mut crate::binds::MonoObject)
+        )};
+        let exc = unsafe{Exception::from_ptr(exc)};
+        match exc{
+            Some(e)=>Err(e),
+            None=>Ok(res),
+        }
+    }
+    fn cast_to_obj(&self)->Object{
+        unsafe{Object::from_ptr(self.exc_ptr as *mut MonoObject)}.unwrap() //impossible. If array exists, then object exists too.
+    }
+}

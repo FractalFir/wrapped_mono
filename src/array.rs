@@ -265,7 +265,7 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  crate:
             crate::binds::mono_object_isinst(self.get_ptr() as *mut crate::binds::MonoObject,class.get_ptr())
         )}
     }
-    fn to_string(&self)->Result<Option<MString>,Exception>{
+    fn to_mstring(&self)->Result<Option<MString>,Exception>{
         let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
         let res = unsafe{MString::from_ptr(
             crate::binds::mono_object_to_string(self.arr_ptr as *mut crate::binds::MonoObject,&mut exc as *mut *mut crate::binds::MonoException as *mut *mut crate::binds::MonoObject)
@@ -275,6 +275,9 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  crate:
             Some(e)=>Err(e),
             None=>Ok(res),
         }
+    }
+    fn cast_to_obj(&self)->Object{
+        unsafe{Object::from_ptr(self.arr_ptr as *mut MonoObject)}.unwrap() //impossible. If array exists, then object exists too.
     }
 }
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  InteropRecive for Option<Array<DIMENSIONS,T>> where [();DIMENSIONS as usize]:Copy{

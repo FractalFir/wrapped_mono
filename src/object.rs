@@ -12,7 +12,7 @@ pub struct Object{
 use crate::mstring::MString;
 ///Trait contining functions common for all types of manged objects.
 pub trait ObjectTrait{
-    ///get hash of this object: This hash is **not** based on values of objects fields, and differs from result of calling object.GetHash()
+    /// get hash of this object: This hash is **not** based on values of objects fields, and differs from result of calling object.GetHash()
     /// #Example 
     /// ```rust
     /// let object = Object::new(&domain,&class);
@@ -21,7 +21,7 @@ pub trait ObjectTrait{
     /// // the same values of their fileds, but are diffrent instances, so their hash is diffrent.
     /// ```
     fn hash(&self)->i32;
-    ///get [`Domain`] this object exists in.
+    /// get [`Domain`] this object exists in.
     /// # Example
     ///```rust
     /// let domain = Domain.create(); //create Domain dom
@@ -30,7 +30,7 @@ pub trait ObjectTrait{
     /// assert!(domain == obj_domain); 
     ///```
     fn get_domain(&self)->crate::domain::Domain;
-    ///get size of managed object referenced by *self* in bytes. Does include builtin hidden data.
+    /// get size of managed object referenced by *self* in bytes. Does include builtin hidden data.
     /// # Example
     ///```csharp
     /// class SomeClass{};
@@ -56,8 +56,12 @@ pub trait ObjectTrait{
     fn get_class(&self)->Class;
     ///returns [`Object`] *self* cast to *class* if *self* is derived from [`Class`] class. Does not affect original reference to object nor the object itself.
     fn is_inst(&self,class:&Class)->Option<Object>;
-    ///Convert [`Object`] to [`MString`]. Returns [`Exception`] if raised, and [`Option<MString>`] if not. Function returns [`Option<MString>`] to allow for null value to be returned. 
-    fn to_string(&self)->Result<Option<MString>,Exception>;
+    /// Returns result of calling ToString on this [`Object`]. Returns [`Exception`] if raised, and [`Option<MString>`] if not. Function returns [`Option<MString>`] to allow for null value to be returned. 
+    fn to_mstring(&self)->Result<Option<MString>,Exception>;
+    //
+    fn cast_to_obj(&self)->Object;
+    //
+    //fn cast_from_object(obj:Object)->Self;
 }
 use crate::exception::Exception;
 impl ObjectTrait for Object{
@@ -81,7 +85,7 @@ impl ObjectTrait for Object{
     fn is_inst(&self,class:&Class)->Option<Object>{
         unsafe{Self::from_ptr(crate::binds::mono_object_isinst(self.get_ptr(),class.get_ptr()))}
     }
-    fn to_string(&self)->Result<Option<MString>,Exception>{
+    fn to_mstring(&self)->Result<Option<MString>,Exception>{
         let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
         let res = unsafe{MString::from_ptr(
             crate::binds::mono_object_to_string(self.obj_ptr,&mut exc as *mut *mut crate::binds::MonoException as *mut *mut crate::binds::MonoObject)
@@ -92,6 +96,7 @@ impl ObjectTrait for Object{
             None=>Ok(res),
         }
     }
+    fn cast_to_obj(&self)->Object{Self{obj_ptr:self.get_ptr()}}
 }
 use crate::interop::InteropBox;
 impl Object{ 
