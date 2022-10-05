@@ -44,7 +44,7 @@ rusty_fork_test! {
             for j in 0..100{
                 obj = MString::new(&dom,&format!("{}",i));
                 for i in 0..10{
-                    //let tmp = obj.clone();
+                    let tmp = obj.clone();
                 } 
             }
             results.push(obj);
@@ -57,6 +57,34 @@ rusty_fork_test! {
             let val = obj.to_string();
             let sec = format!("{}",i);
             assert!(val == sec,"{} != {}",val,sec);
+        }
+    }
+    #[test]
+    fn test_gc_array(){
+        use crate::gc::count_objects;
+        let dom = jit::init("dom",None);
+        let mut results:Vec<Array<1,i32>> = Vec::with_capacity(4000);
+        println!("Preparing to create test arrays!");
+        // Having more Arrays fills up the nursery, and causes problems with garbage collection
+        for i in 0..100{
+            let mut obj:Array<1,i32> = Array::new(&dom,&[i/50 as usize]);
+            println!("Created an array! {}",i);
+            for j in 0..100{
+                obj = Array::new(&dom,&[i/50 as usize]);
+                for i in 0..10{
+                    let tmp = obj.clone();
+                } 
+            }
+            results.push(obj);
+        }
+        println!("Created all test arrays!");
+        let prev = gc::count_objects();
+        gc::collect(gc::max_generation());
+        let next = count_objects();
+        assert!(next<prev,"{} >= {}",next,prev);
+        println!("Ran GC!");
+        for (i,obj) in results.into_iter().enumerate(){
+            assert!(obj.len() == i/50);
         }
     }
 }

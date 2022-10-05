@@ -148,3 +148,8 @@ impl crate::object::ObjectTrait for MString{
         unsafe{Self::from_ptr(cast.get_ptr() as *mut _)}
     }
 }
+impl Clone for MString{
+    fn clone(&self)->Self{
+        unsafe{Self::from_ptr(self.get_ptr()).unwrap()}//If object exists then it can't be null
+    }
+}
