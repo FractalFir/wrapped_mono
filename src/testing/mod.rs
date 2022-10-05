@@ -7,6 +7,7 @@ mod exception;
 mod class;
 mod profiler;
 mod array;
+mod gc;
 use crate as wrapped_mono;
 use wrapped_mono::*;
 use mstring::MString;

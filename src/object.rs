@@ -3,11 +3,16 @@ use crate::binds::{MonoObject};
 use crate::method::{Method,MethodTrait};
 use crate::domain::Domain;
 use crate::exception::ExceptManaged;
+use std::sync::Arc;
+use crate::gc::GCHandle;
 ///Safe representation of a refernece to a manged Object. Is **not nullable** when passed between managed and unmanged code(e.g when added as an argument to function exposed as an interna call). 
 ///It means that while it may represent a nullable type, wrapped-mono will automaticly panic when recived null value.
 ///For nullable support use `Option<Object>`.
 pub struct Object{
+    #[cfg(not(feature = "referneced_objects"))]
     obj_ptr:*mut crate::binds::MonoObject,
+    #[cfg(feature = "referneced_objects")]
+    handle:GCHandle,
 }
 use crate::mstring::MString;
 ///Trait contining functions common for all types of manged objects.
@@ -65,26 +70,26 @@ pub trait ObjectTrait{
 use crate::exception::Exception;
 impl ObjectTrait for Object{
     fn hash(&self)->i32{
-        unsafe{crate::binds::mono_object_hash(self.obj_ptr)}
+        unsafe{crate::binds::mono_object_hash(self.get_ptr())}
     }
     fn get_domain(&self)->Domain{
-        unsafe{Domain::from_ptr(crate::binds::mono_object_get_domain(self.obj_ptr))}
+        unsafe{Domain::from_ptr(crate::binds::mono_object_get_domain(self.get_ptr()))}
     }
     fn get_size(&self)->u32{
-        unsafe{crate::binds:: mono_object_get_size(self.obj_ptr)}
+        unsafe{crate::binds:: mono_object_get_size(self.get_ptr())}
     }
     fn reflection_get_token(&self)->u32{
-        unsafe{crate::binds::mono_reflection_get_token(self.obj_ptr)}
+        unsafe{crate::binds::mono_reflection_get_token(self.get_ptr())}
     }
     fn get_class(&self)->Class{
         unsafe{Class::from_ptr(
-            crate::binds::mono_object_get_class(self.obj_ptr)
+            crate::binds::mono_object_get_class(self.get_ptr())
         ).expect("Could not get class of an object")}
     }
     fn to_mstring(&self)->Result<Option<MString>,Exception>{
         let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
         let res = unsafe{MString::from_ptr(
-            crate::binds::mono_object_to_string(self.obj_ptr,&mut exc as *mut *mut crate::binds::MonoException as *mut *mut crate::binds::MonoObject)
+            crate::binds::mono_object_to_string(self.get_ptr(),&mut exc as *mut *mut crate::binds::MonoException as *mut *mut crate::binds::MonoObject)
         )};
         let exc = unsafe{Exception::from_ptr(exc)};
         match exc{
@@ -113,10 +118,20 @@ impl Object{
     /// # Safety
     /// *obj_ptr* must be either a valid [`MonoObject`] pointer or null, otherwise resulting [`Object`] will not be valid and will **cause crashes**.
     pub unsafe fn from_ptr(obj_ptr:*mut crate::binds::MonoObject)->Option<Self>{
-        if obj_ptr.is_null(){
-            return None;
+        #[cfg(not(feature = "referneced_objects"))]
+        {
+            if obj_ptr.is_null(){
+                return None;
+            }
+            Some(Self{obj_ptr})
         }
-        Some(Self{obj_ptr})
+        #[cfg(feature = "referneced_objects")]
+        {
+            if obj_ptr.is_null(){
+                return None;
+            }
+            Some(Self{handle:GCHandle::create_default(obj_ptr)})
+        }
     }
     ///Retrives and unboxed value. 
     /// # Safety 
@@ -144,7 +159,7 @@ impl Object{
                 panic!("tried to unbox class of type `{}` as type `{}`",&self_class.get_name(),&t_class.get_name());
             }
         }
-        let ptr = unsafe{crate::binds::mono_object_unbox(self.obj_ptr) as *mut <T as InteropRecive>::SourceType};
+        let ptr = unsafe{crate::binds::mono_object_unbox(self.get_ptr()) as *mut <T as InteropRecive>::SourceType};
         T::get_rust_rep(unsafe{*ptr})
     }
     unsafe fn box_val_unsafe(domain:&crate::domain::Domain,class:&Class,val:*mut std::ffi::c_void)->crate::object::Object{
@@ -165,7 +180,14 @@ impl Object{
     }
     ///Gets internal [`MonoObject`] pointer.
     pub fn get_ptr(&self)->*mut MonoObject{
-        self.obj_ptr
+        #[cfg(not(feature = "referneced_objects"))]
+        {
+            self.obj_ptr
+        }
+        #[cfg(feature = "referneced_objects")]
+        {
+            self.handle.get_target()
+        }
     }
     ///Gets an implenentation virtual [`Method`] *method* for a specific [`Object`] *obj*.<br>
     /// # Explanation
@@ -220,12 +242,11 @@ impl Object{
     ///**Caution**: Clones MonoObject *not* reference to this object. (e.g when called on a referece to managed object A will create second object B, not another refernece to object A).
     pub fn clone_managed_object(&self)->Self{
         //if clone fails, it means that there is a much bigger problem somewhere down the line, so it can be just ignored.
-        unsafe{Self::from_ptr(crate::binds::mono_object_clone(self.obj_ptr))}.expect("MonoRuntime could not clone object!")
+        unsafe{Self::from_ptr(crate::binds::mono_object_clone(self.get_ptr()))}.expect("MonoRuntime could not clone object!")
     }
 }
 //for 0.2 TODO:extend functionalities relating to properites.
 use crate::interop::InteropClass;
-
 impl InteropClass for Object{
     fn get_mono_class()->Class{
         Class::get_object()
@@ -234,5 +255,10 @@ impl InteropClass for Object{
 impl InteropClass for Option<Object>{
     fn get_mono_class()->Class{
         Class::get_object()
+    }
+}
+impl Clone for Object{
+    fn clone(&self)->Self{
+        unsafe{Self::from_ptr(self.get_ptr()).unwrap()}//If object exists then it can't be null
     }
 }
