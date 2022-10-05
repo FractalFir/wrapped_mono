@@ -1,6 +1,6 @@
 [package]
 name = "wrapped_mono_macros"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "Macros for wrapped_mono. Useless without it."
 repository = "https://github.com/FractalFir/wrapped_mono"
