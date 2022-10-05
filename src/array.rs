@@ -17,7 +17,7 @@ pub struct Array<const DIMENSIONS:u32,T:InteropSend + InteropRecive + InteropCla
     pd:PhantomData<T>,
     lengths:[u32;DIMENSIONS as usize],
 } 
-impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
+impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
     fn get_index(&self,indices:[usize;DIMENSIONS as usize])->usize{
         //size of current dimension
         let mut size = 1;
@@ -149,20 +149,6 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  Array<
         }
         Some(res)
     }
-    /// Cast [`Object`] to [`Array`]. Returns [`None`] if cast failed. 
-    /// # Arguments
-    /// |Name   |Type   |Description|
-    /// |-------|-------|------|
-    /// |object| &Object | object to cast from |
-    pub fn cast_from_object(object:&Object)->Option<Array<DIMENSIONS,T>>{
-        use crate::object::ObjectTrait;
-        let sclass = object.get_class(); 
-        let tclass = <Self as InteropClass>::get_mono_class();
-        if sclass.get_element_class() != tclass.get_element_class(){
-            return None;
-        }
-        unsafe{Self::from_ptr(object.get_ptr() as *mut crate::binds::MonoArray)}
-    } 
     /// Converts [`Array`] to [`Object`]
     /// # Arguments
     /// |Name   |Type   |Description|
@@ -260,11 +246,6 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  crate:
             crate::binds::mono_object_get_class(self.arr_ptr as *mut MonoObject)
         ).expect("Could not get class of an object")}
     }
-    fn is_inst(&self,class:&crate::class::Class)->Option<crate::object::Object>{
-        unsafe{crate::object::Object::from_ptr(
-            crate::binds::mono_object_isinst(self.get_ptr() as *mut crate::binds::MonoObject,class.get_ptr())
-        )}
-    }
     fn to_mstring(&self)->Result<Option<MString>,Exception>{
         let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
         let res = unsafe{MString::from_ptr(
@@ -276,9 +257,23 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  crate:
             None=>Ok(res),
         }
     }
-    fn cast_to_obj(&self)->Object{
+    fn cast_to_object(&self)->Object{
         unsafe{Object::from_ptr(self.arr_ptr as *mut MonoObject)}.unwrap() //impossible. If array exists, then object exists too.
     }
+    /// Cast [`Object`] to [`Array`]. Returns [`None`] if cast failed. 
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |object| &Object | object to cast from |
+    fn cast_from_object(object:&Object)->Option<Array<DIMENSIONS,T>>{
+        use crate::object::ObjectTrait;
+        let sclass = object.get_class(); 
+        let tclass = <Self as InteropClass>::get_mono_class();
+        if sclass.get_element_class() != tclass.get_element_class(){
+            return None;
+        }
+        unsafe{Self::from_ptr(object.get_ptr() as *mut crate::binds::MonoArray)}
+    } 
 }
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  InteropRecive for Option<Array<DIMENSIONS,T>> where [();DIMENSIONS as usize]:Copy{
     type SourceType = *mut crate::binds::MonoArray;

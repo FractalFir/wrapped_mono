@@ -43,10 +43,11 @@ pub trait ObjectTrait{
     /// assert!(size_other == std::mem::size_of::<MonoObject>() + 8); //size of two hidden pointers + some_int filed.
     ///```
     fn get_size(&self)->u32;
-    ///get reflection token 
+    /// get reflection token 
     //TODO:extend this description to make it more clear
+    #[doc(hide)] //reflection unsuported
     fn reflection_get_token(&self)->u32;
-    ///returns [`Class`] of this object.
+    /// returns [`Class`] of this object.
     /// # Example
     /// ```rust 
     /// let object = Object::new(&domain,&class);
@@ -54,14 +55,12 @@ pub trait ObjectTrait{
     /// assert!(class == object_class);
     /// ```
     fn get_class(&self)->Class;
-    ///returns [`Object`] *self* cast to *class* if *self* is derived from [`Class`] class. Does not affect original reference to object nor the object itself.
-    fn is_inst(&self,class:&Class)->Option<Object>;
     /// Returns result of calling ToString on this [`Object`]. Returns [`Exception`] if raised, and [`Option<MString>`] if not. Function returns [`Option<MString>`] to allow for null value to be returned. 
     fn to_mstring(&self)->Result<Option<MString>,Exception>;
     //
-    fn cast_to_obj(&self)->Object;
+    fn cast_to_object(&self)->Object;
     //
-    //fn cast_from_object(obj:Object)->Self;
+    fn cast_from_object(obj:&Object)->Option<Self> where Self:Sized;
 }
 use crate::exception::Exception;
 impl ObjectTrait for Object{
@@ -82,9 +81,6 @@ impl ObjectTrait for Object{
             crate::binds::mono_object_get_class(self.obj_ptr)
         ).expect("Could not get class of an object")}
     }
-    fn is_inst(&self,class:&Class)->Option<Object>{
-        unsafe{Self::from_ptr(crate::binds::mono_object_isinst(self.get_ptr(),class.get_ptr()))}
-    }
     fn to_mstring(&self)->Result<Option<MString>,Exception>{
         let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
         let res = unsafe{MString::from_ptr(
@@ -96,10 +92,15 @@ impl ObjectTrait for Object{
             None=>Ok(res),
         }
     }
-    fn cast_to_obj(&self)->Object{Self{obj_ptr:self.get_ptr()}}
+    fn cast_to_object(&self)->Object{unsafe{Self::from_ptr(self.get_ptr())}.unwrap()/*Faliure impossible, object is always an object.*/}
+    fn cast_from_object(obj:&Object)->Option<Self>{unsafe{Self::from_ptr(obj.get_ptr())}}
 }
 use crate::interop::InteropBox;
 impl Object{ 
+    ///returns [`Object`] *self* cast to *class* if *self* is derived from [`Class`] class. Does not affect original reference to object nor the object itself.
+    pub fn is_inst(&self,class:&Class)->Option<Object>{
+        unsafe{Self::from_ptr(crate::binds::mono_object_isinst(self.get_ptr(),class.get_ptr()))}
+    }
     ///Allocates new object of [`Class`] class. **Does not call the constructor**, to call constuctor call the `.ctor` method after creating the object. 
     /// # Examples
     /// ```rust

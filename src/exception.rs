@@ -5,6 +5,7 @@ use crate::Domain;
 use crate::Image;
 use crate::Class;
 use crate::Object;
+use crate::InteropClass;
 /// Safe representation of MonoException
 pub struct Exception{
     exc_ptr:*mut MonoException,
@@ -372,11 +373,6 @@ impl crate::object::ObjectTrait for Exception{
             crate::binds::mono_object_get_class(self.exc_ptr as *mut MonoObject)
         ).expect("Could not get class of an object")}
     }
-    fn is_inst(&self,class:&crate::class::Class)->Option<crate::object::Object>{
-        unsafe{crate::object::Object::from_ptr(
-            crate::binds::mono_object_isinst(self.get_ptr() as *mut crate::binds::MonoObject,class.get_ptr())
-        )}
-    }
     fn to_mstring(&self)->Result<Option<MString>,Exception>{
         let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
         let res = unsafe{MString::from_ptr(
@@ -388,7 +384,20 @@ impl crate::object::ObjectTrait for Exception{
             None=>Ok(res),
         }
     }
-    fn cast_to_obj(&self)->Object{
+    fn cast_to_object(&self)->Object{
         unsafe{Object::from_ptr(self.exc_ptr as *mut MonoObject)}.unwrap() //impossible. If array exists, then object exists too.
+    }
+    fn cast_from_object(obj:&Object)->Option<Self>{
+        //TODO: adjust this after including GCHandles to speed things up.
+        let cast = match obj.is_inst(&<Self as InteropClass>::get_mono_class()){
+            Some(cast)=>cast,
+            None=>return None,
+        };
+        unsafe{Self::from_ptr(cast.get_ptr() as *mut _)}
+    }
+}
+impl InteropClass for Exception{
+    fn get_mono_class()->Class{
+        return Class::get_exception_class();
     }
 }

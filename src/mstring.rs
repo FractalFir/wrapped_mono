@@ -23,14 +23,6 @@ impl MString{
         drop(cstr);
         res
     }
-    ///Cast [`Object`] to [`String`]. Returns [`None`] if cast failed. 
-    pub fn cast_from_object(obj:&Object)->Option<MString>{
-        use crate::object::ObjectTrait;
-        if obj.get_class() != Class::get_string(){
-            return None;
-        }
-        Some(Self{s_ptr:obj.get_ptr() as *mut MonoString})
-    }
     ///Compares two managed strings. Returns true if their **content** is equal, not if they are the same **object**.
     pub fn is_equal(&self,other:&Self)->bool{
         unsafe{crate::binds::mono_string_equal(self.s_ptr,other.s_ptr) != 0}
@@ -52,10 +44,6 @@ impl MString{
     }
     pub fn get_ptr(&self)->*mut MonoString{
         self.s_ptr
-    }
-    ///Returns this [`MString`] as [`Object`]. Both original and return value still reference the same managed object.
-    pub fn to_object(&self)->Object{
-        unsafe{Object::from_ptr(self.s_ptr as *mut crate::binds::MonoObject)}.expect("Impossible condition reached! object null and not null at the same time!")
     }
 }
 impl InteropRecive for MString{
@@ -118,11 +106,6 @@ impl crate::object::ObjectTrait for MString{
             crate::binds::mono_object_get_class(self.s_ptr as *mut MonoObject)
         ).expect("Could not get class of an object")}
     }
-    fn is_inst(&self,class:&crate::class::Class)->Option<crate::object::Object>{
-        unsafe{crate::object::Object::from_ptr(
-            crate::binds::mono_object_isinst(self.get_ptr() as *mut crate::binds::MonoObject,class.get_ptr())
-        )}
-    }
     fn to_mstring(&self)->Result<Option<MString>,Exception>{
         let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
         let res = unsafe{MString::from_ptr(
@@ -134,7 +117,15 @@ impl crate::object::ObjectTrait for MString{
             None=>Ok(res),
         }
     }
-    fn cast_to_obj(&self)->Object{
+    fn cast_to_object(&self)->Object{
         unsafe{Object::from_ptr(self.s_ptr as *mut MonoObject)}.unwrap() //impossible. If array exists, then object exists too.
+    }
+    fn cast_from_object(obj:&Object)->Option<MString>{
+        //TODO: adjust this after including GCHandles to speed things up.
+        let cast = match obj.is_inst(&<Self as InteropClass>::get_mono_class()){
+            Some(cast)=>cast,
+            None=>return None,
+        };
+        unsafe{Self::from_ptr(cast.get_ptr() as *mut _)}
     }
 }
