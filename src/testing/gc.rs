@@ -90,4 +90,35 @@ rusty_fork_test! {
             assert!(obj.len() == i/50);
         }
     }
+    #[test]
+    fn test_gc_exception(){
+        use crate::gc::count_objects;
+        let dom = jit::init("dom",None);
+        let mut results:Vec<Exception> = Vec::with_capacity(4000);
+        println!("Preparing to create test arrays!");
+        // Having more temporary Arrays fills up the nursery, and causes problems with garbage collection(can't unlock a thread)
+        for i in 0..17000{
+            let mut obj:Exception = Exception::exception_arithmetic();
+            for j in 0..10{
+                obj = Exception::exception_arithmetic();
+                for i in 0..10{
+                    let tmp = obj.clone();
+                } 
+            }
+            if i % 100 == 0{
+                println!("Created an array! {}",i);
+                gc::collect(gc::max_generation());
+            }
+            results.push(obj);
+        }
+        println!("Created all test arrays!");
+        let prev = gc::count_objects();
+        gc::collect(gc::max_generation());
+        let next = count_objects();
+        assert!(next<prev,"{} >= {}",next,prev);
+        println!("Ran GC!");
+        for obj in results{
+            obj.get_size();
+        }
+    }
 }

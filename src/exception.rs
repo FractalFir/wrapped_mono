@@ -6,9 +6,13 @@ use crate::Image;
 use crate::Class;
 use crate::Object;
 use crate::InteropClass;
+use crate::gc::GCHandle;
 /// Safe representation of MonoException
 pub struct Exception{
+    #[cfg(not(feature = "referneced_objects"))]
     exc_ptr:*mut MonoException,
+    #[cfg(feature = "referneced_objects")]
+    handle:GCHandle,
 } 
 impl Exception{
     /// Raise exception (it can be then cathed by cath clause in managed code)
@@ -38,7 +42,7 @@ impl Exception{
     /// }
     ///
     pub fn raise(&self){
-        unsafe{crate::binds::mono_raise_exception(self.exc_ptr)};
+        unsafe{crate::binds::mono_raise_exception(self.get_ptr())};
     }
     /// Creates [`Exception`] of type *name* in *namespace* from *image* in *domain*
     pub fn from_name_domain(domain:&Domain,image:&Image,namespace:&str,name:&str)->Option<Self>{
@@ -81,7 +85,7 @@ impl Exception{
         if !Class::get_exception_class().is_assignable_from(&object.get_class()){
             return None;
         }
-        Some(Self{exc_ptr:object.get_ptr() as *mut MonoException})
+        unsafe{Self::from_ptr(object.get_ptr() as *mut MonoException)}
     }
     /// Returns [`Exception`] that is instance of **System.ArgumentException**
     pub fn argument_exception(arg:&str,msg:&str)->Self{
@@ -322,13 +326,27 @@ impl Exception{
     /// # Safety
     /// *exec_ptr* mus be either null, or a valid MonoException pointer.
     pub unsafe fn from_ptr(exc_ptr:*mut MonoException)->Option<Self>{
-        if exc_ptr.is_null(){
-            None
+        #[cfg(not(feature = "referneced_objects"))]
+        {
+            if exc_ptr.is_null(){
+                None
+            }
+            else {Some(Self{exc_ptr})}
         }
-        else {Some(Self{exc_ptr})}
+        #[cfg(feature = "referneced_objects")]
+        {
+            if exc_ptr.is_null(){
+                None
+            }
+            else {Some(Self{handle:GCHandle::create_default(exc_ptr as *mut _)})}
+        }
+
     }
     pub fn get_ptr(&self)->*mut MonoException{
-        self.exc_ptr
+        #[cfg(not(feature = "referneced_objects"))]
+        {self.exc_ptr}
+        #[cfg(feature = "referneced_objects")]
+        {self.handle.get_target() as *mut MonoException}
     }
 }
 pub trait ExceptManaged<T:Sized>{
@@ -357,26 +375,26 @@ impl core::fmt::Debug for Exception{
 use crate::MString;
 impl crate::object::ObjectTrait for Exception{
     fn hash(&self)->i32{
-        unsafe{crate::binds::mono_object_hash(self.exc_ptr as *mut MonoObject)}
+        unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject)}
     }
     fn get_domain(&self)->crate::domain::Domain{
-        unsafe{crate::domain::Domain::from_ptr(crate::binds::mono_object_get_domain(self.exc_ptr as *mut MonoObject))}
+        unsafe{crate::domain::Domain::from_ptr(crate::binds::mono_object_get_domain(self.get_ptr() as *mut MonoObject))}
     }
     fn get_size(&self)->u32{
-        unsafe{crate::binds:: mono_object_get_size(self.exc_ptr as *mut MonoObject)}
+        unsafe{crate::binds:: mono_object_get_size(self.get_ptr() as *mut MonoObject)}
     }
     fn reflection_get_token(&self)->u32{
-        unsafe{crate::binds::mono_reflection_get_token(self.exc_ptr as *mut MonoObject)}
+        unsafe{crate::binds::mono_reflection_get_token(self.get_ptr() as *mut MonoObject)}
     }
     fn get_class(&self)->crate::class::Class{
         unsafe{crate::class::Class::from_ptr(
-            crate::binds::mono_object_get_class(self.exc_ptr as *mut MonoObject)
+            crate::binds::mono_object_get_class(self.get_ptr() as *mut MonoObject)
         ).expect("Could not get class of an object")}
     }
     fn to_mstring(&self)->Result<Option<MString>,Exception>{
         let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
         let res = unsafe{MString::from_ptr(
-            crate::binds::mono_object_to_string(self.exc_ptr as *mut crate::binds::MonoObject,&mut exc as *mut *mut crate::binds::MonoException as *mut *mut crate::binds::MonoObject)
+            crate::binds::mono_object_to_string(self.get_ptr() as *mut crate::binds::MonoObject,&mut exc as *mut *mut crate::binds::MonoException as *mut *mut crate::binds::MonoObject)
         )};
         let exc = unsafe{Exception::from_ptr(exc)};
         match exc{
@@ -385,7 +403,7 @@ impl crate::object::ObjectTrait for Exception{
         }
     }
     fn cast_to_object(&self)->Object{
-        unsafe{Object::from_ptr(self.exc_ptr as *mut MonoObject)}.unwrap() //impossible. If array exists, then object exists too.
+        unsafe{Object::from_ptr(self.get_ptr() as *mut MonoObject)}.unwrap() //impossible. If array exists, then object exists too.
     }
     fn cast_from_object(obj:&Object)->Option<Self>{
         //TODO: adjust this after including GCHandles to speed things up.
@@ -399,5 +417,10 @@ impl crate::object::ObjectTrait for Exception{
 impl InteropClass for Exception{
     fn get_mono_class()->Class{
         return Class::get_exception_class();
+    }
+}
+impl Clone for Exception{
+    fn clone(&self)->Self{
+        unsafe{Self::from_ptr(self.get_ptr()).unwrap()}//If exception exists then it can't be null
     }
 }
