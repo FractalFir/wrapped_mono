@@ -66,14 +66,17 @@ rusty_fork_test! {
         let mut results:Vec<Array<1,i32>> = Vec::with_capacity(4000);
         println!("Preparing to create test arrays!");
         // Having more Arrays fills up the nursery, and causes problems with garbage collection
-        for i in 0..100{
+        for i in 0..1700{
             let mut obj:Array<1,i32> = Array::new(&dom,&[i/50 as usize]);
-            println!("Created an array! {}",i);
-            for j in 0..100{
+            for j in 0..10{
                 obj = Array::new(&dom,&[i/50 as usize]);
                 for i in 0..10{
                     let tmp = obj.clone();
                 } 
+            }
+            if i % 100 == 0{
+                println!("Created an array! {}",i);
+                gc::collect(gc::max_generation());
             }
             results.push(obj);
         }

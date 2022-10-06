@@ -27,6 +27,7 @@ pub fn init(name:&str,version:Option<&str>)->Domain{
             mono_jit_init(n_cstr.as_ptr())
         }
     })};
+    unsafe{crate::binds::mono_jit_thread_attach(res.get_ptr())};
     crate::hold(&n_cstr);
     res
 }
