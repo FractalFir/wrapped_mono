@@ -15,7 +15,8 @@ struct _Profiler<T>{
     domain_unloading_cb:Option<fn (profiler:&mut Profiler<T>,dom:&mut Domain)>,
     domain_unloaded_cb:Option<fn (profiler:&mut Profiler<T>,dom:&mut Domain)>,
     domain_set_name_cb:Option<fn (profiler:&mut Profiler<T>,dom:&mut Domain,&str)>,
-    jit_begin_cb:Option<fn (profiler:&mut Profiler<T>,&Method<Array<1,MString>>)>,
+    //Main method has either type Method<Object,iszie,isize,isize> or Method<String>
+    jit_begin_cb:Option<fn (profiler:&mut Profiler<T>,&Method<String>)>,
     pub data:T,
 } 
 pub struct ProfilerCallContext{
@@ -388,7 +389,7 @@ impl<T> _Profiler<T>{
     //Domain set jit begin
     unsafe extern "C" fn jit_begin_callback(profiler:*mut _Profiler<T>,met:*mut crate::binds::MonoMethod){
         let this = &mut *(profiler);
-        let method:Method<Array<1,MString>> = Method::from_ptr(met).expect("Could not get jit main method while executing jit begin. This is an internal profiler error.");
+        let method:Method<String> = Method::from_ptr(met).expect("Could not get jit main method while executing jit begin. This is an internal profiler error.");
         match this.jit_begin_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
@@ -404,11 +405,12 @@ impl<T> _Profiler<T>{
             self.jit_begin_cb = None;
         }
     }
-    pub fn add_jit_begin_cb(&mut self,cb:fn (profiler:&mut Profiler<T>,&Method<Array<1,MString>>)){
+    pub fn add_jit_begin_cb(&mut self,cb:fn (profiler:&mut Profiler<T>,&Method<String>)){
         //Check if another callback has been registered ind if so, renove it.
         unsafe{
             crate::binds::mono_profiler_set_jit_begin_callback(self.handle,
-                std::mem::transmute::<unsafe extern "C" fn(*mut _Profiler<T>,*mut crate::binds::MonoMethod),Option<unsafe extern "C" fn(*mut _MonoProfiler,*mut crate::binds::MonoMethod)>>
+                std::mem::transmute::<unsafe extern "C" fn(*mut _Profiler<T>,*mut crate::binds::MonoMethod),
+                Option<unsafe extern "C" fn(*mut _MonoProfiler,*mut crate::binds::MonoMethod)>>
                 (Self::jit_begin_callback as unsafe extern "C" fn(*mut _Profiler<T>,*mut crate::binds::MonoMethod)));
             self.jit_begin_cb = Some(cb);
         }
@@ -531,7 +533,7 @@ impl<T> Profiler<T>{
         unsafe{(*self.ptr).remove_jit_begin_cb()};
     }
     ///Adds callback to be called when runtime is started.
-    pub fn add_jit_begin(&mut self,cb: fn (profiler:&mut Profiler<T>,&Method<Array<1,MString>>)){
+    pub fn add_jit_begin(&mut self,cb: fn (profiler:&mut Profiler<T>,&Method<String>)){
         unsafe{(*self.ptr).add_jit_begin_cb(cb)};
     }
 }

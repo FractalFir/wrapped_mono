@@ -7,8 +7,13 @@ use std::ffi::CString;
 //Depends on: #![feature(specialization)]
 /// Rust representation of a managed method(function of code loaded into mono runtime).
 /// Args - Tuple type of types of all arguments accepted by this particular method.
-/// **Warning** while when a method is recived from mono runtime it's argument types are checked, those checks are not yet made for a method with eiher 1 or no arguments.
-/// This is a result of a limitation of rust type system, and it can't be worked around in a nice way, but will be adressed in the futute.
+/// # Safety
+/// ## Type Mismatch
+/// When a method is recived from mono runtime it's argument types are checked, but those checks are not yet made for a method with eiher 1 or no arguments.
+/// This is a result of a limitation of rust type system, and it can't be worked around in a nice way in the current version of the API, but will be adressed in the futute.
+/// ## All arguments **must** implement InteropClass!
+/// While this is not enforced jet because of limitations of the API(no support for C# tuples), **IT IS STILL NECESARY**. Ignoring this waring and using Methods with
+/// arguments not implementing InteropClass **will lead to crashes and undefined behavior**. Before filing bug reports, check that all arguments of your function implement InteropClass.
 pub struct Method<Args:InteropSend>{
     method:*mut MonoMethod,
     args_type:PhantomData<Args>,
@@ -243,8 +248,15 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args> where <Args as Intero
             return None;
         }
         let res = Self{method:met_ptr,args_type:PhantomData};
-        let params = res.get_params();
-        assert!(<<Args as InteropSend>::TargetType as CompareClasses>::compare(params));
+        let mut params = res.get_params();
+        if !<<Args as InteropSend>::TargetType as CompareClasses>::compare(&mut params){
+            use std::fmt::Write;
+            let mut msg = format!("Method Type Mismatch! Got a method accepting {} arguments of types:",params.len());
+            for param in params{
+                write!(msg,",\"{}\"",param.get_name_sig()).expect("Could not print inproper function argument types!");
+            }
+            panic!("{}",msg);
+        }
         Some(res)
     }
     default unsafe fn from_ptr_checked(met_ptr:*mut MonoMethod)->Option<Self>{
@@ -252,8 +264,8 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args> where <Args as Intero
             return None;
         }
         let res = Self{method:met_ptr,args_type:PhantomData};
-        let params = res.get_params();
-        if !(<<Args as InteropSend>::TargetType as CompareClasses>::compare(params)){
+        let mut params = res.get_params();
+        if !(<<Args as InteropSend>::TargetType as CompareClasses>::compare(&mut params)){
             return None;
         }
         Some(res)

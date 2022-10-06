@@ -307,6 +307,19 @@ rusty_fork_test! {
     }
     /*
     #[test]
+    fn calling_str_test_method(){
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<(String,String,String,String)> = Method::get_method_from_name(&class,"StrTest",4).expect("Can't find method StrTest");
+        let obj = met.invoke(None,("one".to_owned(),"two".to_owned(),"three".to_owned(),"four".to_owned())).expect("Exception").expect("Got null on a non-nullable!");
+        let res = obj.unbox::<i32>();
+        assert!(res == 14);
+    }
+    */
+    /*
+    #[test]
     fn testing_function_signature(){
         use wrapped_mono::{jit,class::Class,method::Method};
         let dom = jit::init("root",None);

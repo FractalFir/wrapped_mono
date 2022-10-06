@@ -46,12 +46,13 @@ pub mod mstring;
 pub mod runtime;
 ///Utilities realted to Exceptions. 
 pub mod exception;
-/// Funcrions related to garbage collection.
+/// Functions related to garbage collection.
 pub mod gc;
-/// Utilities related to metadata.
+/// Utilities related to metadata. Barebones and experimental.
 pub mod metadata;
 
 mod tupleutilis;
+/// Experimental Profiler API. Barebones and may contain bugs.
 pub mod profiler;
 mod testing;
 pub use wrapped_mono_macros;

@@ -244,52 +244,52 @@ impl<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P> TupleToPtrs for (A,B,C,D,E,F,G,H,I,J,K,L,M
 } 
 use crate::{Class,InteropClass};
 pub trait CompareClasses{
-    fn compare(clases:Vec<Class>)->bool;
+    fn compare(clases:&Vec<Class>)->bool;
 }
 impl<A:InteropClass,B:InteropClass> CompareClasses for (A,B) where (A,B):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases.len() == 2)
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass> CompareClasses for (A,B,C) where (A,B,C):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases.len() == 3)
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass> CompareClasses for (A,B,C,D) where (A,B,C,D):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&(clases.len() == 4)
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass> CompareClasses for (A,B,C,D,E) where (A,B,C,D,E):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
         (clases[4] == E::get_mono_class())&&(clases.len() == 5)
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass> CompareClasses for (A,B,C,D,E,F) where (A,B,C,D,E,F):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
         (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases.len() == 6)
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G) where (A,B,C,D,E,F,G):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
         (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases.len() == 7)
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H) where (A,B,C,D,E,F,G,H):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
         (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&(clases.len() == 8)
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I) where (A,B,C,D,E,F,G,H,I):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
         (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
         (clases[8] == I::get_mono_class())&&(clases.len() == 9)
@@ -297,7 +297,7 @@ for (A,B,C,D,E,F,G,H,I) where (A,B,C,D,E,F,G,H,I):TupleToPtrs{
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J) where (A,B,C,D,E,F,G,H,I,J):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
         (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
         (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases.len() == 10)
@@ -306,7 +306,7 @@ for (A,B,C,D,E,F,G,H,I,J) where (A,B,C,D,E,F,G,H,I,J):TupleToPtrs{
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
 K:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J,K) where (A,B,C,D,E,F,G,H,I,J,K):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
         (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
         (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases[10] == K::get_mono_class())&&(clases.len() == 11)
@@ -315,7 +315,7 @@ for (A,B,C,D,E,F,G,H,I,J,K) where (A,B,C,D,E,F,G,H,I,J,K):TupleToPtrs{
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
 K:InteropClass,L:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J,K,L) where (A,B,C,D,E,F,G,H,I,J,K,L):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
         (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
         (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases[10] == K::get_mono_class())&&(clases[11] == L::get_mono_class())&&(clases.len() == 12)
@@ -324,7 +324,7 @@ for (A,B,C,D,E,F,G,H,I,J,K,L) where (A,B,C,D,E,F,G,H,I,J,K,L):TupleToPtrs{
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
 K:InteropClass,L:InteropClass,M:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J,K,L,M) where (A,B,C,D,E,F,G,H,I,J,K,L,M):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
         (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
         (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases[10] == K::get_mono_class())&&(clases[11] == L::get_mono_class())&&
@@ -334,7 +334,7 @@ for (A,B,C,D,E,F,G,H,I,J,K,L,M) where (A,B,C,D,E,F,G,H,I,J,K,L,M):TupleToPtrs{
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
 K:InteropClass,L:InteropClass,M:InteropClass,N:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J,K,L,M,N) where (A,B,C,D,E,F,G,H,I,J,K,L,M,N):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
         (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
         (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases[10] == K::get_mono_class())&&(clases[11] == L::get_mono_class())&&
@@ -344,7 +344,7 @@ for (A,B,C,D,E,F,G,H,I,J,K,L,M,N) where (A,B,C,D,E,F,G,H,I,J,K,L,M,N):TupleToPtr
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
 K:InteropClass,L:InteropClass,M:InteropClass,N:InteropClass,O:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O) where (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
         (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
         (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases[10] == K::get_mono_class())&&(clases[11] == L::get_mono_class())&&
@@ -354,7 +354,7 @@ for (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O) where (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O):TupleT
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
 K:InteropClass,L:InteropClass,M:InteropClass,N:InteropClass,O:InteropClass,P:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P) where (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P):TupleToPtrs{
-    fn compare(clases:Vec<Class>)->bool{
+    fn compare(clases:&Vec<Class>)->bool{
         (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
         (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
         (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases[10] == K::get_mono_class())&&(clases[11] == L::get_mono_class())&&

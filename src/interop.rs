@@ -223,6 +223,16 @@ impl InteropSend for (){
         rust_arg
     }
 }
+impl InteropSend for String{
+    type TargetType = *mut crate::binds::MonoString;
+    fn get_mono_rep(rust_arg:Self)->Self::TargetType{
+        use crate::MString;
+        MString::new(&crate::Domain::get_curr().
+            expect("Could not get current domain when sending strings to mono runtime!"),
+            &rust_arg).
+        get_ptr()
+    }
+}
 use crate::class::Class;
 ///Trait allowing for boxing and unboxing type from objects 
 /// # Safety
@@ -311,6 +321,11 @@ impl InteropClass for char{
 impl InteropClass for bool{
     fn get_mono_class()->Class{
         Class::get_boolean()
+    }
+}
+impl InteropClass for String{
+    fn get_mono_class()->Class{
+        Class::get_string()
     }
 }
 impl InteropBox for i8{}

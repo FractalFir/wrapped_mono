@@ -89,6 +89,10 @@ class TestFunctions : IInterfaceOne{
     public static long Mul(long arg,long arg2,long arg3,long arg4,long arg5,long arg6,long arg7,long arg8,long arg9,long arg10,long arg11,long arg12,long arg13,long arg14,long arg15,long arg16){
         return arg * arg2 * arg3 * arg4 * arg5 * arg6 * arg7 * arg8 * arg9 * arg10 * arg11 * arg12 * arg13 * arg14 * arg15 * arg16;
     }
+    public static int StrTest(string a,string b,string c,string d){
+        string res = a + b + c + d;
+        return res.Length;
+    }
 } 
 static class TestMainEntry{
     public static void Main(string[] ars){
