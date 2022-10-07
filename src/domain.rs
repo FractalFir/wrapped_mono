@@ -80,9 +80,15 @@ impl Domain{
         }
         else {unsafe{Some(Self::from_ptr(ptr))}}
     }
+    ///Attached thread to this domain, allowing it to use it safely.
+    pub fn attach_thread(&self){
+        unsafe{crate::binds::mono_jit_thread_attach(self.get_ptr())};
+    }
 }
 impl std::cmp::PartialEq for Domain{
     fn eq(&self, other: &Self) -> bool {
         self.ptr == other.ptr
     }
 }
+// Domains are OK to share between threads
+unsafe impl Sync for Domain{}

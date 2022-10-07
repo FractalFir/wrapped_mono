@@ -3,6 +3,8 @@
 #![feature(specialization)]
 //used only for array sizes, in a very simple, limited manner. Should not cause trubles when updating.
 #![feature(generic_const_exprs)]
+//used for benchmarking
+#![feature(test)]
 //doctest are dissabled, because they do not work with rusty_fork! whcich is required for testing mono runtime
 #![cfg(not(doctest))] 
 //! `wrapped_mono` is a lightweight wrapper around the mono runtime, allowing emmbeding code from lagnages from the .NET frameawork into rust code.
@@ -50,6 +52,8 @@ pub mod exception;
 pub mod gc;
 /// Utilities related to metadata. Barebones and experimental.
 pub mod metadata;
+///
+pub mod delegate;
 
 mod tupleutilis;
 /// Experimental Profiler API. Barebones and may contain bugs.
