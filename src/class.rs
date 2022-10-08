@@ -127,7 +127,7 @@ impl Class{
             crate::binds::mono_class_get_nesting_type(self.class_ptr)
         )}
     }
-    ///Gets type this class derives from or None if it does not derive any type.
+    /// Gets type this class derives from or None if it does not derive any type.
     /// # Example
     /// For a class `SomeClass`
     /// # C#

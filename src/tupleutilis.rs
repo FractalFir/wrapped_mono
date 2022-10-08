@@ -248,117 +248,132 @@ pub trait CompareClasses{
 }
 impl<A:InteropClass,B:InteropClass> CompareClasses for (A,B) where (A,B):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases.len() == 2)
+        (clases.len() == 2)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass> CompareClasses for (A,B,C) where (A,B,C):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases.len() == 3)
+        (clases.len() == 3)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass> CompareClasses for (A,B,C,D) where (A,B,C,D):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&(clases.len() == 4)
+        (clases.len() == 4)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))&&(D::get_mono_class().is_assignable_from(&clases[3]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass> CompareClasses for (A,B,C,D,E) where (A,B,C,D,E):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
-        (clases[4] == E::get_mono_class())&&(clases.len() == 5)
+        (clases.len() == 5)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))&&(D::get_mono_class().is_assignable_from(&clases[3]))&&(E::get_mono_class().is_assignable_from(&clases[4]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass> CompareClasses for (A,B,C,D,E,F) where (A,B,C,D,E,F):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
-        (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases.len() == 6)
+        (clases.len() == 6)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))&&(D::get_mono_class().is_assignable_from(&clases[3]))&&(E::get_mono_class().is_assignable_from(&clases[4]))&&
+        (F::get_mono_class().is_assignable_from(&clases[5]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G) where (A,B,C,D,E,F,G):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
-        (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases.len() == 7)
+        (clases.len() == 7)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))&&(D::get_mono_class().is_assignable_from(&clases[3]))&&(E::get_mono_class().is_assignable_from(&clases[4]))&&
+        (F::get_mono_class().is_assignable_from(&clases[5]))&&(G::get_mono_class().is_assignable_from(&clases[6]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H) where (A,B,C,D,E,F,G,H):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
-        (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&(clases.len() == 8)
+        (clases.len() == 8)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))&&(D::get_mono_class().is_assignable_from(&clases[3]))&&(E::get_mono_class().is_assignable_from(&clases[4]))&&
+        (F::get_mono_class().is_assignable_from(&clases[5]))&&(G::get_mono_class().is_assignable_from(&clases[6]))&&(H::get_mono_class().is_assignable_from(&clases[7]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I) where (A,B,C,D,E,F,G,H,I):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
-        (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
-        (clases[8] == I::get_mono_class())&&(clases.len() == 9)
+        (clases.len() == 9)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))&&(D::get_mono_class().is_assignable_from(&clases[3]))&&(E::get_mono_class().is_assignable_from(&clases[4]))&&
+        (F::get_mono_class().is_assignable_from(&clases[5]))&&(G::get_mono_class().is_assignable_from(&clases[6]))&&(H::get_mono_class().is_assignable_from(&clases[7]))&&
+        (I::get_mono_class().is_assignable_from(&clases[8]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J) where (A,B,C,D,E,F,G,H,I,J):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
-        (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
-        (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases.len() == 10)
+        (clases.len() == 10)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))&&(D::get_mono_class().is_assignable_from(&clases[3]))&&(E::get_mono_class().is_assignable_from(&clases[4]))&&
+        (F::get_mono_class().is_assignable_from(&clases[5]))&&(G::get_mono_class().is_assignable_from(&clases[6]))&&(H::get_mono_class().is_assignable_from(&clases[7]))&&
+        (I::get_mono_class().is_assignable_from(&clases[8]))&&(J::get_mono_class().is_assignable_from(&clases[9]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
 K:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J,K) where (A,B,C,D,E,F,G,H,I,J,K):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
-        (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
-        (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases[10] == K::get_mono_class())&&(clases.len() == 11)
+        (clases.len() == 11)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))&&(D::get_mono_class().is_assignable_from(&clases[3]))&&(E::get_mono_class().is_assignable_from(&clases[4]))&&
+        (F::get_mono_class().is_assignable_from(&clases[5]))&&(G::get_mono_class().is_assignable_from(&clases[6]))&&(H::get_mono_class().is_assignable_from(&clases[7]))&&
+        (I::get_mono_class().is_assignable_from(&clases[8]))&&(J::get_mono_class().is_assignable_from(&clases[9]))&&(K::get_mono_class().is_assignable_from(&clases[10]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
 K:InteropClass,L:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J,K,L) where (A,B,C,D,E,F,G,H,I,J,K,L):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
-        (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
-        (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases[10] == K::get_mono_class())&&(clases[11] == L::get_mono_class())&&(clases.len() == 12)
+        (clases.len() == 12)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))&&(D::get_mono_class().is_assignable_from(&clases[3]))&&(E::get_mono_class().is_assignable_from(&clases[4]))&&
+        (F::get_mono_class().is_assignable_from(&clases[5]))&&(G::get_mono_class().is_assignable_from(&clases[6]))&&(H::get_mono_class().is_assignable_from(&clases[7]))&&
+        (I::get_mono_class().is_assignable_from(&clases[8]))&&(J::get_mono_class().is_assignable_from(&clases[9]))&&(K::get_mono_class().is_assignable_from(&clases[10]))&&
+        (L::get_mono_class().is_assignable_from(&clases[11]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
 K:InteropClass,L:InteropClass,M:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J,K,L,M) where (A,B,C,D,E,F,G,H,I,J,K,L,M):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
-        (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
-        (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases[10] == K::get_mono_class())&&(clases[11] == L::get_mono_class())&&
-        (clases[12] == M::get_mono_class())&&(clases.len() == 13)
+        (clases.len() == 13)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))&&(D::get_mono_class().is_assignable_from(&clases[3]))&&(E::get_mono_class().is_assignable_from(&clases[4]))&&
+        (F::get_mono_class().is_assignable_from(&clases[5]))&&(G::get_mono_class().is_assignable_from(&clases[6]))&&(H::get_mono_class().is_assignable_from(&clases[7]))&&
+        (I::get_mono_class().is_assignable_from(&clases[8]))&&(J::get_mono_class().is_assignable_from(&clases[9]))&&(K::get_mono_class().is_assignable_from(&clases[10]))&&
+        (L::get_mono_class().is_assignable_from(&clases[11]))&&(M::get_mono_class().is_assignable_from(&clases[12]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
 K:InteropClass,L:InteropClass,M:InteropClass,N:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J,K,L,M,N) where (A,B,C,D,E,F,G,H,I,J,K,L,M,N):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
-        (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
-        (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases[10] == K::get_mono_class())&&(clases[11] == L::get_mono_class())&&
-        (clases[12] == M::get_mono_class())&&(clases[13] == N::get_mono_class())&&(clases.len() == 14)
+        (clases.len() == 14)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))&&(D::get_mono_class().is_assignable_from(&clases[3]))&&(E::get_mono_class().is_assignable_from(&clases[4]))&&
+        (F::get_mono_class().is_assignable_from(&clases[5]))&&(G::get_mono_class().is_assignable_from(&clases[6]))&&(H::get_mono_class().is_assignable_from(&clases[7]))&&
+        (I::get_mono_class().is_assignable_from(&clases[8]))&&(J::get_mono_class().is_assignable_from(&clases[9]))&&(K::get_mono_class().is_assignable_from(&clases[10]))&&
+        (L::get_mono_class().is_assignable_from(&clases[11]))&&(M::get_mono_class().is_assignable_from(&clases[12]))&&(N::get_mono_class().is_assignable_from(&clases[13]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
 K:InteropClass,L:InteropClass,M:InteropClass,N:InteropClass,O:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O) where (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
-        (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
-        (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases[10] == K::get_mono_class())&&(clases[11] == L::get_mono_class())&&
-        (clases[12] == M::get_mono_class())&&(clases[13] == N::get_mono_class())&&(clases[14] == O::get_mono_class())&&(clases.len() == 15)
+        (clases.len() == 15)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))&&(D::get_mono_class().is_assignable_from(&clases[3]))&&(E::get_mono_class().is_assignable_from(&clases[4]))&&
+        (F::get_mono_class().is_assignable_from(&clases[5]))&&(G::get_mono_class().is_assignable_from(&clases[6]))&&(H::get_mono_class().is_assignable_from(&clases[7]))&&
+        (I::get_mono_class().is_assignable_from(&clases[8]))&&(J::get_mono_class().is_assignable_from(&clases[9]))&&(K::get_mono_class().is_assignable_from(&clases[10]))&&
+        (L::get_mono_class().is_assignable_from(&clases[11]))&&(M::get_mono_class().is_assignable_from(&clases[12]))&&(N::get_mono_class().is_assignable_from(&clases[13]))&&
+        (O::get_mono_class().is_assignable_from(&clases[14]))
     }
 }
 impl<A:InteropClass,B:InteropClass,C:InteropClass,D:InteropClass,E:InteropClass,F:InteropClass,G:InteropClass,H:InteropClass,I:InteropClass,J:InteropClass,
 K:InteropClass,L:InteropClass,M:InteropClass,N:InteropClass,O:InteropClass,P:InteropClass> CompareClasses 
 for (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P) where (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P):TupleToPtrs{
     fn compare(clases:&Vec<Class>)->bool{
-        (clases[0] == A::get_mono_class())&&(clases[1] == B::get_mono_class())&&(clases[2] == C::get_mono_class())&&(clases[3] == D::get_mono_class())&&
-        (clases[4] == E::get_mono_class())&&(clases[5] == F::get_mono_class())&&(clases[6] == G::get_mono_class())&&(clases[7] == H::get_mono_class())&&
-        (clases[8] == I::get_mono_class())&&(clases[9] == J::get_mono_class())&&(clases[10] == K::get_mono_class())&&(clases[11] == L::get_mono_class())&&
-        (clases[12] == M::get_mono_class())&&(clases[13] == N::get_mono_class())&&(clases[14] == O::get_mono_class())&&(clases[14] == P::get_mono_class())&&
-        (clases.len() == 16)
+        (clases.len() == 16)&&(A::get_mono_class().is_assignable_from(&clases[0]))&&(B::get_mono_class().is_assignable_from(&clases[1]))&&
+        (C::get_mono_class().is_assignable_from(&clases[2]))&&(D::get_mono_class().is_assignable_from(&clases[3]))&&(E::get_mono_class().is_assignable_from(&clases[4]))&&
+        (F::get_mono_class().is_assignable_from(&clases[5]))&&(G::get_mono_class().is_assignable_from(&clases[6]))&&(H::get_mono_class().is_assignable_from(&clases[7]))&&
+        (I::get_mono_class().is_assignable_from(&clases[8]))&&(J::get_mono_class().is_assignable_from(&clases[9]))&&(K::get_mono_class().is_assignable_from(&clases[10]))&&
+        (L::get_mono_class().is_assignable_from(&clases[11]))&&(M::get_mono_class().is_assignable_from(&clases[12]))&&(N::get_mono_class().is_assignable_from(&clases[13]))&&
+        (O::get_mono_class().is_assignable_from(&clases[14]))&&(P::get_mono_class().is_assignable_from(&clases[15]))
     }
 }
