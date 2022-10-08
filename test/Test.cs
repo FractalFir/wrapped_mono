@@ -93,6 +93,16 @@ class TestFunctions : IInterfaceOne{
         string res = a + b + c + d;
         return res.Length;
     }
+    static int DelFNC(int x,int y){
+        return x % y + x;
+    }
+    public delegate int TestDelegate(int x,int y);
+    public static TestDelegate GetDelegate(){
+        return new TestDelegate(DelFNC);
+    }
+    public static void ExceptionThrower(){
+        throw new System.InvalidOperationException("Logfile cannot be read-only");
+    }
 } 
 static class TestMainEntry{
     public static void Main(string[] ars){

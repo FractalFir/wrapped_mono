@@ -91,7 +91,6 @@ rusty_fork_test!{
     }
     #[test]
     fn ctors_recursive_get(){
-
         use crate::binds::MonoObject;
         use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
         let dom = jit::init("root",None);
@@ -108,5 +107,11 @@ rusty_fork_test!{
         assert!(ctors.len() == 5);
         */
         //panic!();
+    }
+    #[test]
+    fn get_delegate(){
+        use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
+        let dom = jit::init("root",None);
+        let del = Class::get_delegate_class();
     }
 } 

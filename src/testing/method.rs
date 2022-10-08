@@ -1,6 +1,7 @@
 use rusty_fork::rusty_fork_test;
 use crate as wrapped_mono;
 use wrapped_mono::wrapped_mono_macros::*;
+use crate::object::ObjectTrait;
 use wrapped_mono::{jit,class::Class,method::{Method,MethodTrait}};
 rusty_fork_test! {
     #[test]
@@ -305,30 +306,38 @@ rusty_fork_test! {
         let res = obj.unbox::<CLikeEnum>();
         assert!(res == arg1);
     }
-    /*
     #[test]
-    fn calling_str_test_method(){
+    fn getting_delegate_from_method(){
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(String,String,String,String)> = Method::get_method_from_name(&class,"StrTest",4).expect("Can't find method StrTest");
-        let obj = met.invoke(None,("one".to_owned(),"two".to_owned(),"three".to_owned(),"four".to_owned())).expect("Exception").expect("Got null on a non-nullable!");
-        let res = obj.unbox::<i32>();
-        assert!(res == 14);
+        let met:Method<()> = Method::get_method_from_name(&class,"GetDelegate",0).unwrap();
+        let obj = met.invoke(None,()).expect("Got an Exception").expect("Got null on a non-nullable!");
+        assert!(obj.get_class().is_delegate());
     }
-    */
-    /*
+    #[should_panic]
     #[test]
-    fn testing_function_signature(){
-        use wrapped_mono::{jit,class::Class,method::Method};
+    fn catching_exception_from_method(){
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
-        let sig_check = img.check_fnc_sig("TestFunctions::GetArg",Class::get_int_32(),&vec![Class::get_int_32()]);
-        assert!(sig_check);
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<()> = Method::get_method_from_name(&class,"ExceptionThrower",0).unwrap();
+        let obj = met.invoke(None,()).expect("Got an Exception").expect("Got null on a non-nullable!");
     }
-    */
+    #[test]
+    fn hnadling_exception_from_method(){
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let img = asm.get_image();
+        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
+        let met:Method<()> = Method::get_method_from_name(&class,"ExceptionThrower",0).unwrap();
+        match met.invoke(None,()){
+            Ok(_)=>panic!("Should get an exception, but got no exeception"),
+            Err(_)=>(),
+        };
+    }
 }
 use crate::{InteropRecive,InteropSend,InteropClass};
 use crate::InteropBox;

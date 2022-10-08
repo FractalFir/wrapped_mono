@@ -1,6 +1,6 @@
 use crate::binds::{MonoDelegate,MonoMethod};
 use crate::gc::GCHandle;
-use crate::{InteropSend,InteropRecive};
+use crate::{InteropSend,InteropRecive,InteropClass,Class};
 use std::marker::PhantomData;
 use crate::tupleutilis::{CompareClasses,TupleToPtrs};
 pub struct Delegate<Args:InteropSend>{
@@ -60,6 +60,7 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args> where <Args as Int
         res
     }
 }
+
 impl <Args:InteropSend> InteropRecive for Delegate<Args>{
     type SourceType = *mut MonoDelegate;
     fn get_rust_rep(ptr:*mut MonoDelegate)->Delegate<Args>{
@@ -70,5 +71,16 @@ impl <Args:InteropSend> InteropRecive for Option<Delegate<Args>>{
     type SourceType = *mut MonoDelegate;
     fn get_rust_rep(ptr:*mut MonoDelegate)->Option<Delegate<Args>>{
         Delegate::from_ptr(ptr)
+    }
+}
+impl <Args:InteropSend> InteropClass for Delegate<Args>{
+    fn get_mono_class()->Class{
+        Class::get_delegate_class()
+    }
+}
+impl <Args:InteropSend> InteropSend for Delegate<Args>{
+    type TargetType = *mut MonoDelegate;
+    fn get_mono_rep(input:Delegate<Args>)->Self::TargetType{
+        input.get_ptr()
     }
 }

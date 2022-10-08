@@ -177,6 +177,7 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args>{
         crate::hold(&args);
         //get result
         let res = unsafe{Object::from_ptr(res_ptr)};
+        println!("expect:{}",expect as usize);
         if expect.is_null(){
             Ok(res)
         }

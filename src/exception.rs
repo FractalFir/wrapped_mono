@@ -366,10 +366,11 @@ impl<T:Sized> ExceptManaged<T> for T{
     }
 }
 use core::fmt::Formatter;
+use crate::object::ObjectTrait;
 impl core::fmt::Debug for Exception{
-    fn fmt(&self, _: &mut Formatter<'_>) -> Result<(), std::fmt::Error> { 
-        //TODO: get exception string and write it.
-        unimplemented!("TODO: get exception string and write it");
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> { 
+        let mstr = self.to_mstring().expect("Got an exception while trying to convert an exception to string!").expect("Got null intead of a string while tring to convert an exception to a string!").to_string();
+        write!(f,"Exception:\"{}\"",mstr)
     }
 }
 use crate::MString;

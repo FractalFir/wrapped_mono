@@ -4,7 +4,7 @@ use crate::{Image,Method,MethodTrait,InteropSend};
 use std::ffi::CString;
 use core::ffi::c_void;
 ///Safe representaion of a managed class.(eg. System.Int64, System.Object, etc.);
-#[derive(Eq)]
+#[derive(Eq,Copy,Clone)]
 pub struct Class{
     class_ptr:*mut MonoClass,
 } 
@@ -331,6 +331,10 @@ impl Class{
     pub fn get_exception_class()->Class{
         unsafe{Class::from_ptr(crate::binds::mono_get_exception_class())}.expect("Could not get ExceptionClass!")
     }
+    /// Returns [`Class`] representing the type **System.Delegate**.
+    pub fn get_delegate_class()->Class{
+        *DELEGATE
+    }
     ///Returns all fields of a class
     pub fn get_fields(&self)->Vec<ClassField>{
         let mut gptr = std::ptr::null_mut::<std::os::raw::c_void>();
@@ -615,3 +619,13 @@ impl ClassProperity{
     }
     //TODO:mono_property_get_name
 }
+use crate::assembly::Assembly;
+use lazy_static::lazy_static;
+lazy_static!{
+    static ref DELEGATE:Class = {
+        let img = Assembly::assembly_loaded("mscorlib").expect("Assembly mscorlib not loaded, could not get System.Delegate class!").get_image();
+        Class::from_name_case(&img,"System","Delegate").expect("Could not get System.Delegate class form mscorlib!")
+    };
+}
+// Sharing Classes between thread is safe
+unsafe impl Sync for Class{} 
