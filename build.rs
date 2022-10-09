@@ -106,7 +106,7 @@ fn main() {
             for error in errors{
                 write!(res,"\"{}\" ",error);
             }
-            write!(res,"are missing. Is mono installed propely? It cna be downloaded here: https://www.mono-project.com/download/stable/").unwrap();
+            write!(res,"are missing. Is mono installed propely? It cna be downloaded here: https://www.mono-project.com/download/stable/ ").unwrap();
             panic!("{}",res);
         }
     }
