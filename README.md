@@ -51,7 +51,7 @@ Windows is now fully supported. As long as mono is installed in the default loca
 - [X] N-Dimensional arrays
 - [X] Autoimplementation of some Interop traits (Interop Send,InteropRecive) for structs. 
 - [X] Reading of assembly meatadata - primitive API, all features work, but API is hard to use(a lot of steps to retrieve data).
-- [X] Rework of Method type, change invocation API to a safe one and implement Fn traits *mostly done, 2 functions need changes,argument type checks must bee added*
+- [X] Rework of Method type, change invocation API to a safe one and implement Fn traits *done, 2 old functions can't work in their current form with the API and need changes*
 - [ ] Delegate support
 - [ ] Event support
 ## Version 0.3
