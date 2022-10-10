@@ -130,9 +130,11 @@ mod os_specific{
     pub fn check_files_present()->Result<(),Vec<String>>{
         use std::path::Path;
         let mut errors = Vec::new();
+        /*
         if !Path::new("/usr/include/mono-2.0/mono/").exists(){
             errors.push("/usr/include/mono-2.0/mono/".to_owned());
         }
+        */
         if !Path::new("/usr/lib/mono/").exists(){
             errors.push("/usr/lib/mono/".to_owned());
         }
@@ -143,6 +145,8 @@ mod os_specific{
     }
     pub fn insert_link_args(){
         println!("cargo:rustc-link-lib=mono-2.0");
+        println!("cargo:rustc-link-lib=stdc++");
+        println!("cargo:rustc-link-lib=z");
     }
     pub fn copy_dlls(){
 
