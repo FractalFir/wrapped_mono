@@ -306,16 +306,6 @@ rusty_fork_test! {
         let res = obj.unbox::<CLikeEnum>();
         assert!(res == arg1);
     }
-    #[test]
-    fn getting_delegate_from_method(){
-        let dom = jit::init("root",None);
-        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
-        let img = asm.get_image();
-        let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<()> = Method::get_method_from_name(&class,"GetDelegate",0).unwrap();
-        let obj = met.invoke(None,()).expect("Got an Exception").expect("Got null on a non-nullable!");
-        assert!(obj.get_class().is_delegate());
-    }
     #[should_panic]
     #[test]
     fn catching_exception_from_method(){
@@ -327,7 +317,7 @@ rusty_fork_test! {
         let obj = met.invoke(None,()).expect("Got an Exception").expect("Got null on a non-nullable!");
     }
     #[test]
-    fn hnadling_exception_from_method(){
+    fn handling_exception_from_method(){
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();

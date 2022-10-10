@@ -80,6 +80,8 @@ pub use exception::Exception;
 pub use mstring::MString;
 #[doc(inline)]
 pub use wrapped_mono_macros::{add_internal_call,invokable,InteropRecive,InteropSend};
+#[doc(inline)]
+pub use delegate::{Delegate,DelegateTrait};
 //for 0.2 TODO:create event object functionalites
 //for 0.2 TODO:create delegate related functionalites
 //for 0.2 TODO:create wrapper around MonoType. It is not necesary for basic functionalities, but is nice to have.

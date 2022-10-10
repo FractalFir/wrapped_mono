@@ -9,6 +9,7 @@ mod profiler;
 mod array;
 mod gc;
 mod benchmarks;
+mod delegate;
 use crate as wrapped_mono;
 use wrapped_mono::*;
 use mstring::MString;
