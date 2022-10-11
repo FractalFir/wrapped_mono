@@ -1,26 +1,26 @@
 use crate::binds::{MonoAssembly};
 use std::ffi::CString;
 use crate::image::Image;
-///Safe represtation of an executable file containg managed code and data about it.
+/// Safe representation of an executable file containing managed code and data about it.
 pub struct Assembly{
     ptr:*mut crate::binds::MonoAssembly,
 }
 impl Assembly{
-    ///Creates [`Assembly`] from a [`MonoAssembly`] pointer.
+    /// Creates [`Assembly`] from a [`MonoAssembly`] pointer.
     /// # Safety
     /// *ptr* must be a valid [`MonoAssembly`] pointer.
     pub unsafe fn from_ptr(ptr:*mut MonoAssembly) -> Assembly{
         Assembly{ptr}
     }
-    ///Returns internal pointer.
+    /// Returns the internal pointer to [`MonoAssembly`] this object represents.
     pub fn get_ptr(&self)->*mut MonoAssembly{
         self.ptr
     }
-    ///Gets the [`Image`] from this assembly(part of the assembly containing exexutable code)
+    /// Gets the [`Image`] from this assembly(part of the assembly containing executable code)
     pub fn get_image(&self)->Image{
         unsafe{Image::from_ptr(crate::binds::mono_assembly_get_image(self.ptr))}
     }
-    ///Returns main assembly(first loaded assembly)
+    /// Returns main assembly(first loaded assembly)
     pub fn get_main()->Option<Assembly>{
         let ptr = unsafe{crate::binds::mono_assembly_get_main()};
         if ptr.is_null(){
@@ -30,7 +30,7 @@ impl Assembly{
             unsafe{Some(Self::from_ptr(ptr))}
         }
     }
-    ///Gets name of assembly.
+    /// Gets name of assembly.
     pub fn get_name(&self)->String{
         // aname does not have to be freed, because it lives as long as the assembly.
         let aname_ptr = unsafe{crate::binds::mono_assembly_get_name(self.ptr)};
@@ -53,7 +53,7 @@ impl Assembly{
             unsafe{Some(Self::from_ptr(ptr))}
         }
     }
-    ///Releases reference to assembly. Assembly is closed when all outside references  to it are released.
+    /// Releases reference to assembly. Assembly is closed when all outside references  to it are released.
     pub fn close(&self){
         unsafe{crate::binds::mono_assembly_close(self.ptr)};
     }

@@ -5,12 +5,13 @@ use core::marker::PhantomData;
 use crate::domain::Domain;
 use crate::binds::MonoArray;
 use crate::gc::GCHandle;
-/// Safe representation of MonoArray(a reference to a managed array). Reqiures it's generic argument to implement InvokePass in order to automaticaly convert value from managed type to rust type.
-/// Will panic on creating an array with type mismatch betwen runtime and rust.
+// Documentation finished.
+/// Safe representation of MonoArray(a reference to a managed array). Requires it's generic argument to implement InvokePass in order to automatically convert value from managed type to rust type.
+/// Will panic on creating an array with type mismatch between runtime and rust.
 /// # Nullable support
-/// [`Array<T>`] is non-nullable on defult and will panic when null passed as argument form managed code. For nullable support use [`Option<Array<T>>`].
+/// [`Array<T>`] is non-nullable on default and will panic when null passed as argument form managed code. For nullable support use [`Option<Array<T>>`].
 /*
-    why is there a wierd constraint "where [();DIMENSIONS as usize]:Copy" in array type? It gurantes that Dimensions is higer than 0 and size array is larger than 0, 
+    why is there a weird constraint "where [();DIMENSIONS as usize]:Copy" in array type? It guarantees that Dimensions is higher than 0 and size array is larger than 0, 
     so Array<DIMENSIONS,T> can exist.
 */
 pub struct Array<const DIMENSIONS:u32,T:InteropSend + InteropRecive + InteropClass> where [();DIMENSIONS as usize]:Copy{
@@ -22,6 +23,7 @@ pub struct Array<const DIMENSIONS:u32,T:InteropSend + InteropRecive + InteropCla
     lengths:[u32;DIMENSIONS as usize],
 } 
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
+    // Private function used to calculate index in an array based on its dimensions.
     fn get_index(&self,indices:[usize;DIMENSIONS as usize])->usize{
         //size of current dimension
         let mut size = 1;
@@ -63,7 +65,7 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
         let src:T::SourceType = unsafe{*(crate::binds::mono_array_addr_with_size(self.get_ptr(),std::mem::size_of::<T::SourceType>() as i32,index) as *const T::SourceType)};
         T::get_rust_rep(src)
     }
-    /// Function seting element at *index* of [`Array`] to *value*
+    /// Function setting element at *index* of [`Array`] to *value*
     /// # Arguments
     /// |Name   |Type   |Description|
     /// |-------|-------|------|
@@ -163,7 +165,7 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
     pub fn to_object(&self)->Object{
         unsafe{Object::from_ptr(self.get_ptr() as *mut crate::binds::MonoObject)}.expect("Could not create object from array!")
     } 
-    ///Alocate new array in *domain* with size *DIMENSIONS* with elements of type *class*. 
+    /// Allocate new array in *domain* with size *DIMENSIONS* with elements of type *class*. 
     /// # Example
     ///```rust
     /// let arr_len = 8;
@@ -181,18 +183,18 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
             crate::binds::mono_array_new_full(domain.get_ptr(),class.get_ptr(),size as *const [usize] as *mut usize,null_mut())
         )}.expect("could not create a new array!")
     }
-    /// Function returning a copy of internal pointer to MonoArray
+    /// Function returning a copy of internal pointer to [`MonoArray`]
     /// # Arguments
     /// |Name   |Type   |Description|
     /// |-------|-------|------|
-    /// |self| &Array | Rust represenation of Array to get internal pointer to|
+    /// |self| &Array | Rust representation of Array to get internal pointer to|
     pub fn get_ptr(&self)->*mut crate::binds::MonoArray{
         #[cfg(not(feature = "referneced_objects"))]
         return self.arr_ptr;
         #[cfg(feature = "referneced_objects")]
         return self.handle.get_target() as *mut MonoArray;
     }
-    /// Clones managed array, **not** the refernece to it.
+    /// Clones managed array, **not** the reference to it.
     /// # Arguments
     /// |Name   |Type   |Description|
     /// |-------|-------|------|
