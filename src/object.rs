@@ -3,7 +3,6 @@ use crate::binds::{MonoObject};
 use crate::method::{Method,MethodTrait};
 use crate::domain::Domain;
 use crate::exception::ExceptManaged;
-use std::sync::Arc;
 use crate::gc::GCHandle;
 ///Safe representation of a refernece to a manged Object. Is **not nullable** when passed between managed and unmanged code(e.g when added as an argument to function exposed as an interna call). 
 ///It means that while it may represent a nullable type, wrapped-mono will automaticly panic when recived null value.
@@ -50,7 +49,7 @@ pub trait ObjectTrait{
     fn get_size(&self)->u32;
     /// get reflection token 
     //TODO:extend this description to make it more clear
-    #[doc(hide)] //reflection unsuported
+    #[doc(hidden)]
     fn reflection_get_token(&self)->u32;
     /// returns [`Class`] of this object.
     /// # Example

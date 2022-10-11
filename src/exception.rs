@@ -7,6 +7,7 @@ use crate::Class;
 use crate::Object;
 use crate::InteropClass;
 use crate::gc::GCHandle;
+use crate::ObjectTrait;
 /// Safe representation of MonoException
 pub struct Exception{
     #[cfg(not(feature = "referneced_objects"))]
@@ -81,7 +82,6 @@ impl Exception{
     }
     ///Casts object to exception. Returns [`None`] if cast failed
     pub fn cast_from_object(object:&Object)->Option<Exception>{
-        use crate::object::ObjectTrait;
         if !Class::get_exception_class().is_assignable_from(&object.get_class()){
             return None;
         }
@@ -366,7 +366,6 @@ impl<T:Sized> ExceptManaged<T> for T{
     }
 }
 use core::fmt::Formatter;
-use crate::object::ObjectTrait;
 impl core::fmt::Debug for Exception{
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> { 
         let mstr = self.to_mstring().expect("Got an exception while trying to convert an exception to string!").expect("Got null intead of a string while tring to convert an exception to a string!").to_string();

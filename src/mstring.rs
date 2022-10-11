@@ -106,7 +106,7 @@ impl ToString for MString{
     }
 }
 use crate::Exception;
-use crate::binds::{MonoObject,MonoException};
+use crate::binds::MonoObject;
 impl crate::object::ObjectTrait for MString{
     fn hash(&self)->i32{
         unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject)}

@@ -1,11 +1,12 @@
-//Experimental features:
+// Some experimental features simply need to be enabled to make wrapped_mono work. They are used rarely and with special caution.
+#![allow(incomplete_features)]
 // Necesary for proper work of Method, usage rather simple, but bugs possible when changes to compiler are made.
 #![feature(specialization)]
-//used only for array sizes, in a very simple, limited manner. Should not cause trubles when updating.
+// used only for array sizes, in a very simple, limited manner. Should not cause trubles when updating.
 #![feature(generic_const_exprs)]
-//used for benchmarking
+// used for benchmarking
 #![feature(test)]
-//doctest are dissabled, because they do not work with rusty_fork! whcich is required for testing mono runtime
+// doctest are dissabled, because they do not work with rusty_fork! whcich is required for testing mono runtime
 #![cfg(not(doctest))] 
 //! `wrapped_mono` is a lightweight wrapper around the mono runtime, allowing emmbeding code from lagnages from the .NET frameawork into rust code.
 //! Besides simple warppers around most functions, this crate also contains copule tratis and macros allowing easy interop between managed and unmanged code.
