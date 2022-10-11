@@ -107,3 +107,20 @@ fn call_method(b: &mut Bencher) {
         met.invoke(None,8).unwrap().unwrap();
     });
 }
+#[bench]
+fn preform_gc(b: &mut Bencher){
+    let dom = &DOM;
+    //enusure that used thread is attached to main domain
+    dom.attach_thread();
+    //objects necessary to preform gc on.
+    let mut objs = Vec::with_capacity(0xFFFFF);
+    //Guarantee constant test conditions
+    gc::collect(gc::max_generation());
+    let class = Class::get_object();
+    for i in 0..0xFFFF{
+        objs.push(Object::new(dom,&class));
+    }
+    b.iter(|| {
+        gc::collect(gc::max_generation());
+    });
+}

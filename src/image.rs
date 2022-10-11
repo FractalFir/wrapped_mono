@@ -1,5 +1,5 @@
 use crate::binds::MonoImage;
-/// Safe representation [`MonoImage`], the part of [`MonoAssembly`] holding CLI code.
+/// Safe representation of [`MonoImage`], the part of [`MonoAssembly`] holding CLI code.
 #[derive(Copy,Clone)]
 pub struct Image{
     img_ptr:*mut MonoImage,
@@ -36,7 +36,7 @@ impl Image{
     pub fn init(&self){
         unsafe{crate::binds:: mono_image_init(self.img_ptr)};
     }
-    ///Returns name of the image
+    /// Returns name of this image
     pub fn get_name(&self)->String{
         let ptr = unsafe{crate::binds::mono_image_get_name(self.img_ptr)};
         let cstr = unsafe{CString::from_raw(ptr as *mut i8)};
