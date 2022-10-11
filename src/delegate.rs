@@ -119,9 +119,9 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args> where <Args as Int
             #[cfg(feature = "referneced_objects")]
             {Self{handle:GCHandle::create_default(ptr as *mut crate::binds::MonoObject),args_type:PhantomData}}                
         }};
-        /// Do type checks
-        let mut params = res.get_params();
-        if !<<Args as InteropSend>::TargetType as CompareClasses>::compare(&mut params){
+        // Do type checks
+        let params = res.get_params();
+        if !<<Args as InteropSend>::TargetType as CompareClasses>::compare(&params){
             use std::fmt::Write;
             let mut msg = format!("Method Type Mismatch! Got a method accepting {} arguments of types:",params.len());
             for param in params{
@@ -141,9 +141,9 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args> where <Args as Int
             #[cfg(feature = "referneced_objects")]
             {Self{handle:GCHandle::create_default(ptr as *mut crate::binds::MonoObject),args_type:PhantomData}}                
         }};
-        /// Do type checks
-        let mut params = res.get_params();
-        if !<<Args as InteropSend>::TargetType as CompareClasses>::compare(&mut params){
+        // Do type checks
+        let params = res.get_params();
+        if !<<Args as InteropSend>::TargetType as CompareClasses>::compare(&params){
             None
         }
         else {
@@ -232,6 +232,6 @@ impl<Args:InteropSend> ObjectTrait for Delegate<Args>{
         if !Self::get_mono_class().is_assignable_from(&obj.get_class()){
             None
         }
-        else {unsafe{Self::from_ptr_checked(obj.get_ptr() as *mut _)}}
+        else {Self::from_ptr_checked(obj.get_ptr() as *mut _)}
     }
 }

@@ -209,7 +209,7 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args>{
             return None;
         }
         let res = Self{method:met_ptr,args_type:PhantomData};
-        let params = res.get_params();
+        let _params = res.get_params();
         Some(res)
     }
 }
@@ -249,8 +249,8 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args> where <Args as Intero
             return None;
         }
         let res = Self{method:met_ptr,args_type:PhantomData};
-        let mut params = res.get_params();
-        if !<<Args as InteropSend>::TargetType as CompareClasses>::compare(&mut params){
+        let params = res.get_params();
+        if !<<Args as InteropSend>::TargetType as CompareClasses>::compare(&params){
             use std::fmt::Write;
             let mut msg = format!("Method Type Mismatch! Got a method accepting {} arguments of types:",params.len());
             for param in params{
@@ -265,8 +265,8 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args> where <Args as Intero
             return None;
         }
         let res = Self{method:met_ptr,args_type:PhantomData};
-        let mut params = res.get_params();
-        if !(<<Args as InteropSend>::TargetType as CompareClasses>::compare(&mut params)){
+        let params = res.get_params();
+        if !(<<Args as InteropSend>::TargetType as CompareClasses>::compare(&params)){
             return None;
         }
         Some(res)

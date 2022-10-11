@@ -104,7 +104,7 @@ fn main() {
         Err(errors)=>{
             let mut res = "files: ".to_owned();
             for error in errors{
-                write!(res,"\"{}\" ",error);
+                write!(res,"\"{}\" ",error).unwrap();
             }
             write!(res,"are missing. Is mono installed propely? It cna be downloaded here: https://www.mono-project.com/download/stable/ ").unwrap();
             panic!("{}",res);
@@ -141,7 +141,7 @@ mod os_specific{
         if errors.is_empty(){
             return Ok(());
         }
-        return Err(errors);
+        Err(errors)
     }
     pub fn insert_link_args(){
         println!("cargo:rustc-link-lib=mono-2.0");
@@ -166,7 +166,7 @@ mod os_specific{
         if errors.is_empty(){
             return Ok(());
         }
-        return Err(errors);
+       Err(errors)
     }
     pub fn insert_link_args(){
         println!("cargo:rustc-link-search=C:\\Program Files\\Mono\\lib");

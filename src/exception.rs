@@ -416,7 +416,7 @@ impl crate::object::ObjectTrait for Exception{
 }
 impl InteropClass for Exception{
     fn get_mono_class()->Class{
-        return Class::get_exception_class();
+        Class::get_exception_class()
     }
 }
 impl Clone for Exception{

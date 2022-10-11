@@ -1,7 +1,7 @@
 use crate::binds::{MonoProfilerHandle,MonoProfiler,_MonoProfiler,MonoProfilerCallContext};
-use crate::{Object,Domain,Method,MethodTrait,Array,MString};
+use crate::{Object,Domain,Method,MethodTrait};
 use crate::interop::InteropRecive;
-//TODO: fix to allow arc.
+// Profiler is not finished so it has some dead code that will fixed addressed in the future TODO: fix profiler dead code
 struct _Profiler<T>{
     handle:MonoProfilerHandle,
     rtime_init_cb:Option<fn (profiler:&mut Profiler<T>)>,

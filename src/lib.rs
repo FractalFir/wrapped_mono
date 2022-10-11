@@ -58,6 +58,7 @@ pub mod delegate;
 
 mod tupleutilis;
 /// Experimental Profiler API. Barebones and may contain bugs.
+#[allow(dead_code)]
 pub mod profiler;
 mod testing;
 pub use wrapped_mono_macros;

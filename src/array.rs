@@ -1,6 +1,6 @@
 use crate::interop::{InteropRecive,InteropSend,InteropClass};
 use crate::Class;
-use crate::{Object};
+use crate::{Object,ObjectTrait};
 use core::marker::PhantomData;
 use crate::domain::Domain;
 use crate::binds::MonoArray;
@@ -34,7 +34,7 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
             index += ind * size;
             size *= len;
         }
-        return index;
+        index
     }
     /// Function returning element at *index* 
     /// # Arguments
@@ -108,7 +108,7 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
     /// }
     /// ```
     pub fn len(&self)->usize{
-        unsafe{crate::binds::mono_array_length(self.get_ptr()) as usize}
+        unsafe{crate::binds::mono_array_length(self.get_ptr())}
     }
     /// Checks if [`Array`] is empty.
     /// # Arguments
@@ -138,7 +138,6 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
         {
             let rank = res.get_class().get_rank();
             assert!(rank == DIMENSIONS,"Array dimension mismatch got:{}, expected:{}",rank,DIMENSIONS);
-            use crate::object::ObjectTrait;
             let sclass = res.to_object().get_class(); 
             let tclass = <Self as InteropClass>::get_mono_class();
             if sclass.get_element_class() != tclass.get_element_class(){
@@ -177,7 +176,7 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
     /// |domain| &[`Domain`] | domain to create array in|
     /// |size|`&[usize;DIMENSIONS as usize]`| size of the array to create|
     pub fn new(domain:&Domain,size:&[usize;DIMENSIONS as usize])->Self{
-        let class = <T as InteropClass>::get_mono_class().get_array_class(DIMENSIONS as u32);
+        let class = <T as InteropClass>::get_mono_class().get_array_class(DIMENSIONS);
         unsafe{Self::from_ptr(
             crate::binds::mono_array_new_full(domain.get_ptr(),class.get_ptr(),size as *const [usize] as *mut usize,null_mut())
         )}.expect("could not create a new array!")
@@ -212,7 +211,7 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
     /// |-------|-------|------|
     /// |self|&Array|Array to get size of|
     pub fn get_lenghts(&self)->[u32; DIMENSIONS as usize]{
-        return self.lengths;
+        self.lengths
     }
 }
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  InteropRecive for Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
@@ -276,7 +275,6 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  crate:
     /// |-------|-------|------|
     /// |object| &Object | object to cast from |
     fn cast_from_object(object:&Object)->Option<Array<DIMENSIONS,T>>{
-        use crate::object::ObjectTrait;
         let sclass = object.get_class(); 
         let tclass = <Self as InteropClass>::get_mono_class();
         if sclass.get_element_class() != tclass.get_element_class(){
