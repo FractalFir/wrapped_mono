@@ -227,7 +227,7 @@ impl InteropSend for String{
     type TargetType = *mut crate::binds::MonoString;
     fn get_mono_rep(rust_arg:Self)->Self::TargetType{
         use crate::MString;
-        MString::new(&crate::Domain::get_curr().
+        MString::new(&crate::Domain::get_current().
             expect("Could not get current domain when sending strings to mono runtime!"),
             &rust_arg).
         get_ptr()

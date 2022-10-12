@@ -429,6 +429,111 @@ impl Class{
         let name = self.get_name();
         namespace + &name
     }
+    pub fn construct_generic_class(namespace:&str,name:&str,generic_args:&[Class])->Option<Class>{
+        // get name of the generic type this type will be derived from
+        let mut garg_count = generic_args.len();
+        assert!(garg_count > 0);
+        let path = format!("{}.{}`{}\0",namespace,name,garg_count);
+        // get current domain
+        let dom = crate::Domain::get_current().expect("Generic clases can't be constructed before jit is initialized!");
+        // create mstring representing type name of the generic uninflated type
+        let mstr_ptr = unsafe{crate::binds::mono_string_new(
+            dom.get_ptr(),
+            path.as_ptr() as *const _)};
+        // ensure path lives long enough to create the mstring.
+        crate::hold(&path);
+        // exception pointer
+        let mut e:usize = 0;
+        // invoke Type.GetType to get type from path
+        let obj = unsafe{crate::binds::mono_runtime_invoke(
+             *GET_TYPE_MET as *mut crate::binds::MonoMethod,
+             0 as *mut c_void,
+             &mstr_ptr as *const _ as *mut *mut c_void,
+             &mut e as *mut usize as *mut *mut crate::binds::MonoObject,
+        )};
+        // Check that function did not fail
+        if e != 0{
+            return None;
+        }
+        if obj.is_null(){
+            return None;
+        }
+        // Convert all classes to types
+        let mut t_vec = Vec::with_capacity(garg_count);
+        for garg in generic_args{
+            t_vec.push(
+                unsafe{crate::binds::mono_class_get_type(garg.get_ptr())}
+            );
+        }
+        let arr_type = TYPE_CLASS.get_array_class(1);
+        // Create array of types
+        let arr = unsafe{crate::binds::mono_array_new_full(dom.get_ptr(),arr_type.get_ptr(),&garg_count as *const usize as *mut usize,0 as *mut isize)};
+        // Copy contents of the array
+        for i in 0..garg_count{
+            use crate::binds::MonoType;
+            let adr = unsafe{crate::binds::mono_array_addr_with_size(arr, std::mem::size_of::<*mut MonoType>() as i32, i)};
+            unsafe{*(adr as *mut *mut MonoType) = t_vec[i]};
+        }
+        // Hold t_vec until coping is finished
+        crate::hold(&t_vec);
+        // Invoke test fnc
+        let img = Assembly::assembly_loaded("Test").expect("Assembly Test not loaded, could not get TestFunctions class!").get_image();
+        let class = Class::from_name_case(&img,"","TestFunctions").expect("Could not get TestFunctions class form mscorlib!");
+        let met = unsafe{crate::binds::mono_class_get_method_from_name(class.get_ptr(),"PrintTypes\0".as_ptr() as *const i8,1)};
+        if met.is_null(){
+            panic!("null");
+        }
+        use crate::MString;
+        println!("{} {}",met as usize, &arr as *const _ as usize);
+        let mstr_ptr = unsafe{crate::binds::mono_runtime_invoke(
+            met,
+            0 as *mut c_void,
+            &arr as *const _ as *mut *mut c_void,
+            &mut e as *mut usize as *mut *mut crate::binds::MonoObject,
+        )};
+        let mstr = unsafe{MString::from_ptr(mstr_ptr as *mut _)}.unwrap();
+        panic!("{}",mstr.to_string());
+        // Call MakeGenericType
+        let generic_type = unsafe{crate::binds::mono_runtime_invoke(
+             *MAKE_GENERIC_TYPE_MET as *mut crate::binds::MonoMethod,
+             obj as *mut c_void,
+             &arr as *const _ as *mut *mut c_void,
+             &mut e as *mut usize as *mut *mut crate::binds::MonoObject,
+        )};
+        // Check that function call did not fail
+        if e != 0{
+            let e = unsafe{crate::Exception::from_ptr(e as *mut _)}.unwrap();
+            use crate::object::ObjectTrait;
+            println!("{}",e.get_class().get_name_sig());
+            panic!("Got exception:\"{}\" while calling MakeGenericType",e);
+            return None;
+        }
+        if obj.is_null(){
+            panic!("Got an null while calling MakeGenericType");
+            return None;
+        }
+        let c = unsafe{Class::from_ptr(crate::binds::mono_class_from_mono_type(generic_type as *mut _))};
+        return c;
+    }
+}
+lazy_static!{
+    // Used when constructing generic classes System.Type::GetType()
+    static ref GET_TYPE_MET:usize = {
+        let img = Assembly::assembly_loaded("mscorlib").expect("Assembly mscorlib not loaded, could not get System.Type class!").get_image();
+        let class = Class::from_name_case(&img,"System","Type").expect("Could not get System.Type class form mscorlib!");
+        unsafe{crate::binds::mono_class_get_method_from_name(class.get_ptr(),"GetType\0".as_ptr() as *const i8,1) as usize}
+    };
+    static ref MAKE_GENERIC_TYPE_MET:usize = {
+        let img = Assembly::assembly_loaded("mscorlib").expect("Assembly mscorlib not loaded, could not get System.Type class!").get_image();
+        let class = Class::from_name_case(&img,"System","Type").expect("Could not get System.Type class form mscorlib!");
+        unsafe{crate::binds::mono_class_get_method_from_name(class.get_ptr(),"MakeGenericType\0".as_ptr() as *const i8,1) as usize}
+    };
+    // System.Type used when constructing generics
+    // Used when constructing generic classes System.Type::GetType()
+    static ref TYPE_CLASS:Class = {
+        let img = Assembly::assembly_loaded("mscorlib").expect("Assembly mscorlib not loaded, could not get System.Type class!").get_image();
+        Class::from_name_case(&img,"System","Type").expect("Could not get System.Type class form mscorlib!")
+    };
 }
 impl std::cmp::PartialEq for Class{
     fn eq(&self,other:&Self)->bool{

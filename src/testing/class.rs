@@ -114,4 +114,13 @@ rusty_fork_test!{
         let dom = jit::init("root",None);
         let del = Class::get_delegate_class();
     }
+    #[test]
+    fn construct_generic_class(){
+        use crate::interop::InteropClass;
+        use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let t = Class::construct_generic_class("System","Tuple",&[i32::get_mono_class(),i32::get_mono_class()]);
+        panic!("{}",t.unwrap().get_name_sig());
+    }
 } 

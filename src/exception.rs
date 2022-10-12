@@ -435,3 +435,10 @@ impl<O:ObjectTrait> PartialEq<O> for Exception{
         self.get_ptr() as *mut _ == other.cast_to_object().get_ptr()
     }
 }
+impl std::fmt::Display for Exception{
+    fn fmt(&self,f:&mut Formatter<'_>)->Result<(), std::fmt::Error>{
+        let mstr = self.to_mstring();
+        println!("Called .ToString on Execption");
+        write!(f,"{}",mstr.expect("Got an exception while converting an exception String!").expect("Got null from converting exception to string!").to_string())
+    }
+}

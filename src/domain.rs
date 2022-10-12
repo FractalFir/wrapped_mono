@@ -48,7 +48,7 @@ impl Domain{
     pub fn get_ptr(&self)->*mut MonoDomain{
         self.ptr
     }
-    // /Sets domain as the current domain.
+    /// Sets domain as the current domain.
     pub fn set(&self,active:bool){
         unsafe{crate::binds::mono_domain_set(self.ptr, active as i32)};
     }
@@ -73,7 +73,7 @@ impl Domain{
     }
     */
     /// Returns current domain or None if mono runtime is not initialized yet.
-    pub fn get_curr()->Option<Domain>{
+    pub fn get_current()->Option<Domain>{
         let ptr = unsafe{crate::binds::mono_domain_get()};
         if ptr.is_null(){
             None
