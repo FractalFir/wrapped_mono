@@ -159,6 +159,13 @@ rusty_fork_test! {
         let img = asm.get_image();
         let _class = Class::from_name(&img,"","TestFunctions");
     }
+    /*
+    #[test]
+    fn get_tuple_class(){
+        use wrapped_mono::*;
+        let dom = jit::init("root",None);
+        let tuple_class = <(i32,u32) as InteropClass>::get_mono_class();
+    }*/
 } 
 use crate::wrapped_mono_macros::{InteropRecive,InteropSend};
 #[derive(InteropRecive,InteropSend)]

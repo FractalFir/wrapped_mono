@@ -354,8 +354,18 @@ pub fn except_managed<T:Sized>(option:Option<T>,msg:&str)->T{
     match option{
         Some(t)=>t,
         None=>{
-            let msg = format!("Got null on argument of type {} when expected some value:{}",std::any::type_name::<T>(),msg);
             let exc = Exception::argument_null(&format!("Value of type: \"{}\" was null!\"{}\"",std::any::type_name::<T>(),&msg));
+            exc.raise();
+            panic!("Impossible condition reached. Code executed after exception thrown.");
+        }
+    }
+}
+/// Variant of except which instead of panicking will raise a managed exception.
+pub fn unwrap_managed<T:Sized>(option:Option<T>)->T{
+    match option{
+        Some(t)=>t,
+        None=>{
+            let exc = Exception::argument_null(&format!("Value of type: \"{}\" was null!",std::any::type_name::<T>()));
             exc.raise();
             panic!("Impossible condition reached. Code executed after exception thrown.");
         }
@@ -418,5 +428,10 @@ impl InteropClass for Exception{
 impl Clone for Exception{
     fn clone(&self)->Self{
         unsafe{Self::from_ptr(self.get_ptr()).unwrap()}//If exception exists then it can't be null
+    }
+}
+impl<O:ObjectTrait> PartialEq<O> for Exception{
+    fn eq(&self,other:&O)->bool{
+        self.get_ptr() as *mut _ == other.cast_to_object().get_ptr()
     }
 }

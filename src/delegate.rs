@@ -235,3 +235,9 @@ impl<Args:InteropSend> ObjectTrait for Delegate<Args>{
         else {Self::from_ptr_checked(obj.get_ptr() as *mut _)}
     }
 }
+impl<O:ObjectTrait,Args:InteropSend> PartialEq<O> for Delegate<Args>{
+    fn eq(&self,other:&O)->bool{
+        self.get_ptr() as *mut _ == other.cast_to_object().get_ptr()
+    }
+}
+

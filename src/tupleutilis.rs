@@ -377,3 +377,4 @@ for (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P) where (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P):Tu
         (O::get_mono_class().is_assignable_from(&clases[14]))&&(P::get_mono_class().is_assignable_from(&clases[15]))
     }
 }
+//use lazy_static::*;

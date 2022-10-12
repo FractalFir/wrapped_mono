@@ -256,6 +256,11 @@ impl InteropClass for Option<Object>{
         Class::get_object()
     }
 }
+impl<O:ObjectTrait> PartialEq<O> for Object{
+    fn eq(&self,other:&O)->bool{
+        self.get_ptr() == other.cast_to_object().get_ptr()
+    }
+}
 impl Clone for Object{
     fn clone(&self)->Self{
         unsafe{Self::from_ptr(self.get_ptr()).unwrap()}//If object exists then it can't be null

@@ -5,6 +5,8 @@ use std::ffi::CString;
 use crate::interop::{InteropRecive,InteropSend,InteropClass};
 use crate::Class;
 use crate::gc::GCHandle;
+use crate::ObjectTrait;
+
 ///needed for docs
 #[allow(unused_imports)]
 use crate::object::Object;
@@ -111,7 +113,7 @@ impl ToString for MString{
 }
 use crate::Exception;
 use crate::binds::MonoObject;
-impl crate::object::ObjectTrait for MString{
+impl ObjectTrait for MString{
     fn hash(&self)->i32{
         unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject)}
     }
@@ -155,5 +157,10 @@ impl crate::object::ObjectTrait for MString{
 impl Clone for MString{
     fn clone(&self)->Self{
         unsafe{Self::from_ptr(self.get_ptr()).unwrap()}//If object exists then it can't be null
+    }
+}
+impl<O:ObjectTrait> PartialEq<O> for MString{
+    fn eq(&self,other:&O)->bool{
+        self.get_ptr() as *mut _ == other.cast_to_object().get_ptr()
     }
 }

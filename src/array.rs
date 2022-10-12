@@ -302,3 +302,8 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Clone f
         unsafe{Self::from_ptr(self.get_ptr()).unwrap()}//If object exists then it can't be null
     }
 }
+impl<const DIMENSIONS:u32,T:InteropSend + InteropRecive + InteropClass,O:ObjectTrait> PartialEq<O> for Array<DIMENSIONS, T> where [();DIMENSIONS as usize]:Copy{
+    fn eq(&self,other:&O)->bool{
+        self.get_ptr() as *mut _ == other.cast_to_object().get_ptr()
+    }
+}

@@ -1,13 +1,13 @@
 use crate::binds::{MonoDomain, mono_domain_create,mono_domain_assembly_open};
 use crate::assembly::{Assembly};
-/// Safe representation of MonoDoamin type.
+/// Safe representation of [`MonoDomain`] type.
 #[derive(Eq)]
 pub struct Domain{
     ptr:*mut MonoDomain,
 } 
 use std::ffi::CString;
 impl Domain{ 
-    ///Loads [`Assembly`] at path into domain, returns **None** if assembly could not be loaded(is missing or broken), and **Some(Assembly)** if it was succesfuly loaded. 
+    /// Loads [`Assembly`] at path into domain, returns **None** if assembly could not be loaded(is missing or broken), and **Some(Assembly)** if it was successfully loaded. 
     pub fn assembly_open(&self,path:&str)->Option<Assembly>{
         //! # Example
         //!```rust
@@ -21,7 +21,7 @@ impl Domain{
         crate::hold(&cstr);
         Some(unsafe{Assembly::from_ptr(ptr)})
     }
-    /// Creates new empty domain
+    /// Creates a new empty domain
     /// # Example
     /// ```rust
     /// let domain1 = jit::init();
@@ -38,22 +38,22 @@ impl Domain{
         drop(bd_cstr);
         drop(fnme_cstr);
     }
-    /// Function creating MonoDomain type from a pointer.
+    /// Function creating [`Domain`] type from a pointer to [`MonoDomain`].
     /// # Safety
-    /// Pointer must be a valid pointer to MonoDomain.
+    /// Pointer must be a valid pointer to [`MonoDomain`].
     pub unsafe fn from_ptr(ptr:*mut MonoDomain)->Domain{
         Self{ptr}
     }
-    /// Function returning internal pointer to MonoDomain
+    /// Function returning internal pointer to [`MonoDomain`]
     pub fn get_ptr(&self)->*mut MonoDomain{
         self.ptr
     }
-    ///Sets domain as current domain.
+    // /Sets domain as the current domain.
     pub fn set(&self,active:bool){
         unsafe{crate::binds::mono_domain_set(self.ptr, active as i32)};
     }
-    ///Attach current thread
-    pub fn attach(&self){
+    /// Attaches current thread (makes domain "aware" of this threads existence, allowing domain to eg. automatically stop it during garbage collection to prevent errors.) Should be done for all threads that will interact with this domain.  
+    pub fn attach_thread(&self){
         unsafe{crate::binds::mono_jit_thread_attach(self.ptr)};
     }
     /* TODO: fix domain unloading/freeing
@@ -72,7 +72,7 @@ impl Domain{
         drop(self);
     }
     */
-    ///Returns current domain or None if jit not initialized yet.
+    /// Returns current domain or None if mono runtime is not initialized yet.
     pub fn get_curr()->Option<Domain>{
         let ptr = unsafe{crate::binds::mono_domain_get()};
         if ptr.is_null(){
@@ -80,11 +80,8 @@ impl Domain{
         }
         else {unsafe{Some(Self::from_ptr(ptr))}}
     }
-    ///Attached thread to this domain, allowing it to use it safely.
-    pub fn attach_thread(&self){
-        unsafe{crate::binds::mono_jit_thread_attach(self.get_ptr())};
-    }
 }
+// Allows you to compare two domains to check if they are one and the same.
 impl std::cmp::PartialEq for Domain{
     fn eq(&self, other: &Self) -> bool {
         self.ptr == other.ptr
