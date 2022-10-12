@@ -219,9 +219,9 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  InteropRecive for Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
     type SourceType = *mut crate::binds::MonoArray;
     fn get_rust_rep(arg:Self::SourceType)->Self{
-        use crate::exception::ExceptManaged;
+        use crate::exception::except_managed;
         let opt = unsafe{Self::from_ptr(arg)};
-        <Array<DIMENSIONS,T> as ExceptManaged<Array<DIMENSIONS,T>>>::expect_managed_arg(opt,"Got null in an not nullable type. For nullable support use Option<Array>")
+        except_managed(opt,"Got null in an not nullable type. For nullable support use Option<Array>")
     }
 }
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  InteropSend for Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{

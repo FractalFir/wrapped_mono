@@ -2,8 +2,9 @@ use crate::class::Class;
 use crate::binds::{MonoObject};
 use crate::method::{Method,MethodTrait};
 use crate::domain::Domain;
-use crate::exception::ExceptManaged;
+use crate::exception::except_managed;
 use crate::gc::GCHandle;
+use crate::interop::{InteropRecive,InteropSend};
 ///Safe representation of a refernece to a manged Object. Is **not nullable** when passed between managed and unmanged code(e.g when added as an argument to function exposed as an interna call). 
 ///It means that while it may represent a nullable type, wrapped-mono will automaticly panic when recived null value.
 ///For nullable support use `Option<Object>`.
@@ -211,12 +212,11 @@ impl Object{
         ))}
     }
 }
-use crate::interop::{InteropRecive,InteropSend};
 impl InteropRecive for Object{
     type SourceType = *mut  crate::binds::MonoObject;
     fn get_rust_rep(arg:Self::SourceType)->Self{
         let opt = unsafe{Self::from_ptr(arg)};
-        <Object as ExceptManaged<Object>>::expect_managed_arg(opt,"Passed null reference to not nullable type! For nullable use Option<Object>!")
+        except_managed(opt,"Rust function argument type is not nullable, but got null!For nullable types use Option<Object>!")
     }
 }
 impl InteropSend for Object{

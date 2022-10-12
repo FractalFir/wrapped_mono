@@ -25,7 +25,7 @@ impl<Args:InteropSend> Delegate<Args>{
     /// # Arguments
     /// |Name   |Type   |Description|
     /// |-------|-------|------|
-    /// |self|&[`Method`]|Rust representation of a method to get argument count of|
+    /// |self|&[Delegate]|Rust representation of a delegate to get argument count of|
     pub fn get_param_count(&self)->u32{
         let sig = unsafe{crate::binds::mono_method_signature(self.get_method_ptr())};
         unsafe{crate::binds::mono_signature_get_param_count(sig)}
@@ -34,7 +34,7 @@ impl<Args:InteropSend> Delegate<Args>{
     /// # Arguments
     /// |Name   |Type   |Description|
     /// |-------|-------|------|
-    /// |self|&[`Method`]|Rust representation of a method to get argument types off|
+    /// |self|&[`Delegate`]|Rust representation of a delegate to get argument types off|
     pub fn get_params(&self)->Vec<Class>{
         let sig = unsafe{crate::binds::mono_method_signature(self.get_method_ptr())};
         let mut iter:usize = 0;
@@ -88,7 +88,7 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args>{
         let mut args = <Args as InteropSend>::get_mono_rep(params);
         //convert arguments to pointers
         let mut params = &mut args as *mut _ as *mut c_void;
-        //invoke the method itself
+        //invoke the delegate itself
         let res_ptr = unsafe{crate::binds::mono_runtime_delegate_invoke(
             self.get_ptr() as *mut _,
             &mut params as *mut *mut c_void,
@@ -123,7 +123,7 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args> where <Args as Int
         let params = res.get_params();
         if !<<Args as InteropSend>::TargetType as CompareClasses>::compare(&params){
             use std::fmt::Write;
-            let mut msg = format!("Method Type Mismatch! Got a method accepting {} arguments of types:",params.len());
+            let mut msg = format!("Delegate Type Mismatch! Got a deleagte accepting {} arguments of types:",params.len());
             for param in params{
                 write!(msg,",\"{}\"",param.get_name_sig()).expect("Could not print inproper function argument types!");
             }
@@ -155,7 +155,7 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args> where <Args as Int
         //convert argument types
         let mut args = <Args as InteropSend>::get_mono_rep(params);
         let mut params = <<Args as InteropSend>::TargetType as TupleToPtrs>::get_ptrs(&mut args as *mut _);
-        //invoke the method itself
+        //invoke the delegate itself
         let res_ptr = unsafe{crate::binds::mono_runtime_delegate_invoke(
             self.get_ptr() as *mut _,
             &mut params as *mut _ as *mut *mut c_void,

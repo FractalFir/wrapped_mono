@@ -39,7 +39,7 @@ impl Assembly{
         let _ = cstr_name.into_raw();//release pointer
         name
     }
-    ///Checks if assembly *name* is loaded, and if it is returns that assembly.
+    /// Checks if assembly *name* is loaded, and if it is returns that assembly.
     pub fn assembly_loaded(name:&str)->Option<Assembly>{
         let cstr = CString::new(name).expect(crate::STR2CSTR_ERR);
         let aname = unsafe{crate::binds::mono_assembly_name_new(cstr.as_ptr())};

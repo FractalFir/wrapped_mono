@@ -4,6 +4,9 @@ use crate::binds::MonoImage;
 pub struct Image{
     img_ptr:*mut MonoImage,
 }
+#[allow(unused_imports)]
+use crate::binds::MonoAssembly; // For documentation
+
 use std::ffi::CString;
 use crate::metadata::{MetadataTableInfo,MetadataTableKind,MetadataToken};
 impl Image{

@@ -349,19 +349,15 @@ impl Exception{
         {self.handle.get_target() as *mut MonoException}
     }
 }
-pub trait ExceptManaged<T:Sized>{
-    fn expect_managed_arg(option:Option<T>,msg:&str)->T;
-}
-impl<T:Sized> ExceptManaged<T> for T{
-    fn expect_managed_arg(option:Option<T>,msg:&str)->T{
-        match option{
-            Some(t)=>t,
-            None=>{
-                let msg = format!("Got null on argument of type {} when expected some value:{}",std::any::type_name::<T>(),msg);
-                let exc = Exception::argument_null(&msg);
-                exc.raise();
-                panic!("Impoosible condtion reached. Code exceuted after exception thrown.");
-            }
+/// Variant of except which instead of panicking will raise a managed exception.
+pub fn except_managed<T:Sized>(option:Option<T>,msg:&str)->T{
+    match option{
+        Some(t)=>t,
+        None=>{
+            let msg = format!("Got null on argument of type {} when expected some value:{}",std::any::type_name::<T>(),msg);
+            let exc = Exception::argument_null(&format!("Value of type: \"{}\" was null!\"{}\"",std::any::type_name::<T>(),&msg));
+            exc.raise();
+            panic!("Impossible condition reached. Code executed after exception thrown.");
         }
     }
 }
