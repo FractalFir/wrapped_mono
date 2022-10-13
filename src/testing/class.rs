@@ -120,7 +120,7 @@ rusty_fork_test!{
         use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
-        let t = Class::construct_generic_class("System","Tuple",&[i32::get_mono_class(),i32::get_mono_class()]);
+        let t = Class::construct_generic_class("System","Tuple",&[i8::get_mono_class(),crate::Exception::get_mono_class()]);
         panic!("{}",t.unwrap().get_name_sig());
     }
 } 

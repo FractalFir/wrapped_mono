@@ -16,30 +16,11 @@ class CtorTestClass: CtorTestClassParrent{
 }
 class TestFunctions : IInterfaceOne{
     public int someField = 5;
-    static string ObjTstr(object o){
-        return o.ToString();
-    }
-    static System.Type GetType(object o){
-        return o.GetType();
-    }
-    static string TestTypeToString(){
-        System.Type t = typeof(int);
-        return t.ToString();
-    }
-    static bool TestTypeEqualI32(System.Type t){
-        return t == typeof(int);
-    }
     public static string PrintTypes(System.Type[] types){
     	string s = "Types:\"";
-        //s += TestTypeToString();
-        if(!TestTypeEqualI32(types[0])){
-            return "not equal";
-        }
     	foreach(System.Type type in types){
             if(type != null){
-                //var sub_type = GetType(GetType(type));
-                //s += ObjTstr(sub_type) + ",";
-                //s += type + ",";
+                s += type + ",";
             }
     		
     	}

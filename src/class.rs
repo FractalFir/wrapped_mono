@@ -429,19 +429,22 @@ impl Class{
         let name = self.get_name();
         namespace + &name
     }
+    #[doc(hidden)] //Unfinished an buggy 
     pub fn construct_generic_class(namespace:&str,name:&str,generic_args:&[Class])->Option<Class>{
         // get name of the generic type this type will be derived from
         let mut garg_count = generic_args.len();
         assert!(garg_count > 0);
-        let path = format!("{}.{}`{}\0",namespace,name,garg_count);
+        let path = format!("{}.{}`{}",namespace,name,garg_count);
+        println!("path:\'{}\'",path);
         // get current domain
         let dom = crate::Domain::get_current().expect("Generic clases can't be constructed before jit is initialized!");
+        let path_cstr = CString::new(path).expect("Could not convert path to a cstring!");
         // create mstring representing type name of the generic uninflated type
         let mstr_ptr = unsafe{crate::binds::mono_string_new(
             dom.get_ptr(),
-            path.as_ptr() as *const _)};
+            path_cstr.as_ptr() as *const _)};
         // ensure path lives long enough to create the mstring.
-        crate::hold(&path);
+        crate::hold(&path_cstr);
         // exception pointer
         let mut e:usize = 0;
         // invoke Type.GetType to get type from path
@@ -458,11 +461,14 @@ impl Class{
         if obj.is_null(){
             return None;
         }
+        use crate::binds::MonoReflectionType;
         // Convert all classes to types
-        let mut t_vec = Vec::with_capacity(garg_count);
+        let mut t_vec:Vec<*mut MonoReflectionType> = Vec::with_capacity(garg_count);
         for garg in generic_args{
             t_vec.push(
-                unsafe{crate::binds::mono_class_get_type(garg.get_ptr())}
+                {
+                    unsafe{crate::binds::mono_type_get_object(dom.get_ptr(),crate::binds::mono_class_get_type(garg.get_ptr()))}
+                }         
             );
         }
         let arr_type = TYPE_CLASS.get_array_class(1);
@@ -470,29 +476,11 @@ impl Class{
         let arr = unsafe{crate::binds::mono_array_new_full(dom.get_ptr(),arr_type.get_ptr(),&garg_count as *const usize as *mut usize,0 as *mut isize)};
         // Copy contents of the array
         for i in 0..garg_count{
-            use crate::binds::MonoType;
-            let adr = unsafe{crate::binds::mono_array_addr_with_size(arr, std::mem::size_of::<*mut MonoType>() as i32, i)};
-            unsafe{*(adr as *mut *mut MonoType) = t_vec[i]};
+            let adr = unsafe{crate::binds::mono_array_addr_with_size(arr, std::mem::size_of::<*mut MonoReflectionType>() as i32, i)};
+            unsafe{*(adr as *mut *mut MonoReflectionType) = t_vec[i]};
         }
         // Hold t_vec until coping is finished
         crate::hold(&t_vec);
-        // Invoke test fnc
-        let img = Assembly::assembly_loaded("Test").expect("Assembly Test not loaded, could not get TestFunctions class!").get_image();
-        let class = Class::from_name_case(&img,"","TestFunctions").expect("Could not get TestFunctions class form mscorlib!");
-        let met = unsafe{crate::binds::mono_class_get_method_from_name(class.get_ptr(),"PrintTypes\0".as_ptr() as *const i8,1)};
-        if met.is_null(){
-            panic!("null");
-        }
-        use crate::MString;
-        println!("{} {}",met as usize, &arr as *const _ as usize);
-        let mstr_ptr = unsafe{crate::binds::mono_runtime_invoke(
-            met,
-            0 as *mut c_void,
-            &arr as *const _ as *mut *mut c_void,
-            &mut e as *mut usize as *mut *mut crate::binds::MonoObject,
-        )};
-        let mstr = unsafe{MString::from_ptr(mstr_ptr as *mut _)}.unwrap();
-        panic!("{}",mstr.to_string());
         // Call MakeGenericType
         let generic_type = unsafe{crate::binds::mono_runtime_invoke(
              *MAKE_GENERIC_TYPE_MET as *mut crate::binds::MonoMethod,
@@ -505,14 +493,24 @@ impl Class{
             let e = unsafe{crate::Exception::from_ptr(e as *mut _)}.unwrap();
             use crate::object::ObjectTrait;
             println!("{}",e.get_class().get_name_sig());
-            panic!("Got exception:\"{}\" while calling MakeGenericType",e);
+            let msg_cprop = e.get_class().get_property_from_name("Message").unwrap();
+            let msg_mstr = unsafe{crate::MString::cast_from_object(&msg_cprop.get(Some(e.cast_to_object()),Vec::new()).expect("Exception").expect("Nulll")).expect("Not mstr!")};
+            println!("msg:\"{}\"",msg_mstr.to_string());
+            let src_cprop = e.get_class().get_property_from_name("Source").unwrap();
+            let src_mstr = unsafe{crate::MString::cast_from_object(&src_cprop.get(Some(e.cast_to_object()),Vec::new()).expect("Exception").expect("Nulll")).expect("Not mstr!")};
+            println!("src:\"{}\"",src_mstr.to_string());
+            //panic!("Got exception:\"{}\" while calling MakeGenericType",e);
             return None;
         }
         if obj.is_null(){
             panic!("Got an null while calling MakeGenericType");
             return None;
         }
-        let c = unsafe{Class::from_ptr(crate::binds::mono_class_from_mono_type(generic_type as *mut _))};
+        let c = unsafe{Class::from_ptr(
+            crate::binds::mono_class_from_mono_type(
+                crate::binds::mono_reflection_type_get_type(generic_type as *mut _)
+            )
+        )};
         return c;
     }
 }
