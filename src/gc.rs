@@ -62,3 +62,31 @@ pub fn count_objects()->u32{
         return count;
     }
 }
+#[doc(hidden)]#[repr(C)]
+pub struct MonoStackData{
+    pub stack_ptr:*const u64,
+    pub fname:*const u8
+}
+#[doc(hidden)]
+extern "C" {
+    pub fn mono_threads_enter_gc_unsafe_region_internal(msd:&MonoStackData)->*mut i32;
+    pub fn mono_threads_exit_gc_unsafe_region_internal(gc_unsafe_cookie:*const i32,msd:& MonoStackData);
+}
+#[doc(hidden)]#[must_use = "GCUnsafeAreaMarker marks a section of code that could be disturbed by Garbage Collector and prevents this from happening.
+ It is created at begging of that critical section and must be consumed at its end, otherwise GC Unsfae Mode will newer be exited which will result in bugs and crashes."]#[repr(C)]
+pub struct GCUnsafeAreaMarker {
+    pub msd:MonoStackData,
+    pub gc_unsafe_cookie:*mut i32,
+}
+#[doc(hidden)] #[inline(always)]
+pub fn gc_unsafe_enter()->GCUnsafeAreaMarker{
+    let stack_item:u64 = 0; //Useless dummy value used to get the stack pointer.
+    let msd = crate::gc::MonoStackData{fname:0 as *const u8,stack_ptr:stack_item as *const u64}; // StackDataObject used to restore the stack.
+    let gc_unsafe_cookie = unsafe{crate::gc::mono_threads_enter_gc_unsafe_region_internal(&msd)}; // Entering GC Unsafe mode (signaling to GC taht we will be using managed objects that should not be moved)
+    return GCUnsafeAreaMarker{gc_unsafe_cookie,msd};
+}
+#[doc(hidden)] #[inline(always)]
+pub fn gc_unsafe_exit(marker:GCUnsafeAreaMarker){
+    unsafe{crate::gc::mono_threads_exit_gc_unsafe_region_internal(marker.gc_unsafe_cookie,&marker.msd)};
+}
+

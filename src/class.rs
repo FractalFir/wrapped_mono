@@ -499,7 +499,9 @@ impl Class{
             let src_cprop = e.get_class().get_property_from_name("Source").unwrap();
             let src_mstr = unsafe{crate::MString::cast_from_object(&src_cprop.get(Some(e.cast_to_object()),Vec::new()).expect("Exception").expect("Nulll")).expect("Not mstr!")};
             println!("src:\"{}\"",src_mstr.to_string());
-            //panic!("Got exception:\"{}\" while calling MakeGenericType",e);
+            //let msd = crate::gc::enter_gc_unsafe();
+            //println!("Got exception:\"{}\" while calling MakeGenericType",e);
+            //crate::gc::exit_gc_unsafe(msd);
             return None;
         }
         if obj.is_null(){

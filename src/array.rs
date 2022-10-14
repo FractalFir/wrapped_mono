@@ -1,5 +1,6 @@
 use crate::interop::{InteropRecive,InteropSend,InteropClass};
 use crate::Class;
+use crate::gc::{gc_unsafe_enter,gc_unsafe_exit};
 use crate::{Object,ObjectTrait};
 use core::marker::PhantomData;
 use crate::domain::Domain;
@@ -62,8 +63,13 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
     /// ```
     pub fn get(&self,indices:[usize;DIMENSIONS as usize])->T{
         let index = self.get_index(indices);
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         let src:T::SourceType = unsafe{*(crate::binds::mono_array_addr_with_size(self.get_ptr(),std::mem::size_of::<T::SourceType>() as i32,index) as *const T::SourceType)};
-        T::get_rust_rep(src)
+        let rr = T::get_rust_rep(src);
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        rr
     }
     /// Function setting element at *index* of [`Array`] to *value*
     /// # Arguments
@@ -89,10 +95,14 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
     pub fn set(&mut self,indices:[usize;DIMENSIONS as usize],value:T){
         let tmp = T::get_mono_rep(value);
         let index = self.get_index(indices);
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         let ptr =  unsafe{crate::binds::mono_array_addr_with_size(
             self.get_ptr(),std::mem::size_of::<T::TargetType>() as i32,index)
             as *mut T::TargetType};
         unsafe{(*ptr) = tmp};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
     }
     /// Function returning 1D length of the array(element count).
     /// # Arguments
@@ -110,7 +120,12 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
     /// }
     /// ```
     pub fn len(&self)->usize{
-        unsafe{crate::binds::mono_array_length(self.get_ptr())}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let len = unsafe{crate::binds::mono_array_length(self.get_ptr())};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        len 
     }
     /// Checks if [`Array`] is empty.
     /// # Arguments
@@ -163,7 +178,12 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
     /// |-------|-------|------|
     /// |self| &Array | array to cast to object|
     pub fn to_object(&self)->Object{
-        unsafe{Object::from_ptr(self.get_ptr() as *mut crate::binds::MonoObject)}.expect("Could not create object from array!")
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let res = unsafe{Object::from_ptr(self.get_ptr() as *mut crate::binds::MonoObject)}.expect("Could not create object from array!");
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        res
     } 
     /// Allocate new array in *domain* with size *DIMENSIONS* with elements of type *class*. 
     /// # Example
@@ -179,9 +199,14 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
     /// |size|`&[usize;DIMENSIONS as usize]`| size of the array to create|
     pub fn new(domain:&Domain,size:&[usize;DIMENSIONS as usize])->Self{
         let class = <T as InteropClass>::get_mono_class().get_array_class(DIMENSIONS);
-        unsafe{Self::from_ptr(
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let arr = unsafe{Self::from_ptr(
             crate::binds::mono_array_new_full(domain.get_ptr(),class.get_ptr(),size as *const [usize] as *mut usize,null_mut())
-        )}.expect("could not create a new array!")
+        )}.expect("could not create a new array!");
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        arr
     }
     /// Function returning a copy of internal pointer to [`MonoArray`]
     /// # Arguments
@@ -200,7 +225,12 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
     /// |-------|-------|------|
     /// |self|&Array|Array to clone|
     pub fn clone_managed_array(&self)->Self{
-        unsafe{Self::from_ptr(crate::binds::mono_array_clone(self.get_ptr()))}.expect("coud not create copy of an array!")
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let res = unsafe{Self::from_ptr(crate::binds::mono_array_clone(self.get_ptr()))}.expect("coud not create copy of an array!");
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        res
     }
     ///Returns class of this array
     pub fn get_class()->Class{
@@ -219,9 +249,14 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  InteropRecive for Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
     type SourceType = *mut crate::binds::MonoArray;
     fn get_rust_rep(arg:Self::SourceType)->Self{
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         use crate::exception::except_managed;
         let opt = unsafe{Self::from_ptr(arg)};
-        except_managed(opt,"Got null in an not nullable type. For nullable support use Option<Array>")
+        let res = except_managed(opt,"Got null in an not nullable type. For nullable support use Option<Array>");
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        res
     }
 }
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  InteropSend for Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
@@ -241,35 +276,66 @@ use crate::mstring::MString;
 use crate::Exception;
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  crate::object::ObjectTrait for Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
     fn hash(&self)->i32{
-        unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject)}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let hash = unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        hash
     }
     fn get_domain(&self)->crate::domain::Domain{
-        unsafe{crate::domain::Domain::from_ptr(crate::binds::mono_object_get_domain(self.get_ptr() as *mut MonoObject))}
+         #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let dom = unsafe{crate::domain::Domain::from_ptr(crate::binds::mono_object_get_domain(self.get_ptr() as *mut MonoObject))};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        dom
     }
     fn get_size(&self)->u32{
-        unsafe{crate::binds:: mono_object_get_size(self.get_ptr() as *mut MonoObject)}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let size = unsafe{crate::binds:: mono_object_get_size(self.get_ptr() as *mut MonoObject)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        size
     }
     fn reflection_get_token(&self)->u32{
-        unsafe{crate::binds::mono_reflection_get_token(self.get_ptr() as *mut MonoObject)}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let token = unsafe{crate::binds::mono_reflection_get_token(self.get_ptr() as *mut MonoObject)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        token
     }
     fn get_class(&self)->crate::class::Class{
-        unsafe{crate::class::Class::from_ptr(
+        let class = unsafe{crate::class::Class::from_ptr(
             crate::binds::mono_object_get_class(self.get_ptr() as *mut MonoObject)
-        ).expect("Could not get class of an object")}
+        ).expect("Could not get class of an object")};
+        class
     }
     fn to_mstring(&self)->Result<Option<MString>,Exception>{
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
         let res = unsafe{MString::from_ptr(
             crate::binds::mono_object_to_string(self.get_ptr() as *mut crate::binds::MonoObject,&mut exc as *mut *mut crate::binds::MonoException as *mut *mut crate::binds::MonoObject)
         )};
         let exc = unsafe{Exception::from_ptr(exc)};
-        match exc{
+        let res = match exc{
             Some(e)=>Err(e),
             None=>Ok(res),
-        }
+        };
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        res
     }
     fn cast_to_object(&self)->Object{
-        unsafe{Object::from_ptr(self.get_ptr() as *mut MonoObject)}.unwrap() //impossible. If array exists, then object exists too.
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let obj = unsafe{Object::from_ptr(self.get_ptr() as *mut MonoObject)}.unwrap(); //impossible. If array exists, then object exists too.
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        obj
     }
     /// Cast [`Object`] to [`Array`]. Returns [`None`] if cast failed. 
     /// # Arguments

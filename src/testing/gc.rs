@@ -6,9 +6,9 @@ rusty_fork_test! {
         use crate::gc::count_objects;
         let dom = jit::init("dom",None);
         let mut results:Vec<Object> = Vec::with_capacity(4000);
-        for i in 0..8000{
+        for i in 0..800{
             let mut obj = Object::box_val::<i32>(&dom,i);
-            for j in 0..100{
+            for j in 0..1000{
                 obj = Object::box_val::<i32>(&dom,i); 
                 for i in 0..10{
                     let tmp = obj.clone();
@@ -39,9 +39,9 @@ rusty_fork_test! {
         use crate::gc::count_objects;
         let dom = jit::init("dom",None);
         let mut results:Vec<MString> = Vec::with_capacity(4000);
-        for i in 0..8000{
+        for i in 0..800{
             let mut obj = MString::new(&dom,&format!("{}",i));
-            for j in 0..100{
+            for j in 0..1000{
                 obj = MString::new(&dom,&format!("{}",i));
                 for i in 0..10{
                     let tmp = obj.clone();
@@ -66,9 +66,9 @@ rusty_fork_test! {
         let mut results:Vec<Array<1,i32>> = Vec::with_capacity(4000);
         println!("Preparing to create test arrays!");
         // Having more temporary Arrays fills up the nursery, and causes problems with garbage collection(can't unlock a thread)
-        for i in 0..17000{
+        for i in 0..17{
             let mut obj:Array<1,i32> = Array::new(&dom,&[i/50 as usize]);
-            for j in 0..10{
+            for j in 0..1000{
                 obj = Array::new(&dom,&[i/50 as usize]);
                 for i in 0..10{
                     let tmp = obj.clone();
@@ -94,12 +94,12 @@ rusty_fork_test! {
     fn test_gc_exception(){
         use crate::gc::count_objects;
         let dom = jit::init("dom",None);
-        let mut results:Vec<Exception> = Vec::with_capacity(4000);
+        let mut results:Vec<Exception> = Vec::with_capacity(17);
         println!("Preparing to create test arrays!");
         // Having more temporary Arrays fills up the nursery, and causes problems with garbage collection(can't unlock a thread)
-        for i in 0..17000{
+        for i in 0..17{
             let mut obj:Exception = Exception::exception_arithmetic();
-            for j in 0..10{
+            for j in 0..10000{
                 obj = Exception::exception_arithmetic();
                 for i in 0..10{
                     let tmp = obj.clone();
