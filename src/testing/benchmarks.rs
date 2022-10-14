@@ -54,6 +54,28 @@ fn create_mstring(b: &mut Bencher) {
     });
 }
 #[bench]
+fn create_array(b: &mut Bencher) {
+    let dom = &DOM;
+    //enusure that used thread is attached to main domain
+    dom.attach_thread();
+    //ensure that nursery is empty for accurate measures!
+    gc::collect(gc::max_generation());
+    b.iter(|| {
+        let arr:Array<1,i32> = Array::new(dom,&[2]);
+    });
+}
+#[bench]
+fn create_exception(b: &mut Bencher) {
+    let dom = &DOM;
+    //enusure that used thread is attached to main domain
+    dom.attach_thread();
+    //ensure that nursery is empty for accurate measures!
+    gc::collect(gc::max_generation());
+    b.iter(|| {
+        let exc = Exception::arithmetic();
+    });
+}
+#[bench]
 fn clone_mstring(b: &mut Bencher) {
     let dom = &DOM;
     //enusure that used thread is attached to main domain

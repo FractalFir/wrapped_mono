@@ -431,6 +431,7 @@ impl Class{
     }
     #[doc(hidden)] //Unfinished an buggy 
     pub fn construct_generic_class(namespace:&str,name:&str,generic_args:&[Class])->Option<Class>{
+        use crate::gc::{gc_unsafe_exit,gc_unsafe_enter};
         // get name of the generic type this type will be derived from
         let mut garg_count = generic_args.len();
         assert!(garg_count > 0);
@@ -439,6 +440,8 @@ impl Class{
         // get current domain
         let dom = crate::Domain::get_current().expect("Generic clases can't be constructed before jit is initialized!");
         let path_cstr = CString::new(path).expect("Could not convert path to a cstring!");
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         // create mstring representing type name of the generic uninflated type
         let mstr_ptr = unsafe{crate::binds::mono_string_new(
             dom.get_ptr(),
@@ -456,9 +459,13 @@ impl Class{
         )};
         // Check that function did not fail
         if e != 0{
+            #[cfg(feature = "referneced_objects")]
+            gc_unsafe_exit(marker);
             return None;
         }
         if obj.is_null(){
+            #[cfg(feature = "referneced_objects")]
+            gc_unsafe_exit(marker);
             return None;
         }
         use crate::binds::MonoReflectionType;
@@ -492,20 +499,14 @@ impl Class{
         if e != 0{
             let e = unsafe{crate::Exception::from_ptr(e as *mut _)}.unwrap();
             use crate::object::ObjectTrait;
-            println!("{}",e.get_class().get_name_sig());
-            let msg_cprop = e.get_class().get_property_from_name("Message").unwrap();
-            let msg_mstr = unsafe{crate::MString::cast_from_object(&msg_cprop.get(Some(e.cast_to_object()),Vec::new()).expect("Exception").expect("Nulll")).expect("Not mstr!")};
-            println!("msg:\"{}\"",msg_mstr.to_string());
-            let src_cprop = e.get_class().get_property_from_name("Source").unwrap();
-            let src_mstr = unsafe{crate::MString::cast_from_object(&src_cprop.get(Some(e.cast_to_object()),Vec::new()).expect("Exception").expect("Nulll")).expect("Not mstr!")};
-            println!("src:\"{}\"",src_mstr.to_string());
-            //let msd = crate::gc::enter_gc_unsafe();
-            //println!("Got exception:\"{}\" while calling MakeGenericType",e);
-            //crate::gc::exit_gc_unsafe(msd);
+            println!("Got exception:\"{}\" while calling MakeGenericType",e);
+            #[cfg(feature = "referneced_objects")]
+            gc_unsafe_exit(marker);
             return None;
         }
         if obj.is_null(){
-            panic!("Got an null while calling MakeGenericType");
+             #[cfg(feature = "referneced_objects")]
+            gc_unsafe_exit(marker);
             return None;
         }
         let c = unsafe{Class::from_ptr(
@@ -513,6 +514,8 @@ impl Class{
                 crate::binds::mono_reflection_type_get_type(generic_type as *mut _)
             )
         )};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
         return c;
     }
 }

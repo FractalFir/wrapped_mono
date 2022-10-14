@@ -27,6 +27,11 @@ class TestFunctions : IInterfaceOne{
     	s += "\"";
     	return s;
     }
+    public static System.Type CreateType(){
+        System.Type tpe = System.Type.GetType("System.Delegate`2");
+        System.Type[] genericArgs = new System.Type[]{typeof(int),typeof(byte)};
+        return tpe.MakeGenericType(genericArgs);
+    }
     public static int[,] Get2DIntArray(){
         return new int[8,16];
     }

@@ -98,9 +98,9 @@ rusty_fork_test! {
         println!("Preparing to create test arrays!");
         // Having more temporary Arrays fills up the nursery, and causes problems with garbage collection(can't unlock a thread)
         for i in 0..17{
-            let mut obj:Exception = Exception::exception_arithmetic();
+            let mut obj:Exception = Exception::arithmetic();
             for j in 0..10000{
-                obj = Exception::exception_arithmetic();
+                obj = Exception::arithmetic();
                 for i in 0..10{
                     let tmp = obj.clone();
                 } 

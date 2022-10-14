@@ -23,6 +23,4 @@ rusty_fork_test!{
         let del:Delegate<(i32,i32)> = Delegate::cast_from_object(&obj).expect("Expected delegate, got something else");
         let _res = del.invoke((10,10)).expect("Exception").expect("Got null");
     }
-
-    
 }
