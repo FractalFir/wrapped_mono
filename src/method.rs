@@ -272,3 +272,4 @@ impl <Args:InteropSend> MethodTrait<Args> for Method<Args> where <Args as Intero
         Some(res)
     }
 }
+unsafe impl<Args:InteropSend> Sync for Method<Args>{}

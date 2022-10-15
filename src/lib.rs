@@ -56,6 +56,7 @@ pub mod metadata;
 ///
 pub mod delegate;
 
+pub mod reflection_type;
 mod tupleutilis;
 /// Experimental Profiler API. Bare bones and may contain bugs.
 #[allow(dead_code)]
@@ -86,6 +87,8 @@ pub use wrapped_mono_macros::{add_internal_call,invokable,InteropRecive,InteropS
 pub use delegate::{Delegate,DelegateTrait};
 #[doc(inline)]
 pub use assembly::Assembly;
+#[doc(inline)]
+pub use reflection_type::ReflectionType;
 //for 0.2 TODO:create event object functionalities
 //for 0.2 TODO:create delegate related functionalities
 //for 0.2 TODO:create wrapper around MonoType. It is not necessary for basic functionalities, but is nice to have.

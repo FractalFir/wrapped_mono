@@ -10,6 +10,7 @@ mod array;
 mod gc;
 mod benchmarks;
 mod delegate;
+mod reflection;
 use crate as wrapped_mono;
 use wrapped_mono::*;
 use mstring::MString;
