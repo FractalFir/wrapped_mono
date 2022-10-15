@@ -4,7 +4,7 @@ use core::ptr::null_mut;
 use std::ffi::CString;
 use crate::interop::{InteropRecive,InteropSend,InteropClass};
 use crate::Class;
-use crate::gc::GCHandle;
+use crate::gc::{GCHandle,gc_unsafe_exit,gc_unsafe_enter};
 use crate::ObjectTrait;
 
 ///needed for docs
@@ -22,20 +22,34 @@ impl MString{
     ///Creates new managed **String** in *domain* with content of *string*.
     pub fn new(domain:&Domain,string:&str)->Self{
         let cstr = CString::new(string).expect(crate::STR2CSTR_ERR);
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         let res = unsafe{Self::from_ptr(
             crate::binds::mono_string_new(domain.get_ptr(),cstr.as_ptr())
 
         )}.expect(crate::STR2CSTR_ERR);
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
         drop(cstr);
         res
     }
     ///Compares two managed strings. Returns true if their **content** is equal, not if they are the same **object**.
     pub fn is_equal(&self,other:&Self)->bool{
-        unsafe{crate::binds::mono_string_equal(self.get_ptr(),other.get_ptr()) != 0}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let equ = unsafe{crate::binds::mono_string_equal(self.get_ptr(),other.get_ptr()) != 0};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        equ
     }
     ///Creates hash of a [`String`].
     pub fn hash(&self)->u32{
-        unsafe{crate::binds::mono_string_hash(self.get_ptr())}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let hsh = unsafe{crate::binds::mono_string_hash(self.get_ptr())};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        hsh
     }
     //Cretes [`MString`] form pointer , or returns None if pointer equal to null.
     /// # Safety
@@ -72,7 +86,7 @@ impl InteropRecive for MString{
     fn get_rust_rep(src:Self::SourceType)->Self{
         use crate::exception::except_managed;
         // As long as this function is used in its intended way, there should be no problems, because pointer received from mono runtime must always be either valid or null. (If it is not then that is a bug in mono runtime and there is nothing we can do about it.
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
+        #[allow(clippy::not_unsafe_ptr_arg_deref)]
         let opt = unsafe{Self::from_ptr(src)};
         except_managed(opt,"got null in a non-nullable string. For nullabe support use Option<MString>")
     }
@@ -105,9 +119,13 @@ impl InteropClass for MString{
 impl ToString for MString{
     ///Converts [`MString`] to [`String`]  
     fn to_string(&self)->String{
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         let cstr = unsafe{CString::from_raw(crate::binds::mono_string_to_utf8(self.get_ptr()))};
         let res = cstr.to_str().expect("Colud not create String!").to_owned();
         unsafe{crate::binds::mono_free(cstr.into_raw() as *mut std::os::raw::c_void)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
         res
     }
 }
@@ -115,35 +133,70 @@ use crate::Exception;
 use crate::binds::MonoObject;
 impl ObjectTrait for MString{
     fn hash(&self)->i32{
-        unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject)}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let hsh = unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        hsh
     }
     fn get_domain(&self)->crate::domain::Domain{
-        unsafe{crate::domain::Domain::from_ptr(crate::binds::mono_object_get_domain(self.get_ptr() as *mut MonoObject))}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let dom = unsafe{crate::domain::Domain::from_ptr(crate::binds::mono_object_get_domain(self.get_ptr() as *mut MonoObject))};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        dom
     }
     fn get_size(&self)->u32{
-        unsafe{crate::binds:: mono_object_get_size(self.get_ptr() as *mut MonoObject)}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let size = unsafe{crate::binds:: mono_object_get_size(self.get_ptr() as *mut MonoObject)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        size
     }
     fn reflection_get_token(&self)->u32{
-        unsafe{crate::binds::mono_reflection_get_token(self.get_ptr() as *mut MonoObject)}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let tok = unsafe{crate::binds::mono_reflection_get_token(self.get_ptr() as *mut MonoObject)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        tok
     }
     fn get_class(&self)->crate::class::Class{
-        unsafe{crate::class::Class::from_ptr(
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let class = unsafe{crate::class::Class::from_ptr(
             crate::binds::mono_object_get_class(self.get_ptr() as *mut MonoObject)
-        ).expect("Could not get class of an object")}
+        ).expect("Could not get class of an object")};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        class
     }
     fn to_mstring(&self)->Result<Option<MString>,Exception>{
         let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         let res = unsafe{MString::from_ptr(
             crate::binds::mono_object_to_string(self.get_ptr() as *mut crate::binds::MonoObject,&mut exc as *mut *mut crate::binds::MonoException as *mut *mut crate::binds::MonoObject)
         )};
         let exc = unsafe{Exception::from_ptr(exc)};
-        match exc{
+        let res = match exc{
             Some(e)=>Err(e),
             None=>Ok(res),
-        }
+        };
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        res
     }
     fn cast_to_object(&self)->Object{
-        unsafe{Object::from_ptr(self.get_ptr() as *mut MonoObject)}.unwrap() //impossible. If string exists, then object exists too.
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let object = unsafe{Object::from_ptr(self.get_ptr() as *mut MonoObject)}.unwrap(); //impossible. If string exists, then object exists too.
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        object
     }
     fn cast_from_object(obj:&Object)->Option<MString>{
         //TODO: adjust this after including GCHandles to speed things up.
@@ -151,7 +204,12 @@ impl ObjectTrait for MString{
             Some(cast)=>cast,
             None=>return None,
         };
-        unsafe{Self::from_ptr(cast.get_ptr() as *mut _)}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let cast = unsafe{Self::from_ptr(cast.get_ptr() as *mut _)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        cast
     }
 }
 impl Clone for MString{

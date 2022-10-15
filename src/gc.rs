@@ -62,18 +62,19 @@ pub fn count_objects()->u32{
         return count;
     }
 }
-#[doc(hidden)]
+#[doc(hidden)] // Can't have repr(C) attribute cause that breaks everything
 pub struct MonoStackData{
     pub dummy:i32,
     pub stack_ptr:*const u8,
 }
-#[doc(hidden)]
 extern "C" {
+    #[doc(hidden)]
     pub fn mono_threads_enter_gc_unsafe_region_internal(msd:&MonoStackData)->GCUnsafeAreaMarker;
+    #[doc(hidden)]
     pub fn mono_threads_exit_gc_unsafe_region_internal(gc_unsafe_cookie:GCUnsafeAreaMarker,msd:& MonoStackData);
 }
 #[doc(hidden)]#[must_use = "GCUnsafeAreaMarker marks a section of code that could be disturbed by GarbageCollector and prevents this from happening.
- It is created at begging of that critical section and must be consumend at its end, otherwise GCUnsfae Mode will newer be exited which will result in bugs and crashes."]
+ It is created at begging of that critical section and must be consumend at its end, otherwise GCUnsfae Mode will newer be exited which will result in bugs and crashes."] // Can't have repr(C) attribute cause that breaks everything
 pub struct GCUnsafeAreaMarker {
     gc_unsafe_cookie:*mut i32,
 }

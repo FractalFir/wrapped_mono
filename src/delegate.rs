@@ -1,5 +1,5 @@
 use crate::binds::{MonoDelegate,MonoMethod};
-use crate::gc::GCHandle;
+use crate::gc::{GCHandle,gc_unsafe_exit,gc_unsafe_enter};
 use crate::{InteropSend,InteropRecive,InteropClass,Class,Exception,MString,Domain,Object};
 use std::marker::PhantomData;
 use crate::tupleutilis::{CompareClasses,TupleToPtrs};
@@ -27,8 +27,13 @@ impl<Args:InteropSend> Delegate<Args>{
     /// |-------|-------|------|
     /// |self|&[Delegate]|Rust representation of a delegate to get argument count of|
     pub fn get_param_count(&self)->u32{
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         let sig = unsafe{crate::binds::mono_method_signature(self.get_method_ptr())};
-        unsafe{crate::binds::mono_signature_get_param_count(sig)}
+        let pcount = unsafe{crate::binds::mono_signature_get_param_count(sig)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        pcount
     }
     /// Returns list of classes of parameters of delegate *self*.
     /// # Arguments
@@ -36,6 +41,8 @@ impl<Args:InteropSend> Delegate<Args>{
     /// |-------|-------|------|
     /// |self|&[`Delegate`]|Rust representation of a delegate to get argument types off|
     pub fn get_params(&self)->Vec<Class>{
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         let sig = unsafe{crate::binds::mono_method_signature(self.get_method_ptr())};
         let mut iter:usize = 0;
         let mut res = Vec::with_capacity(self.get_param_count() as usize);
@@ -47,6 +54,8 @@ impl<Args:InteropSend> Delegate<Args>{
         )}{
             res.push(class);
         }
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
         res
     } 
     fn get_method_ptr(&self)->*mut MonoMethod{
@@ -88,6 +97,8 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args>{
         let mut args = <Args as InteropSend>::get_mono_rep(params);
         //convert arguments to pointers
         let mut params = &mut args as *mut _ as *mut c_void;
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         //invoke the delegate itself
         let res_ptr = unsafe{crate::binds::mono_runtime_delegate_invoke(
             self.get_ptr() as *mut _,
@@ -100,10 +111,14 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args>{
         let res = unsafe{Object::from_ptr(res_ptr)};
         println!("expect:{}",expect as usize);
         if expect.is_null(){
+            #[cfg(feature = "referneced_objects")]
+            gc_unsafe_exit(marker);
             Ok(res)
         }
         else {
             let except = unsafe{Exception::from_ptr(expect).expect("Imposible: pointer is null and not null at the same time.")};
+            #[cfg(feature = "referneced_objects")]
+            gc_unsafe_exit(marker);
             Err(except)
         }
     }
@@ -155,6 +170,8 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args> where <Args as Int
         //convert argument types
         let mut args = <Args as InteropSend>::get_mono_rep(params);
         let mut params = <<Args as InteropSend>::TargetType as TupleToPtrs>::get_ptrs(&mut args as *mut _);
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         //invoke the delegate itself
         let res_ptr = unsafe{crate::binds::mono_runtime_delegate_invoke(
             self.get_ptr() as *mut _,
@@ -166,10 +183,14 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args> where <Args as Int
         //get result
         let res = unsafe{Object::from_ptr(res_ptr)};
         if expect.is_null(){
+            #[cfg(feature = "referneced_objects")]
+            gc_unsafe_exit(marker);
             Ok(res)
         }
         else {
             let except = unsafe{Exception::from_ptr(expect).expect("Imposible: pointer is null and not null at the same time.")};
+            #[cfg(feature = "referneced_objects")]
+            gc_unsafe_exit(marker);
             Err(except)
         }
     }

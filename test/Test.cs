@@ -32,6 +32,12 @@ class TestFunctions : IInterfaceOne{
         System.Type[] genericArgs = new System.Type[]{typeof(int),typeof(byte)};
         return tpe.MakeGenericType(genericArgs);
     }
+    public static string CreateTypeString(){
+        System.Type tpe = System.Type.GetType("System.Tuple`2");
+        System.Type[] genericArgs = new System.Type[]{typeof(int),typeof(byte)};
+		System.Type gen = tpe.MakeGenericType(genericArgs);
+		return gen.ToString();
+    }
     public static int[,] Get2DIntArray(){
         return new int[8,16];
     }
