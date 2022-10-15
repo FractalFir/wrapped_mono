@@ -141,7 +141,7 @@ impl ObjectTrait for Object{
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         obj
-        }
+    }
 }
 use crate::interop::InteropBox;
 impl Object{ 

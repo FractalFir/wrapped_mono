@@ -550,35 +550,69 @@ impl core::fmt::Debug for Exception{
 use crate::MString;
 impl crate::object::ObjectTrait for Exception{
     fn hash(&self)->i32{
-        unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject)}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let hash = unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        hash
     }
     fn get_domain(&self)->crate::domain::Domain{
-        unsafe{crate::domain::Domain::from_ptr(crate::binds::mono_object_get_domain(self.get_ptr() as *mut MonoObject))}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let dom = unsafe{crate::domain::Domain::from_ptr(crate::binds::mono_object_get_domain(self.get_ptr() as *mut MonoObject))};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        dom
     }
     fn get_size(&self)->u32{
-        unsafe{crate::binds:: mono_object_get_size(self.get_ptr() as *mut MonoObject)}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let size = unsafe{crate::binds:: mono_object_get_size(self.get_ptr() as *mut MonoObject)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        size
     }
     fn reflection_get_token(&self)->u32{
-        unsafe{crate::binds::mono_reflection_get_token(self.get_ptr() as *mut MonoObject)}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let tok = unsafe{crate::binds::mono_reflection_get_token(self.get_ptr() as *mut MonoObject)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        tok
     }
     fn get_class(&self)->crate::class::Class{
-        unsafe{crate::class::Class::from_ptr(
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let class = unsafe{crate::class::Class::from_ptr(
             crate::binds::mono_object_get_class(self.get_ptr() as *mut MonoObject)
-        ).expect("Could not get class of an object")}
+        ).expect("Could not get class of an object")};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        class
     }
     fn to_mstring(&self)->Result<Option<MString>,Exception>{
         let mut exc:*mut crate::binds::MonoException = core::ptr::null_mut();
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         let res = unsafe{MString::from_ptr(
             crate::binds::mono_object_to_string(self.get_ptr() as *mut crate::binds::MonoObject,&mut exc as *mut *mut crate::binds::MonoException as *mut *mut crate::binds::MonoObject)
         )};
         let exc = unsafe{Exception::from_ptr(exc)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
         match exc{
             Some(e)=>Err(e),
             None=>Ok(res),
         }
     }
     fn cast_to_object(&self)->Object{
-        unsafe{Object::from_ptr(self.get_ptr() as *mut MonoObject)}.unwrap() //impossible. If array exists, then object exists too.
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let obj = unsafe{Object::from_ptr(self.get_ptr() as *mut MonoObject)}.unwrap(); //impossible. If exception exists, then it can be cast to an object
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        obj
     }
     fn cast_from_object(obj:&Object)->Option<Self>{
         //TODO: adjust this after including GCHandles to speed things up.
@@ -586,7 +620,12 @@ impl crate::object::ObjectTrait for Exception{
             Some(cast)=>cast,
             None=>return None,
         };
-        unsafe{Self::from_ptr(cast.get_ptr() as *mut _)}
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let res = unsafe{Self::from_ptr(cast.get_ptr() as *mut _)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        res
     }
 }
 impl InteropClass for Exception{
@@ -607,7 +646,6 @@ impl<O:ObjectTrait> PartialEq<O> for Exception{
 impl std::fmt::Display for Exception{
     fn fmt(&self,f:&mut Formatter<'_>)->Result<(), std::fmt::Error>{
         let mstr = self.to_mstring();
-        println!("Called .ToString on Execption");
         write!(f,"{}",mstr.expect("Got an exception while converting an exception String!").expect("Got null from converting exception to string!").to_string())
     }
 }

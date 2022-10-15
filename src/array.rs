@@ -372,3 +372,14 @@ impl<const DIMENSIONS:u32,T:InteropSend + InteropRecive + InteropClass,O:ObjectT
         self.get_ptr() as *mut _ == other.cast_to_object().get_ptr()
     }
 }
+impl<T:InteropSend + InteropRecive + InteropClass + Clone> From<&[T]> for Array<1,T>{
+    fn from(src:&[T])->Self{
+        let size = src.len();
+        let dom = Domain::get_current().expect("Can't create arrays before JIT starts!");
+        let mut res:Array<1,T> = Array::new(&dom,&[size]);
+        for i in 0..size{
+            res.set([i],src[i].clone());
+        }
+        res
+    }
+}
