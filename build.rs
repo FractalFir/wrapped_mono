@@ -104,7 +104,7 @@ fn main() {
         Err(errors)=>{
             let mut res = "files: ".to_owned();
             for error in errors{
-                write!(res,"\"{}\" ",error).unwrap();
+                write!(res,"\"{error}\" ").unwrap();
             }
             write!(res,"are missing. Is mono installed propely? It cna be downloaded here: https://www.mono-project.com/download/stable/ ").unwrap();
             panic!("{}",res);

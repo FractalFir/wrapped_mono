@@ -88,7 +88,7 @@ pub struct GCUnsafeAreaMarker {
     #[allow(dead_code)] // This field is not unused, but it seems like it tor rust since it does not know anything about the C side of things
     gc_unsafe_cookie:*mut i32,
 }
-#[doc(hidden)] #[inline(always)]
+#[doc(hidden)] #[inline(always)] #[must_use]
 pub fn gc_unsafe_enter()->(GCUnsafeAreaMarker,MonoStackData){
     let stack_item:u8 = 0; //Useless dummy value used to get the stack pointer.
     let msd = crate::gc::MonoStackData{dummy:0,stack_ptr:&stack_item as *const u8}; // StackDataObject used to restore the stack.

@@ -180,7 +180,7 @@ impl HashAlgorithm{
             32780   =>HashAlgorithm::SHA256,
             32781   =>HashAlgorithm::SHA384,
             32782   =>HashAlgorithm::SHA256,
-            _=>panic!("{} is not a valid HashAlgorithm",u),
+            _=>panic!("{u} is not a valid HashAlgorithm"),
         }
     }
 }
@@ -194,7 +194,7 @@ impl std::fmt::Display for HashAlgorithm{
             HashAlgorithm::SHA384=> "SHA386",
             HashAlgorithm::SHA512=> "SHA512",
         };
-        write!(f,"{}",s)
+        write!(f,"{s}")
     }
 }
 impl std::fmt::Display for AssemblyMetadata{
@@ -234,8 +234,9 @@ impl AssemblyOSMetadata{
         else{None}
     }
     //Returns platform string.
+    #[must_use]
     pub fn get_platform(&self)->String{
-        self.platform.to_owned()
+        self.platform.clone()
     }
 }
 impl std::fmt::Display for AssemblyOSMetadata{

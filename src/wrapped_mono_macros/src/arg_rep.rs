@@ -1,4 +1,4 @@
-use crate::tok_vec::*;
+use crate::tok_vec::{TokVec, TokVecTraits};
 use proc_macro::{TokenTree,TokenStream};
 pub struct ArgRep{
     pub name:String,
@@ -16,7 +16,7 @@ impl ArgRep{
             if let TokenTree::Punct(p) = &token {
                 if p.as_char() == ':'{in_type = true; continue}
             }   
-            (match in_type{true=>&mut arg_type,false=>&mut name_part }).push(token);
+            (if in_type{&mut arg_type}else{&mut name_part}).push(token);
         }
         assert!(name_part.len()<3);
         let name = name_part[name_part.len() - 1].to_string();
@@ -55,8 +55,9 @@ impl ArgRep{
         self.arg_type.to_string()
     }
     pub fn create_handler(&self)->TokenStream{
-        let s_type:String = self.arg_type.to_string();
-        TokenStream::from_str(&format!("let {} = <{}>::get_rust_rep({});",&self.name,s_type,&self.name)).expect("Could not create token stream!")
+        let type_string:String = self.arg_type.to_string();
+        let name = &self.name;
+        TokenStream::from_str(&format!("let {name} = <{type_string}>::get_rust_rep({name});")).expect("Could not create token stream!")
     }
 } 
 use std::fmt;

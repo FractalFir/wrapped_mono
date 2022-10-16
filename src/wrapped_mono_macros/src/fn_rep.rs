@@ -1,6 +1,6 @@
 //TODO: while makro system works,this is my first ever macro, and it is not a good written piece of software. It needs a complete rewrite.
-use crate::tok_vec::*;
-use crate::arg_rep::*;
+use crate::tok_vec::{TokVec, TokVecTraits};
+use crate::arg_rep::ArgRep;
 use std::fmt;
 use proc_macro::{TokenStream,TokenTree};
 pub struct FnRep{
@@ -110,25 +110,25 @@ impl FnRep{
     /*
         function creating function type(e.g. pub type name_fnc_type = extern "C" fn(arg_type_1,arg_type_2,...)->return_type;
     */
+    /// creates a helper target function type used during casting.
     pub fn create_function_type(&self)->TokenStream{
-        //function type inner arg types
-        let mut inner = TokenStream::new();
-        //let curr = 0;
-        //let arg_count = self.args.len();
-        for arg in &self.args{
-            //let c = if curr < arg_count - 1{','}else{' '};
-            inner.extend(TokenStream::from_str(&format!("<{} as InteropRecive>::SourceType",&arg.get_type_string())));
-        }
+        // create the begging of function signature 
         let mut res = TokenStream::from_str(&format!("pub type {}_fn_type = extern \"C\" fn",&self.name)).expect("Could not create token stream!");
-        //function arguments
+        // create function signature argument part eg.(arg1,arg2,arg3)
+        let mut fn_sig_params = TokenStream::new();
+        // go trough all source function arguments
+        for arg in &self.args{
+            // append the source type for all arguments
+            fn_sig_params.extend(TokenStream::from_str(&format!("<{} as InteropRecive>::SourceType",&arg.get_type_string())));
+        }
+        // extend the fucntion signature by its parameters
         res.extend(TokenStream::from(
-            TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,inner))
+            TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,fn_sig_params))
         ));
-
         match &self.ret{
-            Some(ret)=>{
+            Some(return_type)=>{
                 res.extend(TokenStream::from_str("-><"));
-                res.extend(TokenStream::from(ret.clone()));
+                res.extend(TokenStream::from(return_type.clone()));
                 res.extend(TokenStream::from_str("as InteropSend>::TargetType"));
                 
             }

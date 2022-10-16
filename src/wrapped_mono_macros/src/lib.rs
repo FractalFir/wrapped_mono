@@ -164,11 +164,11 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
     while input.len() > 3{
         input.remove(0);
     }
-    let itype = match &input[0]{
+    let input_type = match &input[0]{
         TokenTree::Ident(ident)=>ident.to_string(),
         _=>panic!("type token in derive input is not an identifier!"),
     };
-    let iname = match &input[1]{
+    let input_name = match &input[1]{
         TokenTree::Ident(ident)=>ident.to_string(),
         _=>panic!("name token in derive input is not an identifier!"),
     };
@@ -184,26 +184,26 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
     let mut type_res = TokenStream::new();
     let mut fn_impl_res = TokenStream::new();
     let inner = TokVec::separate_by_separator(inner,',');
-    if itype == "struct"{
+    if input_type == "struct"{
         let mut ret_self = TokenStream::new();
         for (i,memeber) in inner.into_iter().enumerate(){
-            let mname = memeber[0].to_string();
-            let mtype = memeber[2].to_string();
+            let member_name = memeber[0].to_string();
+            let member_type = memeber[2].to_string();
             type_res.extend(TokenStream::from_str(
-                &format!("<{} as InteropRecive>::SourceType,",mtype)
+                &format!("<{} as InteropRecive>::SourceType,",member_type)
             ).expect(TS_CR_FAIL));
             fn_impl_res.extend(TokenStream::from_str(
-                &format!("let {} = <{} as InteropRecive>::get_rust_rep(arg.{});",mname,mtype,i)
+                &format!("let {member_name} = <{member_type} as InteropRecive>::get_rust_rep(arg.{i});")
             ).expect(TS_CR_FAIL));
             ret_self.extend(TokenStream::from_str(
-                &format!("{}:{},",mname,mname)
+                &format!("{member_name}:{member_name},")
             ).expect(TS_CR_FAIL));
         }
         fn_impl_res.extend(TokenStream::from_str("return Self").expect(TS_CR_FAIL));
         fn_impl_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Brace,ret_self))));
         fn_impl_res.extend(TokenStream::from_str(";").expect(TS_CR_FAIL));
     }
-    else if itype == "enum"{
+    else if input_type == "enum"{
         //Check that enum is trivial and its values are set.
         let max_val = extract_enum_data(&inner).expect(ENUM_NOT_TRIVIAL);
         type_res.extend(TokenStream::from_str(
@@ -211,10 +211,10 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
         ).expect(TS_CR_FAIL));
         fn_impl_res.extend(TokenStream::from_str(&format!("unsafe{{let ptr = &arg as *const u64; assert!(arg < {},\"Error:Recived enum out of range!\");
          const _: [(); 0 - !{{ const ASSERT: bool = (std::mem::size_of::<{}>() <= std::mem::size_of::<u64>()); ASSERT }} as usize] = [];
-         let res = *(ptr as *mut {}); drop(arg); return res;}}",max_val,iname,iname)).expect(TS_CR_FAIL));
+         let res = *(ptr as *mut {}); drop(arg); return res;}}",max_val,input_name,input_name)).expect(TS_CR_FAIL));
     }
-    else {panic!("{} is not a valid type!",itype);}
-    let mut res = TokenStream::from_str(&format!("impl InteropRecive for {}",iname)).expect(TS_CR_FAIL);
+    else {panic!("{} is not a valid type!",input_type);}
+    let mut res = TokenStream::from_str(&format!("impl InteropRecive for {}",input_name)).expect(TS_CR_FAIL);
     let mut inner_res = TokenStream::from_str("type SourceType = ").expect(TS_CR_FAIL);
     inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,type_res))));
 
@@ -241,11 +241,11 @@ pub fn derive_send(input: TokenStream) -> TokenStream {
     while input.len() > 3{
         input.remove(0);
     }
-    let itype = match &input[0]{
+    let input_type = match &input[0]{
         TokenTree::Ident(ident)=>ident.to_string(),
         _=>panic!("type token in derive input is not an identifier!"),
     };
-    let iname = match &input[1]{
+    let input_name = match &input[1]{
         TokenTree::Ident(ident)=>ident.to_string(),
         _=>panic!("name token in derive input is not an identifier!"),
     };
@@ -261,38 +261,38 @@ pub fn derive_send(input: TokenStream) -> TokenStream {
     let mut type_res = TokenStream::new();
     let mut fn_impl_res = TokenStream::new();
     let inner = TokVec::separate_by_separator(inner,',');
-    if itype == "struct"{
+    if input_type == "struct"{
         let mut ret_self = TokenStream::new();
         for memeber in inner{
-            let mname = memeber[0].to_string();
-            let mtype = memeber[2].to_string();
+            let member_name = memeber[0].to_string();
+            let member_type = memeber[2].to_string();
             type_res.extend(TokenStream::from_str(
-                &format!("<{} as InteropSend>::TargetType,",mtype)
+                &format!("<{member_type} as InteropSend>::TargetType,")
             ).expect(TS_CR_FAIL));
             fn_impl_res.extend(TokenStream::from_str(
-                &format!("let {} = <{} as InteropSend>::get_mono_rep(arg.{});",mname,mtype,mname)
+                &format!("let {member_name} = <{member_type} as InteropSend>::get_mono_rep(arg.{member_name});")
             ).expect(TS_CR_FAIL));
             ret_self.extend(TokenStream::from_str(
-                &format!("{},",mname)
+                &format!("{member_name},")
             ).expect(TS_CR_FAIL));
         }
         fn_impl_res.extend(TokenStream::from_str("return ").expect(TS_CR_FAIL));
         fn_impl_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,ret_self))));
         fn_impl_res.extend(TokenStream::from_str(";").expect(TS_CR_FAIL));
     }
-    else if itype == "enum"{
+    else if input_type == "enum"{
         //Check that enum is trivial and its values are set.
         let _max_val = extract_enum_data(&inner).expect(ENUM_NOT_TRIVIAL);
         type_res.extend(TokenStream::from_str(
             "u64"
         ).expect(TS_CR_FAIL));
         fn_impl_res.extend(TokenStream::from_str(&format!("unsafe{{let mut res:u64 = 0;
-            *(&mut res as *mut u64 as *mut {}) = arg;
-            const _: [(); 0 - !{{ const ASSERT: bool = (std::mem::size_of::<{}>() <= std::mem::size_of::<u64>()); ASSERT }} as usize] = [];
-            return res;}}",iname,iname)).expect(TS_CR_FAIL));
+            *(&mut res as *mut u64 as *mut {input_name}) = arg;
+            const _: [(); 0 - !{{ const ASSERT: bool = (std::mem::size_of::<{input_name}>() <= std::mem::size_of::<u64>()); ASSERT }} as usize] = [];
+            return res;}}")).expect(TS_CR_FAIL));
     }
-    else {panic!("{} is not a valid type!",itype);}
-    let mut res = TokenStream::from_str(&format!("impl InteropSend for {}",iname)).expect(TS_CR_FAIL);
+    else {panic!("{input_type} is not a valid type!");}
+    let mut res = TokenStream::from_str(&format!("impl InteropSend for {input_name}")).expect(TS_CR_FAIL);
     let mut inner_res = TokenStream::from_str("type TargetType = ").expect(TS_CR_FAIL);
     inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(proc_macro::Delimiter::Parenthesis,type_res))));
 
