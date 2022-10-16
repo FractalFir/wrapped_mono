@@ -162,7 +162,7 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
         }
         //get array size
         {
-            let dim:Method<i32> = Method::get_method_from_name(&Class::get_array(),"GetLength",1)
+            let dim:Method<i32> = Method::get_from_name(&Class::get_array(),"GetLength",1)
             .expect("Array type does not have GetLength method, even toug it is impossible.");
             for i in 0..DIMENSIONS{
                 let dim_obj = dim.invoke(Some(res.to_object()),i as i32).expect("Got an exception while calling Array.GetLength").expect("Got null instead of int");

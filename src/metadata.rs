@@ -7,7 +7,7 @@ pub struct MetadataTableInfo{
 }
 pub type MetadataToken = u32;
 ///Enum representing all possible kinds of metadata tables.
-#[repr(u32)] #[derive(PartialEq,Eq)]
+#[repr(u32)] #[derive(PartialEq,Eq)] #[derive(Clone,Copy)]
 pub enum MetadataTableKind{
     Module              =   crate::binds::MonoMetaTableEnum_MONO_TABLE_MODULE,
     TypeRef             =   crate::binds::MonoMetaTableEnum_MONO_TABLE_TYPEREF,

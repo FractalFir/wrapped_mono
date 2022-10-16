@@ -97,7 +97,7 @@ impl<Args:InteropSend> Method<Args> {
     /// |class|&[`Class`]|Class the sought method belongs to|
     /// |name|&[`str`]|Name of the method|
     /// |param_count|&[`i32`]|Ammount of parameters(arguments) method accepts|
-    pub fn get_method_from_name(class:&crate::class::Class,name:&str,param_count:i32)->Option<Self>{
+    pub fn get_from_name(class:&crate::class::Class,name:&str,param_count:i32)->Option<Self>{
         let cstr = CString::new(name).expect(crate::STR2CSTR_ERR);
         let res = unsafe{Self::from_ptr_checked(
             crate::binds::mono_class_get_method_from_name(class.get_ptr(),cstr.as_ptr(),param_count)

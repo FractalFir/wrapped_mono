@@ -10,7 +10,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let _met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+        let _met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
     }
     #[test]
     fn getting_method_no_gargs(){
@@ -18,7 +18,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let _met:Method<()> = Method::get_method_from_name(&class,"GetSomeFiled",0).unwrap();
+        let _met:Method<()> = Method::get_from_name(&class,"GetSomeFiled",0).unwrap();
     }
     #[test]
     fn getting_method_return_no_return(){
@@ -26,7 +26,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<()> = Method::get_method_from_name(&class,"SomeInterfaceFunction",0).unwrap();
+        let met:Method<()> = Method::get_from_name(&class,"SomeInterfaceFunction",0).unwrap();
         assert!(met.get_return() == Class::get_void());
     }
     #[test]
@@ -35,7 +35,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+        let met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
         assert!(met.get_return() == Class::get_int_32());
     }
     #[test]
@@ -45,7 +45,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let _met:Method<(i32,i64)> = Method::get_method_from_name(&class,"GetArg",2).unwrap();
+        let _met:Method<(i32,i64)> = Method::get_from_name(&class,"GetArg",2).unwrap();
     }
     #[should_panic]
     #[test]
@@ -54,7 +54,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<()> = Method::get_method_from_name(&class,"GetObject",0).unwrap();
+        let met:Method<()> = Method::get_from_name(&class,"GetObject",0).unwrap();
         let obj = met.invoke(None,()).expect("Got exception").expect("Got null as expected!");
         let _res = obj.unbox::<i32>();
     }
@@ -64,7 +64,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+        let met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
         let obj = met.invoke(None,7).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i32>();
         assert!(res == 7);
@@ -75,7 +75,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64)> = Method::get_method_from_name(&class,"Mul",2).unwrap();
+        let met:Method<(i64,i64)> = Method::get_from_name(&class,"Mul",2).unwrap();
         let obj = met.invoke(None,(1,2)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2);
@@ -86,7 +86,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let _met:Method<(i64,i64)> = Method::get_method_from_name(&class,"Mul",2).unwrap();
+        let _met:Method<(i64,i64)> = Method::get_from_name(&class,"Mul",2).unwrap();
     }
     #[should_panic]
     #[test]
@@ -95,7 +95,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let _met:Method<(u32,i32)> = Method::get_method_from_name(&class,"Mul",2).unwrap();
+        let _met:Method<(u32,i32)> = Method::get_from_name(&class,"Mul",2).unwrap();
     }
     #[test]
     fn calling_method_3_args(){
@@ -103,7 +103,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",3).unwrap();
+        let met:Method<(i64,i64,i64)> = Method::get_from_name(&class,"Mul",3).unwrap();
         let obj = met.invoke(None,(1,2,3)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3);
@@ -114,7 +114,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",4).unwrap();
+        let met:Method<(i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",4).unwrap();
         let obj = met.invoke(None,(1,2,3,4)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4);
@@ -125,7 +125,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",5).unwrap();
+        let met:Method<(i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",5).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4*5);
@@ -136,7 +136,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",6).unwrap();
+        let met:Method<(i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",6).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4*5*6);
@@ -147,7 +147,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",7).unwrap();
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",7).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4*5*6*7);
@@ -158,7 +158,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",8).unwrap();
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",8).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4*5*6*7*8);
@@ -169,7 +169,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",9).unwrap();
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",9).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4*5*6*7*8*9);
@@ -180,7 +180,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",10).unwrap();
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",10).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4*5*6*7*8*9*10);
@@ -191,7 +191,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",11).unwrap();
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",11).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4*5*6*7*8*9*10*11);
@@ -202,7 +202,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",12).unwrap();
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",12).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12);
@@ -213,7 +213,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",13).unwrap();
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",13).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12,13)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12*13);
@@ -224,7 +224,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",14).unwrap();
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",14).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12,13,14)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12*13*14);
@@ -235,7 +235,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",15).unwrap();
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",15).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12*13*14*15);
@@ -246,7 +246,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_method_from_name(&class,"Mul",16).unwrap();
+        let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",16).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
         assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12*13*14*15*16);
@@ -258,7 +258,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+        let met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
         println!("method params:");
         assert!(met.get_param_count() == 1);
     }
@@ -268,7 +268,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+        let met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
         println!("method params:");
         assert!(met.get_param_count() == 1);
         for param in met.get_param_names(){
@@ -282,7 +282,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let _met:Method<i32> = Method::get_method_from_name(&class,"Missing",1).unwrap();
+        let _met:Method<i32> = Method::get_from_name(&class,"Missing",1).unwrap();
     }
     #[should_panic]
     #[test]
@@ -292,7 +292,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let _met:Method<i32> = Method::get_method_from_name(&class,"GetArg",3).unwrap();
+        let _met:Method<i32> = Method::get_from_name(&class,"GetArg",3).unwrap();
     }
     #[test]
     fn passing_enum_method(){
@@ -300,7 +300,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<CLikeEnum> = Method::get_method_from_name(&class,"GetEnum",1).unwrap();
+        let met:Method<CLikeEnum> = Method::get_from_name(&class,"GetEnum",1).unwrap();
         let arg1:CLikeEnum = CLikeEnum::Val;
         let obj = met.invoke(None,arg1).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<CLikeEnum>();
@@ -313,7 +313,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<()> = Method::get_method_from_name(&class,"ExceptionThrower",0).unwrap();
+        let met:Method<()> = Method::get_from_name(&class,"ExceptionThrower",0).unwrap();
         let obj = met.invoke(None,()).expect("Got an Exception").expect("Got null on a non-nullable!");
     }
     #[test]
@@ -322,7 +322,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<()> = Method::get_method_from_name(&class,"ExceptionThrower",0).unwrap();
+        let met:Method<()> = Method::get_from_name(&class,"ExceptionThrower",0).unwrap();
         match met.invoke(None,()){
             Ok(_)=>panic!("Should get an exception, but got no exeception"),
             Err(_)=>(),

@@ -121,7 +121,7 @@ rusty_fork_test!{
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<()> = Method::get_method_from_name(&class,"CreateTypeString",0).unwrap();
+        let met:Method<()> = Method::get_from_name(&class,"CreateTypeString",0).unwrap();
         let res = met.invoke(None,()).expect("Got an exception").unwrap();
     }
          

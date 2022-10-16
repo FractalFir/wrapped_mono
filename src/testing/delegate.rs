@@ -8,7 +8,7 @@ rusty_fork_test!{
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<()> = Method::get_method_from_name(&class,"GetDelegate",0).unwrap();
+        let met:Method<()> = Method::get_from_name(&class,"GetDelegate",0).unwrap();
         let obj = met.invoke(None,()).expect("Got an Exception").expect("Got null on a non-nullable!");
         assert!(obj.get_class().is_delegate());
     }
@@ -18,7 +18,7 @@ rusty_fork_test!{
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<()> = Method::get_method_from_name(&class,"GetDelegate",0).unwrap();
+        let met:Method<()> = Method::get_from_name(&class,"GetDelegate",0).unwrap();
         let obj = met.invoke(None,()).expect("Got an Exception").expect("Got null on a non-nullable!");
         let del:Delegate<(i32,i32)> = Delegate::cast_from_object(&obj).expect("Expected delegate, got something else");
         let _res = del.invoke((10,10)).expect("Exception").expect("Got null");

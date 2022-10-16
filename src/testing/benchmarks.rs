@@ -111,7 +111,7 @@ fn get_method(b: &mut Bencher) {
     let img = asm.get_image();
     let class = Class::from_name(&img,"","TestFunctions").unwrap();
     b.iter(|| {
-        let met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+        let met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
     });
 }
 #[bench]
@@ -124,7 +124,7 @@ fn call_method(b: &mut Bencher) {
     let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
     let img = asm.get_image();
     let class = Class::from_name(&img,"","TestFunctions").unwrap();
-    let met:Method<i32> = Method::get_method_from_name(&class,"GetArg",1).unwrap();
+    let met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
     b.iter(|| {
         met.invoke(None,8).unwrap().unwrap();
     });

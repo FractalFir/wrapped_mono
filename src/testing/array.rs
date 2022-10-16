@@ -9,7 +9,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let mthd:Method<()> = Method::get_method_from_name(&class,"Get2DIntArray",0).expect("Could not load function");
+        let mthd:Method<()> = Method::get_from_name(&class,"Get2DIntArray",0).expect("Could not load function");
         let arr:Array<2,i32> = unsafe{Array::from_ptr((
             mthd.invoke(None,()).expect("Exception").expect("got null").get_ptr() as *mut crate::binds::MonoArray
         ))}.expect("got null again");

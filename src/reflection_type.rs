@@ -202,7 +202,7 @@ lazy_static!{
     static ref MAKE_GENERIC_TYPE_MET: Method<Array<1,ReflectionType>> = {
         let img = crate::Assembly::assembly_loaded("mscorlib").expect("Assembly mscorlib not loaded, could not get System.Type class!").get_image();
         let class = Class::from_name_case(&img,"System","Type").expect("Could not get System.Type class form mscorlib!");
-        Method::get_method_from_name(&class,"MakeGenericType",1).expect("Could not get System.Type::MakeGenericType method!")
+        Method::get_from_name(&class,"MakeGenericType",1).expect("Could not get System.Type::MakeGenericType method!")
     };
 }
 impl Clone for ReflectionType{
