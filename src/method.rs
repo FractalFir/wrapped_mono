@@ -9,16 +9,16 @@ use std::ffi::CString;
 /// Args - Tuple type of types of all arguments accepted by this particular method.
 /// # Safety
 /// ## Type Mismatch
-/// When a method is recived from mono runtime it's argument types are checked, but those checks are not yet made for a method with eiher 1 or no arguments.
+/// When a method is received from mono runtime it's argument types are checked, but those checks are not yet made for a method with either 1 or no arguments.
 /// This is a result of a limitation of rust type system, and it can't be worked around in a nice way in the current version of the API, but will be adressed in the futute.
 /// ## All arguments **must** implement InteropClass!
-/// While this is not enforced jet because of limitations of the API(no support for C# tuples), **IT IS STILL NECESARY**. Ignoring this waring and using Methods with
-/// arguments not implementing InteropClass **will lead to crashes and undefined behavior**. Before filing bug reports, check that all arguments of your function implement InteropClass.
+/// While this is not enforced jet because of limitations of the API(no support for C# tuples), **IT IS STILL NECESSARY**. Ignoring this warning and using Methods with
+/// arguments not implementing InteropClass **will lead to crashes and undefined behaviour**. Before filing bug reports, check that all arguments of your function implement InteropClass.
 pub struct Method<Args:InteropSend>{
     method:*mut MonoMethod,
     args_type:PhantomData<Args>,
 }
-/// Trait implemented only for [`Method`] type. Spiliting it from main [`Method`] type allows for diffrent ammount of function arguments.
+/// Trait implemented only for [`Method`] type. Spiliting it from main [`Method`] type allows for different amount of method arguments.
 pub trait MethodTrait<Args:InteropSend> where Self: Sized{
     /// Invoke this method on object *object* with arguments *args*
     /// # Arguments

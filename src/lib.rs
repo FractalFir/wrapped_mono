@@ -8,18 +8,17 @@
 #![feature(test)]
 // doctests are disabled, because they do not work with rusty_fork! which is required for testing mono runtime
 #![cfg(not(doctest))] 
-//! `wrapped_mono` is a lightweight wrapper around the mono runtime, allowing embedding code from languages from the .NET frameawork into rust code.
-//! Besides simple warppers around most functions, this crate also contains couple traits and macros allowing easy interop between managed and unmanaged code.
+//! `wrapped_mono` is a safe, lightweight wrapper around the mono library. It allows embedding of the mono runtime inside a rust project. Inside this embedded runtime code written in languages supporting the .NET framework, such as C\# and F\#, can be run. This allows usage of libraries written in those languages, and using them as a scripting language. The mono runtime is used by many game engines, and this wrapper allows using it with projects written in Rust too.
 //! # Safety 
 //! Most functions are safe and when invalid data is passed will fail in a controlled way with an error message. There are still some pitfalls, because not all errors can be caught without substantial overhead. Those errors are hard to come by, and should be always clearly 
-//! marked in the documentation(for example accessing an object after deleting it by deleting domain it is in), and be generally obvious mistakes(deleting something and then accessing it). 
+//! marked in the documentation(for example accessing an object after deleting it by deleting domain it is in), and easy to spot. 
 //! # Definitions of certain words used in documentation:
 //!
 //! **Managed Code** - code which runs in the runtime(e.g. C# code)
 //!
 //! **Unmanaged code** - code which runs outside runtime(in this case Rust code)
 //!
-//! More precise explanation: <a href = "https://docs.microsoft.com/en-us/dotnet/standard/managed-code">Explanation</a>
+//! More precise <a href = "https://docs.microsoft.com/en-us/dotnet/standard/managed-code">explanation</a>
 //! ## Feature flags
 #![doc = document_features::document_features!()]
 
@@ -29,7 +28,7 @@ pub mod binds;
 pub mod jit;
 /// Functions and types related to MonoDomain type.
 pub mod domain;
-/// Functions and types related to MonoAssemblt type.
+/// Functions and types related to MonoAssembly type.
 pub mod assembly;
 /// Traits related to passing data between managed and unmanaged classes.
 pub mod interop;
@@ -51,24 +50,27 @@ pub mod runtime;
 pub mod exception;
 /// Functions related to garbage collection.
 pub mod gc;
-/// Utilities related to metadata. Bare bones and experimental.
-pub mod metadata;
-///
+/// Safe representation of a delegate.
 pub mod delegate;
-
+/// Safe representation of the `System.Type` type. 
 pub mod reflection_type;
-mod tupleutilis;
 /// Experimental Profiler API. Bare bones and may contain bugs.
 #[allow(dead_code)]
 pub mod profiler;
+/// Utilities related to metadata. Bare bones and experimental.
+pub mod metadata;
+
 mod testing;
-pub use wrapped_mono_macros;
+mod tupleutilis; // Some utility traits used internally.
+
+#[doc(inline)]
+pub use wrapped_mono_macros; // Custom macros  
 #[doc(inline)]
 pub use object::{Object,ObjectTrait};
 #[doc(inline)]
 pub use domain::Domain;
 #[doc(inline)]
-pub use interop::{InteropRecive,InteropSend,InteropBox,InteropClass,get_mono_rep_val,ref_to_cvoid_ptr};
+pub use interop::{InteropRecive,InteropSend,InteropBox,InteropClass};
 #[doc(inline)]
 pub use array::Array;
 #[doc(inline)]

@@ -1,6 +1,5 @@
 ﻿# wrapped_mono
-`wrapped_mono` is a safe, lightweight wrapper around the mono library. It allows embedding of the mono runtime inside a rust project. Inside this
-embedded runtime code written in languages supporting the .NET framework, such as C# and F#, can be run. This allows usage of libraries written in those languages, and using them as a scripting language. The mono runtime is used by many game engines, and this wrapper allows using it with projects written in Rust too.
+`wrapped_mono` is a safe, lightweight wrapper around the mono library. It allows embedding of the mono runtime inside a rust project. Inside this embedded runtime code written in languages supporting the .NET framework, such as C# and F#, can be run. This allows usage of libraries written in those languages, and using them as a scripting language. The mono runtime is used by many game engines, and this wrapper allows using it with projects written in Rust too.
 # WIP
 ## Lacking APIs
 While `wrapped_mono` already has support for most of the features of the mono runtime, some minor APIs don't have finished and fully tested wrappers. Those unfinished APIs are usually niche(eg. advanced debugging, access to profiler(data about performance), access to assembly Metadata, dynamic code generation) and always have an alternative unsafe bindings that can be used.

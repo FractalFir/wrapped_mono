@@ -4,7 +4,7 @@ version = "0.1.2"
 edition = "2021"
 description = "Macros for wrapped_mono. Useless without it."
 repository = "https://github.com/FractalFir/wrapped_mono"
-keywords = [".NET","mono","C#","F#","macro"]
+keywords = [".NET","mono","C#","F#","macros","derive"]
 authors = ["FractalFir <fractalfirdev@gmail.com>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]

@@ -148,7 +148,7 @@ fn extract_enum_data(inner:&Vec<Vec<TokenTree>>)->Option<u32>{
     }
     Some(max_val)
 }
-/// Autoimplement [`InteropRecive`] trait for any type containing only [`IteropRecive`] implementing memebers. Currently supports only structs, and trivial enums(C-like enums) of size less than u64(C# max enum size).
+/// Autoimplement `InteropRecive` trait for any type containing only `IteropRecive` implementing memebers. Currently supports only structs, and trivial enums(C-like enums) of size less than u64(C# max enum size).
 /// # Rust enums
 /// Can't be used  with rust-like enums(enums with non-value data), since there is no clear way how this should look like on the managed side. 
 /// # Safety
@@ -227,13 +227,13 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
     dumping::dump_stream(&res);
     res
 }
-/// Autoimplement [`InteropSend`] trait for any type containing only [`IteroSend`] implementing memebers. Currently supports only structs, and trivial enums(C-like enums) of size less than u64(C# max enum size).
+/// Autoimplement `InteropSend` trait for any type containing only `IteropSend` implementing members. Currently supports only structs, and trivial enums(C-like enums) of size less than u64(C# max enum size).
 /// # Rust enums
 /// Can't be used  with rust-like enums(enums with non-value data), since there is no clear way how this should look like on the managed side. 
 /// # Enums
 /// 1 can have only values
 /// 2 have to have set values
-/// 3 have to be size smaller than u64, otherwise 'evaluation of constant value failed' error will be thrown(This error is thrown on purpose, 
+/// 3 have to be size smaller than u64, otherwise  'evaluation of constant value failed' error will be thrown(This error is thrown on purpose, 
 /// since C# enums cant' be bigger than u64. This message means your enum is to big and will cause problems).
 #[proc_macro_derive(InteropSend)]
 pub fn derive_send(input: TokenStream) -> TokenStream {

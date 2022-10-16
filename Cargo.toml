@@ -4,10 +4,10 @@ version = "0.1.2"
 edition = "2021"
 links = "mono-2.0"
 license = "MIT"
-description = "Wrapper around mono library. Allows easy loading and interop between code written for the .NET framework and rust."
+description = "`wrapped_mono` is a safe, lightweight wrapper around the mono library. It allows embedding of the mono runtime inside a rust project. Inside this embedded runtime code written in languages supporting the .NET framework, such as C# and F#, can be run. This allows usage of libraries written in those languages, and using them as a scripting language. The mono runtime is used by many game engines, and this wrapper allows using it with projects written in Rust too."
 repository = "https://github.com/FractalFir/wrapped_mono"
 readme = "README.md"
-keywords = [".NET","mono","C#","F#"]
+keywords = [".NET","mono","C#","F#","framework","embedding"]
 categories = ["api-bindings"]
 authors = ["FractalFir <fractalfirdev@gmail.com>"]
 

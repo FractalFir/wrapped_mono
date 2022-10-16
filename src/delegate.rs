@@ -7,6 +7,9 @@ use core::ptr::null_mut;
 use std::ffi::c_void;
 use crate::binds::{MonoObject,MonoException};
 use crate::ObjectTrait;
+#[allow(unused_imports)] // for docs
+use crate::Method;
+/// A safe representation of a delegate.
 pub struct Delegate<Args:InteropSend>{
     #[cfg(not(feature = "referneced_objects"))]
     dptr:*mut MonoDelegate,
@@ -62,9 +65,36 @@ impl<Args:InteropSend> Delegate<Args>{
         unsafe{crate::binds::mono_get_delegate_invoke(self.get_class().get_ptr())}
     }
 }
+/// Trait implemented only for [`Delegate`] type. Splits some functions up from from main [`Method`] type, allowing for different amount of delegate arguments.
 pub trait DelegateTrait<Args:InteropSend>{
+    /// Creates new Delegate type from a *mut MonoDelegate. Checks if arguments of [`MonoDelegate`] and rust representation of a [`Delegate`] match and if not panic. 
+    /// Returns [`None`] if pointer is null.
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |met_ptr|*mut [`MonoDelegate`]|Pointer to delegate to create a representation for.|
+    /// # Safety 
+    /// Pointer must be either a valid pointer to [`MonoDelegate`] recived from mono runtime, or a null pointer.
+    /// **WARNING** argument types not yet checked for delegates with 1 or 0 arguments. This results from limitations of Rust type system and this version of the API, and can't be solved without some realy nasty hacks,
+    /// but will be fixed in the future.
     fn from_ptr(ptr:*mut MonoDelegate)->Option<Self> where Self:Sized;
+    /// Creates new Delegate type from a *mut MonoDelegate. Checks if arguments of [`MonoDelegate`] and rust representation of a [`Delegate`] match and if not returns None.
+    /// Returns [`None`] if pointer is null.
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |met_ptr|*mut [`MonoDelegate`]|Pointer to delegate to create a representation for.|
+    /// # Safety 
+    /// Pointer must be either a valid pointer to [`MonoDelegate`] recived from mono runtime, or a null pointer.
+    /// **WARNING** argument types not yet checked for delegates with 1 or 0 arguments. This results from limitations of Rust type system and this version of the API, and can't be solved without some realy nasty hacks,
+    /// but will be fixed in the future.
     fn from_ptr_checked(ptr:*mut MonoDelegate)->Option<Self> where Self:Sized;
+    /// Invokes this delegate.
+    /// # Arguments
+    /// | Name   | Type   | Description|
+    /// |--------|--------|-------|
+    /// | self   | &`Self`|Reference to delegate to invoke. |
+    /// | args   | `Args`|Arguments to pass to delegate |
     fn invoke(&self,params:Args)->Result<Option<Object>,Exception>;
 }
 impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args>{

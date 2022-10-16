@@ -14,7 +14,7 @@ pub struct ReflectionType{
 }
 impl ReflectionType{
     /// Creates [`ReflectionType`] from a pointer to [`MonoReflectionType`]. The pointer must be either a valid pointer to [`MonoReflectionType`] received from mono runtime, or a null pointer.
-    pub fn from_ptr(type_ptr:*mut MonoReflectionType)->Option<Self>{
+    pub unsafe  fn from_ptr(type_ptr:*mut MonoReflectionType)->Option<Self>{
         #[cfg(not(feature = "referneced_objects"))]
         {
             if type_ptr.is_null(){
@@ -30,6 +30,7 @@ impl ReflectionType{
             Some(Self{handle:GCHandle::create_default(type_ptr as *mut _)})
         }
     }
+    /// Gets the internal pointer to [`MonoReflectionType`]
     pub fn get_ptr(&self)->*mut MonoReflectionType{
           #[cfg(not(feature = "referneced_objects"))]
           {
@@ -40,6 +41,7 @@ impl ReflectionType{
                 self.handle.get_target() as *mut _
           }
     }
+    /// Converts a class to a [`MonoReflectionType`]
     pub fn from_class(class:&Class)->Self{
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
@@ -49,10 +51,12 @@ impl ReflectionType{
         gc_unsafe_exit(marker);
         res
     }
-    fn get_type_ptr(&self)->*mut crate::binds::MonoType{
+    /// Returns a pointer to unmanaged representation of `System.Type`
+    pub fn get_type_ptr(&self)->*mut crate::binds::MonoType{
         unsafe{crate::binds::mono_reflection_type_get_type(self.get_ptr())}
     }
-    unsafe fn from_type_ptr(type_ptr:*mut crate::binds::MonoType)->Option<Self>{
+    /// Creates an new instance from a pointer to unmanaged representation of `System.Type`
+    pub unsafe fn from_type_ptr(type_ptr:*mut crate::binds::MonoType)->Option<Self>{
         if type_ptr.is_null(){
             return None;
         }
@@ -60,6 +64,7 @@ impl ReflectionType{
         Some(unsafe{Self::from_ptr(crate::binds::mono_type_get_object(dom.get_ptr(),type_ptr))}
         .expect("Could not convert MonoType pointer to a ReflectionType!"))
     }
+    /// Gets type with *name* inside image *img*
     pub fn from_name(name:&str,img:&Image)->Option<Self>{
         let cstr = CString::new(name).expect("Could not convert string to CString");
         #[cfg(feature = "referneced_objects")]
@@ -73,6 +78,7 @@ impl ReflectionType{
         gc_unsafe_exit(marker);
         res
     }
+    #[doc(hidden)] // Unfinished
     pub fn create_generic(gtype_img:&Image,gtype:&str,gargs:&[Self])->Option<Self>{
         let garg_count = gargs.len();
         let gtype_str = format!("{}`{}",gtype,garg_count);
@@ -105,7 +111,7 @@ impl InteropSend for ReflectionType{
 impl InteropRecive for ReflectionType{
     type SourceType = *mut MonoReflectionType;
     fn get_rust_rep(rarg: Self::SourceType)->Self{
-        Self::from_ptr(rarg).expect("Recived null on a not nullable type")
+        unsafe{Self::from_ptr(rarg).expect("Recived null on a not nullable type")}
     }
 }
 impl InteropClass for ReflectionType{
@@ -185,12 +191,17 @@ impl ObjectTrait for ReflectionType{
         obj
     }
     fn cast_from_object(obj:&Object)->Option<Self>{
+        //TODO: adjust this after including GCHandles to speed things up.
+        let cast = match obj.is_inst(&<Self as InteropClass>::get_mono_class()){
+            Some(cast)=>cast,
+            None=>return None,
+        };
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        // TODO: fix this cast
+        let cast = unsafe{Self::from_ptr(cast.get_ptr() as *mut _)};
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
-        unimplemented!();
+        cast
     }
 }
 use lazy_static::lazy_static;

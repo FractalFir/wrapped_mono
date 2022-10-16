@@ -2,7 +2,6 @@ use crate::binds::MonoClass;
 use crate::{Image,Method,MethodTrait,InteropSend};
 use std::ffi::CString;
 use core::ffi::c_void;
-use crate::{MString,Array,ReflectionType};
 ///  Safe representation of a managed class.(eg. System.Int64, System.Object, etc.);
 #[derive(Eq,Copy,Clone)]
 pub struct Class{
@@ -437,7 +436,7 @@ impl std::cmp::PartialEq for Class{
 }
 use crate::object::Object;
 use crate::binds::MonoClassField;
-/// Representation of a class field. Accessors(getters,setters and indexers) are *not* fields, but properties! For them use [`ClassProperty`]
+/// Representation of a class field. Accessors(getters,setters and indexers) are *not* fields, but properties! For them use [`ClassProperity`]
 pub struct ClassField{
     cf_ptr:*mut MonoClassField,
 }
@@ -495,11 +494,8 @@ impl ClassField{
     /// ## Rust
     ///```rust
     /// let some_field_value_object = some_field.get_value_object(&instance_of_some_class);
-    /// //Retrived value *some_field_value_object* is a boxed int. 
-    /// let some_field_value = *(some_field_value_object.unbox() as *mut i32);
-    /// //First got pointer to unboxed value using unbox() then converted it to proper type (*mut i32), and dereferenced
-    /// it to get its value.
-    /// ```add_internal_calno_field_get_value_object(dom.get_ptr(),self.get_ptr(),obj.get_ptr())
+    /// // Retrived value *some_field_value_object* is a boxed int, so we must unbox it.
+    /// let some_field_value = some_field_value_object.unbox::<i32>()
     /// ```
     pub fn get_value_object(&self,obj:&Object)->Option<Object>{
         use crate::object::ObjectTrait;

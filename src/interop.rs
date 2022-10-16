@@ -234,7 +234,7 @@ impl InteropSend for String{
     }
 }
 use crate::class::Class;
-///Trait allowing for boxing and unboxing type from objects 
+/// Trait allowing for boxing and unboxing type from objects 
 /// # Safety
 /// Managed type returned by `get_mono_class` of InteropClass **must** be boxable, otherwise a crash will occur.
 pub trait InteropBox where Self: InteropRecive + InteropSend + InteropClass{}
@@ -343,13 +343,6 @@ impl InteropBox for usize{}
 impl InteropBox for bool{}
 impl InteropBox for char{}
 
-use core::ffi::c_void;
-pub fn get_mono_rep_val<T:InteropSend>(input:T)-><T as InteropSend>::TargetType{
-    <T as InteropSend>::get_mono_rep(input)
-}
-pub fn ref_to_cvoid_ptr<T>(r:&mut T)->*mut c_void{
-    r as *mut T as *mut c_void
-}
 //use crate::tupleutilis::*;
 //Conversion of a tuple from one format to another
 impl<A:InteropSend,B:InteropSend> InteropSend for (A,B){

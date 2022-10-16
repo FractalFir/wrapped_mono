@@ -108,7 +108,7 @@ impl AssemblyMetadata{
             culture:        img.metadata_string_heap(table.decode_row_col(0,8)),
         }
     }
-    ///Gets [`AssemblyMethadata`]
+    ///Gets [`AssemblyMetadata`]
     pub fn from_image(img:&Image)->AssemblyMetadata{
         Self::from_meta_table(&img.get_table_info(MetadataTableKind::Assembly),img)
     }
@@ -225,7 +225,7 @@ impl AssemblyOSMetadata{
             minor_version:table.decode_row_col(0,2),
         }
     }
-    ///Gets [`AssemblyMethadata`]
+    ///Gets [`AssemblyMetadata`]
     pub fn from_image(img:&Image)->Option<AssemblyOSMetadata>{
         let table = img.get_table_info(MetadataTableKind::AssemblyOS);
         if table.get_table_rows()>0{
