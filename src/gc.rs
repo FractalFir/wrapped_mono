@@ -24,20 +24,29 @@ pub fn get_heap_size()->i64{
 pub fn get_used_size()->i64{
     unsafe{crate::binds::mono_gc_get_used_size()}
 }
+/// A Garbage Collector handle. Should only be used if default feature referenced objects is disabled. Otherwise all of its functionality is handled automatically behind the scenes
 pub struct GCHandle{
     handle:u32,
 }
 use crate::binds::MonoObject;
 impl GCHandle{
+    /// Gets a pointer to an object this handle targets.
     pub fn get_target(&self)->*mut MonoObject{
         unsafe{crate::binds::mono_gchandle_get_target(self.handle)}
     }
-    pub fn create(ptr:*mut MonoObject,pinned:bool)->GCHandle{
+    /// Creates a new Garbage Collector handle. 
+    /// # Safety
+    /// *ptr* must be a pointer to a valid object.
+    pub unsafe fn create(ptr:*mut MonoObject,pinned:bool)->GCHandle{
         GCHandle{handle:unsafe{crate::binds::mono_gchandle_new(ptr,pinned as i32)}}
     }
-    pub fn create_default(ptr:*mut MonoObject)->GCHandle{
+    /// Creates a new Garbage Collector handle with default pin settings(unpinned). 
+    /// # Safety
+    /// *ptr* must be a pointer to a valid object.
+    pub unsafe fn create_default(ptr:*mut MonoObject)->GCHandle{
         GCHandle{handle:unsafe{crate::binds::mono_gchandle_new(ptr,false as i32)}}
     }
+    /// Frees this handle, deleting the reference to object it targets.
     pub fn free(handle:Self){
         unsafe{crate::binds::mono_gchandle_free(handle.handle)}
     }
@@ -83,8 +92,8 @@ pub struct GCUnsafeAreaMarker {
 pub fn gc_unsafe_enter()->(GCUnsafeAreaMarker,MonoStackData){
     let stack_item:u8 = 0; //Useless dummy value used to get the stack pointer.
     let msd = crate::gc::MonoStackData{dummy:0,stack_ptr:&stack_item as *const u8}; // StackDataObject used to restore the stack.
-    let marker = unsafe{crate::gc::mono_threads_enter_gc_unsafe_region_internal(&msd)}; // Entering GC Unsafe mode (signaling to GC taht we will be using managed objects that should not be moved)
-    return (marker,msd);
+    let marker = unsafe{crate::gc::mono_threads_enter_gc_unsafe_region_internal(&msd)}; // Entering GC Unsafe mode (signalling to GC that we will be using managed objects that should not be moved)
+    (marker,msd)
 }
 #[doc(hidden)] #[inline(always)]
 pub fn gc_unsafe_exit(markers:(GCUnsafeAreaMarker,MonoStackData)){

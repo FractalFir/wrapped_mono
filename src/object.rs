@@ -282,6 +282,8 @@ impl Object{
 }
 impl InteropRecive for Object{
     type SourceType = *mut  crate::binds::MonoObject;
+    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(arg:Self::SourceType)->Self{
         let opt = unsafe{Self::from_ptr(arg)};
         except_managed(opt,"Rust function argument type is not nullable, but got null!For nullable types use Option<Object>!")
@@ -295,6 +297,8 @@ impl InteropSend for Object{
 }
 impl InteropRecive for Option<Object>{
     type SourceType = *mut  crate::binds::MonoObject;
+    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(arg:Self::SourceType)->Self{
         unsafe{Object::from_ptr(arg)}
     }

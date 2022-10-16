@@ -42,13 +42,9 @@ impl Exception{
     ///     exception.raise();
     /// }
     ///
-    pub fn raise(&self){
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let res = unsafe{crate::binds::mono_raise_exception(self.get_ptr())};
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        res
+    pub fn raise(&self)->!{
+        unsafe{crate::binds::mono_raise_exception(self.get_ptr())};
+        panic!("After an exception is thrown, nothing should happen.");
     }
     /// Creates [`Exception`] of type *name* in *namespace* from *image* in *domain*
     pub fn from_name_domain(domain:&Domain,image:&Image,namespace:&str,name:&str)->Option<Self>{
@@ -525,7 +521,6 @@ pub fn except_managed<T:Sized>(option:Option<T>,msg:&str)->T{
         None=>{
             let exc = Exception::argument_null(&format!("Value of type: \"{}\" was null!\"{}\"",std::any::type_name::<T>(),&msg));
             exc.raise();
-            panic!("Impossible condition reached. Code executed after exception thrown.");
         }
     }
 }
@@ -536,7 +531,6 @@ pub fn unwrap_managed<T:Sized>(option:Option<T>)->T{
         None=>{
             let exc = Exception::argument_null(&format!("Value of type: \"{}\" was null!",std::any::type_name::<T>()));
             exc.raise();
-            panic!("Impossible condition reached. Code executed after exception thrown.");
         }
     }
 }

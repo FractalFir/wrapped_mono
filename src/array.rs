@@ -247,6 +247,8 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
 }
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  InteropRecive for Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
     type SourceType = *mut crate::binds::MonoArray;
+     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(arg:Self::SourceType)->Self{
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
@@ -352,6 +354,8 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  crate:
 }
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> InteropRecive for Option<Array<DIMENSIONS,T>> where [();DIMENSIONS as usize]:Copy{
     type SourceType = *mut crate::binds::MonoArray;
+    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(arg:Self::SourceType)->Self{
         unsafe{Array::<DIMENSIONS,T>::from_ptr(arg)}
     }

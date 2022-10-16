@@ -15,7 +15,8 @@ struct _Profiler<T>{
     domain_unloading_cb:Option<fn (profiler:&mut Profiler<T>,dom:&mut Domain)>,
     domain_unloaded_cb:Option<fn (profiler:&mut Profiler<T>,dom:&mut Domain)>,
     domain_set_name_cb:Option<fn (profiler:&mut Profiler<T>,dom:&mut Domain,&str)>,
-    //Main method has either type Method<Object,iszie,isize,isize> or Method<String>
+    //TODO: fix jit_negin_cb: main method has either type Method<Object,iszie,isize,isize> or Method<String> signature.
+    #[allow(clippy::type_complexity)]
     jit_begin_cb:Option<fn (profiler:&mut Profiler<T>,&Method<String>)>,
     pub data:T,
 } 

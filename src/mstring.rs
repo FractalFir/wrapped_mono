@@ -83,19 +83,19 @@ impl MString{
 }
 impl InteropRecive for MString{
     type SourceType = *mut MonoString;
+     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(src:Self::SourceType)->Self{
         use crate::exception::except_managed;
-        // As long as this function is used in its intended way, there should be no problems, because pointer received from mono runtime must always be either valid or null. (If it is not then that is a bug in mono runtime and there is nothing we can do about it.
-        #[allow(clippy::not_unsafe_ptr_arg_deref)]
         let opt = unsafe{Self::from_ptr(src)};
         except_managed(opt,"got null in a non-nullable string. For nullabe support use Option<MString>")
     }
 }
 impl InteropRecive for Option<MString>{
     type SourceType = *mut MonoString;
+     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(src:Self::SourceType)->Self{
-        // As long as this function is used in its intended way, there should be no problems, because pointer received from mono runtime must always be either valid or null. (If it is not then that is a bug in mono runtime and there is nothing we can do about it.
-        #[allow(clippy::not_unsafe_ptr_arg_deref)]
         unsafe{MString::from_ptr(src)}
     }
 }

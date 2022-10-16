@@ -16,6 +16,8 @@ pub trait InteropSend{
 }
 impl InteropRecive for String{
     type SourceType = *mut crate::binds::MonoString;
+     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(mono_arg:Self::SourceType)->Self{
         use std::ffi::CString;
         let cstr = unsafe{CString::from_raw(crate::binds::mono_string_to_utf8(mono_arg))};  

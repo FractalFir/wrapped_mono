@@ -13,7 +13,9 @@ pub struct ReflectionType{
     handle:GCHandle,
 }
 impl ReflectionType{
-    /// Creates [`ReflectionType`] from a pointer to [`MonoReflectionType`]. The pointer must be either a valid pointer to [`MonoReflectionType`] received from mono runtime, or a null pointer.
+    /// Creates [`ReflectionType`] from a pointer to [`MonoReflectionType`]. 
+    /// # Safety
+    /// The pointer must be either a valid pointer to [`MonoReflectionType`] received from mono runtime, or a null pointer.
     pub unsafe  fn from_ptr(type_ptr:*mut MonoReflectionType)->Option<Self>{
         #[cfg(not(feature = "referneced_objects"))]
         {
@@ -56,6 +58,8 @@ impl ReflectionType{
         unsafe{crate::binds::mono_reflection_type_get_type(self.get_ptr())}
     }
     /// Creates an new instance from a pointer to unmanaged representation of `System.Type`
+    /// # Safety
+    /// The pointer must be either a pointer to valid *mut [`MonoType`] or null.
     pub unsafe fn from_type_ptr(type_ptr:*mut crate::binds::MonoType)->Option<Self>{
         if type_ptr.is_null(){
             return None;
@@ -110,6 +114,8 @@ impl InteropSend for ReflectionType{
 }
 impl InteropRecive for ReflectionType{
     type SourceType = *mut MonoReflectionType;
+    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(rarg: Self::SourceType)->Self{
         unsafe{Self::from_ptr(rarg).expect("Recived null on a not nullable type")}
     }

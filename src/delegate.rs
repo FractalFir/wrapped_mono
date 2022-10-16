@@ -77,7 +77,7 @@ pub trait DelegateTrait<Args:InteropSend>{
     /// Pointer must be either a valid pointer to [`MonoDelegate`] recived from mono runtime, or a null pointer.
     /// **WARNING** argument types not yet checked for delegates with 1 or 0 arguments. This results from limitations of Rust type system and this version of the API, and can't be solved without some realy nasty hacks,
     /// but will be fixed in the future.
-    fn from_ptr(ptr:*mut MonoDelegate)->Option<Self> where Self:Sized;
+    unsafe fn from_ptr(ptr:*mut MonoDelegate)->Option<Self> where Self:Sized;
     /// Creates new Delegate type from a *mut MonoDelegate. Checks if arguments of [`MonoDelegate`] and rust representation of a [`Delegate`] match and if not returns None.
     /// Returns [`None`] if pointer is null.
     /// # Arguments
@@ -88,7 +88,7 @@ pub trait DelegateTrait<Args:InteropSend>{
     /// Pointer must be either a valid pointer to [`MonoDelegate`] recived from mono runtime, or a null pointer.
     /// **WARNING** argument types not yet checked for delegates with 1 or 0 arguments. This results from limitations of Rust type system and this version of the API, and can't be solved without some realy nasty hacks,
     /// but will be fixed in the future.
-    fn from_ptr_checked(ptr:*mut MonoDelegate)->Option<Self> where Self:Sized;
+    unsafe fn from_ptr_checked(ptr:*mut MonoDelegate)->Option<Self> where Self:Sized;
     /// Invokes this delegate.
     /// # Arguments
     /// | Name   | Type   | Description|
@@ -98,7 +98,7 @@ pub trait DelegateTrait<Args:InteropSend>{
     fn invoke(&self,params:Args)->Result<Option<Object>,Exception>;
 }
 impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args>{
-    default fn from_ptr(ptr:*mut MonoDelegate)->Option<Self>{
+    default unsafe fn from_ptr(ptr:*mut MonoDelegate)->Option<Self>{
         if ptr.is_null(){
             None
         }
@@ -110,7 +110,7 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args>{
         }
 
     }
-    default fn from_ptr_checked(ptr:*mut MonoDelegate)->Option<Self>{
+    default unsafe fn from_ptr_checked(ptr:*mut MonoDelegate)->Option<Self>{
         if ptr.is_null(){
             None
         }
@@ -154,7 +154,7 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args>{
     }
 }
 impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args> where <Args as InteropSend>::TargetType:TupleToPtrs+CompareClasses{
-    default fn from_ptr(ptr:*mut MonoDelegate)->Option<Self>{
+    default unsafe fn from_ptr(ptr:*mut MonoDelegate)->Option<Self>{
         let res = {if ptr.is_null(){
             return None
         }
@@ -176,7 +176,7 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args> where <Args as Int
         }
         Some(res)
     }
-    default fn from_ptr_checked(ptr:*mut MonoDelegate)->Option<Self>{
+    default unsafe fn from_ptr_checked(ptr:*mut MonoDelegate)->Option<Self>{
         let res = {if ptr.is_null(){
             return None
         }
@@ -228,14 +228,18 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args> where <Args as Int
 
 impl <Args:InteropSend> InteropRecive for Delegate<Args>{
     type SourceType = *mut MonoDelegate;
+    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(ptr:*mut MonoDelegate)->Delegate<Args>{
-       Self::from_ptr(ptr).expect("Expected non-null value but got null")
+       unsafe{Self::from_ptr(ptr).expect("Expected non-null value but got null")}
     }
 }
 impl <Args:InteropSend> InteropRecive for Option<Delegate<Args>>{
     type SourceType = *mut MonoDelegate;
+    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(ptr:*mut MonoDelegate)->Option<Delegate<Args>>{
-        Delegate::from_ptr(ptr)
+        unsafe{Delegate::from_ptr(ptr)}
     }
 }
 impl <Args:InteropSend> InteropClass for Delegate<Args>{
@@ -283,7 +287,7 @@ impl<Args:InteropSend> ObjectTrait for Delegate<Args>{
         if !Self::get_mono_class().is_assignable_from(&obj.get_class()){
             None
         }
-        else {Self::from_ptr_checked(obj.get_ptr() as *mut _)}
+        else {unsafe{Self::from_ptr_checked(obj.get_ptr() as *mut _)}}
     }
 }
 impl<O:ObjectTrait,Args:InteropSend> PartialEq<O> for Delegate<Args>{
