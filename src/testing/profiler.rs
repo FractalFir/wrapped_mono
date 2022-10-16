@@ -53,7 +53,9 @@ profiler_test!{add_domain_loaded,{},(&mut Domain)}
 //profiler_test!{add_domain_unloading,{},(&mut Domain)}
 //profiler_test!{add_domain_unloaded,{},(&mut Domain)}
 //profiler_test!{add_domain_name,{},(&mut Domain)}
-//{let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();jit::exec(dom,asm,vec!["1","2"]);},
+
+// TODO:re-enable this test on the dev branch when working on 0.3(it is not planed to be in 0.2)
+/*
 profiler_test!{add_jit_begin,{},
     (&Method<String>)}
 rusty_fork_test! {
@@ -65,3 +67,4 @@ rusty_fork_test! {
         prof.destroy();
     }
 }
+*/ 

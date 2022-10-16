@@ -533,6 +533,7 @@ impl<T> Profiler<T>{
     pub fn remove_jit_begin(&mut self){
         unsafe{(*self.ptr).remove_jit_begin_cb()};
     }
+    #[doc(hidden)]
     ///Adds callback to be called when runtime is started.
     pub fn add_jit_begin(&mut self,cb: fn (profiler:&mut Profiler<T>,&Method<String>)){
         unsafe{(*self.ptr).add_jit_begin_cb(cb)};

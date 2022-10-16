@@ -76,6 +76,8 @@ rusty_fork_test!{
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
         let filed = Class::get_field_from_name(&class,"someField").expect("Could not get filed!");
     }
+    // TODO:rethink removal of those functionalities, maybe re-add themin 0.3
+    /*
     #[test]
     fn ctors_get(){
         use crate::binds::MonoObject;
@@ -107,7 +109,7 @@ rusty_fork_test!{
         assert!(ctors.len() == 5);
         */
         //panic!();
-    }
+    }*/
     #[test]
     fn get_delegate(){
         use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
