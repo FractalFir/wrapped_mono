@@ -28,11 +28,10 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
         //size of current dimension
         let mut size = 1;
         let mut index = 0;
-        for n in 0..(DIMENSIONS as usize){
-            let ind = indices[n];
+        for (n, ind) in indices.iter().enumerate(){
             let len = self.lengths[n] as usize;
             #[cfg(not(feature = "unsafe_arrays"))]
-            assert!(ind < len,"index ({}) outside of array bound ({})",ind,len);
+            assert!(*ind < len,"index ({}) outside of array bound ({})",ind,len);
             index += ind * size;
             size *= len;
         }
@@ -309,9 +308,13 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  crate:
         token
     }
     fn get_class(&self)->crate::class::Class{
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
         let class = unsafe{crate::class::Class::from_ptr(
             crate::binds::mono_object_get_class(self.get_ptr() as *mut MonoObject)
         ).expect("Could not get class of an object")};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
         class
     }
     fn to_mstring(&self)->Result<Option<MString>,Exception>{
@@ -381,8 +384,8 @@ impl<T:InteropSend + InteropRecive + InteropClass + Clone> From<&[T]> for Array<
         let size = src.len();
         let dom = Domain::get_current().expect("Can't create arrays before JIT starts!");
         let mut res:Array<1,T> = Array::new(&dom,&[size]);
-        for i in 0..size{
-            res.set([i],src[i].clone());
+        for (i, src) in src.iter().enumerate(){
+            res.set([i],src.clone());
         }
         res
     }

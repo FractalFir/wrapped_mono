@@ -1,6 +1,6 @@
 [package]
 name = "wrapped_mono"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 links = "mono-2.0"
 license = "MIT"
@@ -8,7 +8,7 @@ description = "`wrapped_mono` is a safe, lightweight wrapper around the mono lib
 repository = "https://github.com/FractalFir/wrapped_mono"
 readme = "README.md"
 keywords = [".NET","mono","C#","F#","framework","embedding"]
-categories = ["api-bindings"]
+categories = ["api-bindings","memory-management"]
 authors = ["FractalFir <fractalfirdev@gmail.com>"]
 
 [build-dependencies]
