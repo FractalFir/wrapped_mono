@@ -51,7 +51,7 @@ impl MString{
         gc_unsafe_exit(marker);
         hsh
     }
-    //Cretes [`MString`] form pointer , or returns None if pointer equal to null.
+    //Cretes [`MString`] form pointer , or returns [`None`] if pointer equal to null.
     /// # Safety
     /// *ptr* must be either a valid [`MonoString`] pointer or null. Pasing any other value will lead to undefined behaviour.
     pub unsafe fn from_ptr(ptr:*mut MonoString)->Option<Self>{

@@ -68,6 +68,40 @@ impl<Args:InteropSend> Delegate<Args>{
         gc_unsafe_exit(marker);
         res
     } 
+    // Gets names of all parameters delegate *self* accepts.
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self|&[`Delegate`]|Rust representation of a delegate to get names of arguments off|
+    pub fn get_param_names(&self)->Vec<String>{
+        use std::ffi::CString;
+        let pcount = self.get_param_count() as usize;
+        let mut ptrs:Vec<*const i8> = Vec::with_capacity(pcount);
+        ptrs.resize(pcount,std::ptr::null::<i8>());
+         #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        unsafe{crate::binds::mono_method_get_param_names(self.get_method_ptr(),ptrs.as_ptr() as *mut *const i8)};
+        let mut res:Vec<String> = Vec::with_capacity(pcount);
+        for ptr in &ptrs{
+            let cstr = unsafe{CString::from_raw(*ptr as *mut i8)};
+            res.push(cstr.to_str().expect("Could not create String from ptr").to_owned());
+            let _ = cstr.into_raw();
+        }
+        drop(ptrs);
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        res
+    }
+    /// Returns the return type of delegate *self*, if no return type returns *System.Void*
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self|&[`Delegate`]|Rust representation of a delegate to get return type off|
+    pub fn get_return(&self)->Class{
+        let sig = unsafe{crate::binds::mono_method_signature(self.get_method_ptr())};
+        let ptr = unsafe{crate::binds:: mono_signature_get_return_type(sig)};
+        unsafe{Class::from_ptr(crate::binds::mono_class_from_mono_type(ptr)).expect("Got no method return type, but no return type should be signaled by System.Void type!")}
+    } 
     fn get_method_ptr(&self)->*mut MonoMethod{
         unsafe{crate::binds::mono_get_delegate_invoke(self.get_class().get_ptr())}
     }

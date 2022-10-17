@@ -66,7 +66,7 @@ pub trait ObjectTrait{
     fn to_mstring(&self)->Result<Option<MString>,Exception>;
     /// Casts a type implementing [`ObjectTrait`] to an object.
     fn cast_to_object(&self)->Object;
-    /// Tries to cast an object to a sepcific object type, and returns None if canst impossible.
+    /// Tries to cast an object to a sepcific object type, and returns [`None`] if canst impossible.
     /// # WARNING
     /// This cast does not work fully for [`Delegate`]-s with less than 2 arguments(casts that should fail will not fail).
     fn cast_from_object(obj:&Object)->Option<Self> where Self:Sized;

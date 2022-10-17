@@ -22,16 +22,17 @@ impl Class{
         Some(Self{class_ptr})
     }
     /// Returns class named *name* in *namespace* in image *image*. Is not case sensitive!
+    /// 
     /// # Arguments
     /// |Name   |Type   |Description|
     /// |-------|-------|------|
-    /// |image|&[`Image`]| image to load class from |
-    /// |namespace|&[`str`]| path to namespace this class is in |
-    /// |name|&[`str`]| name of class to get |
+    /// |image| &[`Image`]| image to load class from |
+    /// |namespace| &[`str`]| path to namespace this class is in |
+    /// |name| &[`str`]| name of class to get |
     /// # Example
-    ///```rust
+    /// ```rust
     /// let some_class = Class::from_name(&some_image,"soMeNameSpace","SomeClass").expect("Could not find a class!");
-    ///```
+    /// ```
     pub fn from_name(image:&crate::image::Image,namespace:&str,name:&str)->Option<Self>{
         let cstr_nspace = CString::new(namespace).expect(crate::STR2CSTR_ERR);
         let cstr_name = CString::new(name).expect(crate::STR2CSTR_ERR);
@@ -39,16 +40,17 @@ impl Class{
         unsafe{Self::from_ptr(res)}
     } 
     /// Returns class named *name* in *namespace* in image *image*. It is case sensitive.
+    ///
     /// # Arguments
     /// |Name   |Type   |Description|
     /// |-------|-------|------|
-    /// |image|&[`Image`]| image to load class from |
-    /// |namespace|&[`str`]| path to namespace this class is in |
-    /// |name|&[`str`]| name of class to get |
+    /// |image| &[`Image`] | image to load class from |
+    /// |namespace| &[`str`] | path to namespace this class is in |
+    /// |name| &[`str`] | name of class to get |
     /// # Example
-    ///```rust
+    /// ```rust
     /// let some_class = Class::from_name_case(&some_image,"SomeNamespace","SomeClass").expect("Could not find a class!");
-    ///```
+    /// ```
     pub fn from_name_case(image:&crate::image::Image,namespace:&str,name:&str)->Option<Self>{
         let cstr_nspace = CString::new(namespace).expect(crate::STR2CSTR_ERR);
         let cstr_name = CString::new(name).expect(crate::STR2CSTR_ERR);
@@ -115,7 +117,7 @@ impl Class{
     pub fn get_image(&self)->Image{
         unsafe{Image::from_ptr(crate::binds:: mono_class_get_image(self.class_ptr))}
     }
-    /// Returns ammount of memory occupied by object when inside array.
+    /// Returns amount of memory occupied by object when inside array.
     pub fn array_element_size(&self)->i32{
         unsafe{crate::binds:: mono_class_array_element_size(self.class_ptr)}
     }
@@ -134,17 +136,17 @@ impl Class{
     pub fn get_namespace(&self)->String{
         let cstr = unsafe{CString::from_raw(crate::binds::mono_class_get_namespace(self.class_ptr) as *mut i8)};
         let res = cstr.to_str().expect("Could not create CString!").to_owned();
-        //got const pointer that does not have to be released.
+        //got const pointer that does not have to be freed, so we release it.
         let _ = cstr.into_raw();
         res
     }
-    ///Gets class this class is nested in, or None if it is not nested in any type.
+    ///Gets class this class is nested in, or [`None`] if it is not nested in any type.
     pub fn get_nesting_type(&self)->Option<Class>{
         unsafe{Self::from_ptr(
             crate::binds::mono_class_get_nesting_type(self.class_ptr)
         )}
     }
-    /// Gets type this class derives from or None if it does not derive any type.
+    /// Gets type this class derives from or [`None`] if it does not derive any type.
     /// # Example
     /// For a class `SomeClass`
     /// # C#
@@ -154,7 +156,7 @@ impl Class{
     /// }
     ///```
     ///
-    /// Function will return `SomeparentClass`
+    /// Function will return `SomeParentClass`
     pub fn get_parent(&self)->Option<Class>{
         unsafe{Self::from_ptr(
             crate::binds::mono_class_get_parent(self.class_ptr)
@@ -176,7 +178,7 @@ impl Class{
             crate::binds::mono_class_get_element_class(self.class_ptr))
         }.expect("Colud not get array element class!")
     }
-    /// Returns if class implements interface `iface`.
+    /// Returns if class implements interface **iface**.
     pub fn implements_interface(&self,iface:&Self)->bool{
         (unsafe{crate::binds::mono_class_implements_interface(self.class_ptr,iface.class_ptr)} != 0)
     } 
@@ -203,7 +205,7 @@ impl Class{
         unsafe{crate::binds::mono_class_num_methods(self.class_ptr)}
     }
     //TODO: expand this description, since it does not seam to be fully clear.
-    // /Gets number of properties in the class
+    /// Gets number of properties in the class(getters,setters,indexers)
     pub fn num_properties(&self)->i32{
         unsafe{crate::binds::mono_class_num_properties(self.class_ptr)}
     }
@@ -504,7 +506,7 @@ impl ClassField{
             crate::binds::mono_field_get_value_object(dom.get_ptr(),self.get_ptr(),obj.get_ptr())
         )}
     }
-    /// Sets value of the object field on [`Object`] to value pointed to by *value*
+    /// Sets value of the object field on [`Object`] to value pointed to by *value_ptr*
     /// # Example
     /// ## C#
     ///```csharp
@@ -525,7 +527,7 @@ impl ClassField{
 }
 use crate::interop::{InteropBox,InteropClass};
 impl ClassField{
-    /// Sets value of a boxable type. WARING: curently there are no checksto enusure value type and field type match.
+    /// Sets value of a boxable type. WARING: currently there are no checks to ensure value type and field type match.
     pub fn set_value<T:InteropBox>(&self,obj:&Object,mut val:T){
         #[cfg(not(feature = "unsafe_boxing"))]
         {
@@ -565,7 +567,7 @@ pub struct ClassProperity{
 impl ClassProperity{
     /// Creates new [`ClassProperity`] from a *mut [`MonoProperty`].
     /// # Safety
-    /// The *ptr* must be either null or a vaild pointer to *mut [`MonoProperty`]  or null.
+    /// The *ptr* must be either null or a valid pointer to *mut [`MonoProperty`]  or null.
     pub unsafe fn from_ptr(ptr:*mut MonoProperty)->Option<ClassProperity>{
         if ptr.is_null(){
             None
@@ -577,7 +579,7 @@ impl ClassProperity{
     pub fn get_ptr(&self)->*mut MonoProperty{
         self.prop_ptr
     }
-    ///Gets value of property *self* of *object*(pass None if static), with parmateres *params*(only for Indexers,otherwise pass empty vec)
+    ///Gets value of property *self* of *object*(pass [`None`] if static), with parmateres *params*(only for Indexers,otherwise pass empty vec)
     /// # Safety
     ///Pointers in *params* must be a valid.
     pub unsafe fn get(&self,obj:Option<Object>,params:Vec<*mut c_void>)->Result<Option<Object>,Exception>{
@@ -598,8 +600,8 @@ impl ClassProperity{
             Ok(Object::from_ptr(res))
         }
     }
-    //TODO: consider removing get and set functions, in favor of using methods(safer and more convininet)
-    /// Sets value of property *self* of *object*(pass None if static), with value at beginning of *params*, and pass any other arguments after it(only for Indexers,otherwise pass only the set value)
+    //TODO: consider removing get and set functions, in favour of using methods(safer and more convenient)
+    /// Sets value of property *self* of *object*(pass [`None`] if static), with value at beginning of *params*, and pass any other arguments after it(only for Indexers,otherwise pass only the set value)
     ///Pointers in *params* must be a valid.
     /// # Safety
     /// Params must be a list of valid pointers and must match arguments of set method.

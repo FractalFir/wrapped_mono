@@ -64,15 +64,15 @@ impl Domain{
         unsafe{crate::binds::mono_domain_unload(self.ptr)};
         drop(self);
     }
-    /// Releases resources realted to a specific domain. If *force* is true, allows realesing of the root domain. Used during shutdown.
+    /// Releases resources related to a specific domain. If *force* is true, allows releasing of the root domain. Used during shut-down.
     /// # Safety
-    /// Since this function releases all resurces realated to given domain, it means that all references to objects inside it will become invalid.
+    /// Since this function releases all resources related to given domain, it means that all references to objects inside it will become invalid.
     fn free(self,force:bool){
         unsafe{crate::binds::mono_domain_free(self.ptr,force as i32)};
         drop(self);
     }
     */
-    /// Returns current domain or None if mono runtime is not initialized yet.
+    /// Returns current domain or `None` if mono runtime is not initialized yet.
     pub fn get_current()->Option<Domain>{
         let ptr = unsafe{crate::binds::mono_domain_get()};
         if ptr.is_null(){

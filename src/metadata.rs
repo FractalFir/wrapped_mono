@@ -1,6 +1,6 @@
 use crate::binds::MonoTableInfo;
 use crate::Image;
-///Representaiton of a table with metadata.
+///Representation of a table with metadata.
 pub struct MetadataTableInfo{
     pub table:*const MonoTableInfo,
     pub kind:MetadataTableKind,
@@ -72,7 +72,7 @@ impl MetadataTableInfo{
     pub unsafe fn from_ptr(table:*const MonoTableInfo,kind:MetadataTableKind)->MetadataTableInfo{
         Self{table,kind}
     }
-    ///Get ammout of rows in a table.
+    ///Get amount of rows in a table.
     pub fn get_table_rows(&self)->i32{
         unsafe{crate::binds::mono_table_info_get_rows(self.table)}
     }
@@ -81,7 +81,7 @@ impl MetadataTableInfo{
         unsafe{crate::binds::mono_metadata_decode_row_col(self.table,row,column)}
     }
 }
-///Representaion of data about assembly.
+///Representation of data about assembly.
 pub struct AssemblyMetadata{
     pub hash_alg:HashAlgorithm,
     pub major_version:u32,
@@ -116,7 +116,7 @@ impl AssemblyMetadata{
     pub fn get_name(&self)->String{
         self.name.to_owned()
     }
-    ///Returns cultutre string.
+    ///Returns culture string.
     pub fn get_culture(&self)->String{
         self.culture.to_owned()
     }
@@ -161,7 +161,7 @@ impl std::fmt::Display for AssemblyFlags{
         write!(f,"ContentTypeMask:{:?}}} ",           self.content_type_mask())
     }
 }
-///Assembly hash algotith type. More info <a href="docs.microsoft.com/en-us/dotnet/api/system.configuration.assemblies.assemblyhashalgorithm?view=net-6.0"> here </a>
+///Assembly hash algorithm type. More info <a href="docs.microsoft.com/en-us/dotnet/api/system.configuration.assemblies.assemblyhashalgorithm?view=net-6.0"> here </a>
 #[repr(u32)]
 pub enum HashAlgorithm{
     MD5     =   32771,

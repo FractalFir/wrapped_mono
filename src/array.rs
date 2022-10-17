@@ -133,7 +133,7 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
     pub fn is_empty(&self)->bool{
         0 == self.len()
     }
-    /// Function creating Array<T> from a pointer to [`MonoArray`]
+    /// Function creating [`Array<T>`] from a pointer to [`MonoArray`]
     /// # Safety
     /// Pointer must be either a pointer to valid [`MonoArray`] of the same type, or a null pointer. Invalid values may lead to undefined behaviour and crashes.
     /// # Arguments
@@ -185,11 +185,12 @@ impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<D
     } 
     /// Allocate new array in *domain* with size *DIMENSIONS* with elements of type *class*. 
     /// # Example
-    ///```rust
+    /// ```rust
     /// let arr_len = 8;
     /// let arr = Array<i32>::new(&domain,&int_managed_class,arr_len);
     /// assert!(arr.len() == arr_len);
-    ///```
+    /// ```
+    ///
     /// # Arguments
     /// |Name   |Type   |Description|
     /// |-------|-------|------|

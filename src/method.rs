@@ -90,8 +90,8 @@ impl<Args:InteropSend> Method<Args> {
         let sig = unsafe{crate::binds::mono_method_signature(self.method)};
         unsafe{crate::binds::mono_signature_get_param_count(sig)}
     }
-    /// Gets method in *class* named *name* with *param_count* parameters. Returns None if could not find method or if its arguments did not match.
-    // # Arguments
+    /// Gets method in *class* named *name* with *param_count* parameters. Returns [`None`] if could not find method or if its arguments did not match.
+    /// # Arguments
     /// |Name   |Type   |Description|
     /// |-------|-------|------|
     /// |class|&[`Class`]|Class the sought method belongs to|
