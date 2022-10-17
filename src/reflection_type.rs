@@ -1,5 +1,5 @@
 use crate::gc::{GCHandle,gc_unsafe_enter,gc_unsafe_exit};
-use crate::binds::MonoReflectionType;
+use crate::binds::{MonoReflectionType,MonoType};
 use crate::{Class,Image,Domain,Array,Method,MethodTrait};
 use std::ffi::CString;
 use crate::{Object,ObjectTrait};
@@ -54,13 +54,13 @@ impl ReflectionType{
         res
     }
     /// Returns a pointer to unmanaged representation of `System.Type`
-    pub fn get_type_ptr(&self)->*mut crate::binds::MonoType{
+    pub fn get_type_ptr(&self)->*mut MonoType{
         unsafe{crate::binds::mono_reflection_type_get_type(self.get_ptr())}
     }
     /// Creates an new instance from a pointer to unmanaged representation of `System.Type`
     /// # Safety
     /// The pointer must be either a pointer to valid *mut [`MonoType`] or null.
-    pub unsafe fn from_type_ptr(type_ptr:*mut crate::binds::MonoType)->Option<Self>{
+    pub unsafe fn from_type_ptr(type_ptr:*mut MonoType)->Option<Self>{
         if type_ptr.is_null(){
             return None;
         }

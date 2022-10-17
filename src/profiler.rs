@@ -436,105 +436,105 @@ impl<T> Profiler<T>{
     pub fn destroy(self){
         _Profiler::<T>::destroy(self.ptr);
     }
-    ///Returns refernece to internal data.
+    ///Returns reference to internal data.
     pub fn get_internal_data(&mut self)->&mut T{
         unsafe{&mut (*self.ptr).data}
     }
-    ///Removes callback added by [`add_runtime_initialized_callback`]
+    ///  Removes callback added by [`fn@add_runtime_initialized_callback()`]
     pub fn remove_runtime_initialized_callback(&mut self){
         unsafe{(*self.ptr).remove_rtime_init_cb()};
     }
-    ///Adds callback to be called when runtime is started.
+    /// Add scallback to be called when runtime is started.
     pub fn add_runtime_initialized_callback(&mut self,cb: fn (profiler:&mut Profiler<T>)){
        unsafe{(*self.ptr).add_rtime_init_cb(cb)};
     }
     /*
-    ///Removes callback added by [`add_cleanup_callback`]
+    /// Removes callback added by [`add_cleanup_callback`]
     pub fn remove_cleanup_callback(&mut self){
         unsafe{(*self.ptr).remove_rtime_init_cb()};
     }
-    ///Adds callback to be called when runtime is started.
+    /// Addscallback to be called when runtime is started.
     pub fn add_cleanup_callback(&mut self,cb: fn (profiler:&mut Profiler<T>)){
        unsafe{(*self.ptr).add_rtime_init_cb(cb)};
     }*/
-    ///Removes callback added by [`add_runtime_shutown_begin_callback`]
+    /// Removes callback added by [`fn@add_runtime_shutown_begin_callback()`]
     pub fn remove_runtime_shutown_begin_callback(&mut self){
         unsafe{(*self.ptr).remove_runtime_shutdown_begin_cb()};
     }
-    ///Adds callback to be called when runtime is started.
+    /// Adds callback to be called when runtime is started.
     pub fn add_runtime_shutown_begin_callback(&mut self,cb: fn (profiler:&mut Profiler<T>)){
         unsafe{(*self.ptr).add_runtime_shutdown_begin_cb(cb)};
     }
-    ///Removes callback added by [`add_runtime_shutown_end_callback`]
+    /// Removes callback added by [`fn@add_runtime_shutown_end_callback()`]
     pub fn remove_runtime_shutown_end_callback(&mut self){
         unsafe{(*self.ptr).remove_runtime_shutdown_end_cb()};
     }
-    ///Adds callback to be called when runtime is started.
+    /// Adds callback to be called when runtime is started.
     pub fn add_runtime_shutown_end_callback(&mut self,cb: fn (profiler:&mut Profiler<T>)){
         unsafe{(*self.ptr).add_runtime_shutdown_end_cb(cb)};
     }
-    ///Removes callback added by [`add_context_loaded`]
+    /// Removes callback added by [`fn@add_context_loaded()`]
     pub fn remove_context_loaded(&mut self){
         unsafe{(*self.ptr).remove_context_loaded_cb()};
     }
-    ///Adds callback to be called when runtime is started.
+    /// Adds callback to be called when runtime is started.
     pub fn add_context_loaded(&mut self,cb: fn (profiler:&mut Profiler<T>)){
         unsafe{(*self.ptr).add_context_loaded_cb(cb)};
     }
-    ///Removes callback added by [`add_context_unloaded`]
+    /// Removes callback added by [`fn@add_context_unloaded()`]
     pub fn remove_context_unloaded(&mut self){
         unsafe{(*self.ptr).remove_context_unloaded_cb()};
     }
-    ///Adds callback to be called when runtime is started.
+    /// Adds callback to be called when runtime is started.
     pub fn add_context_unloaded(&mut self,cb: fn (profiler:&mut Profiler<T>)){
         unsafe{(*self.ptr).add_context_unloaded_cb(cb)};
     }
-    ///Removes callback added by [`add_domain_loading`]
+    /// Removes callback added by [`fn@add_domain_loading()`]
     pub fn remove_domain_loading(&mut self){
         unsafe{(*self.ptr).remove_domain_loading_cb()};
     }
-    ///Adds callback to be called when runtime is started.
+    /// Adds callback to be called when runtime is started.
     pub fn add_domain_loading(&mut self,cb: fn (profiler:&mut Profiler<T>,&mut Domain)){
         unsafe{(*self.ptr).add_domain_loading_cb(cb)};
     }
-    ///Removes callback added by [`add_domain_loading`]
+    /// Removes callback added by [`fn@add_domain_loaded()`]
     pub fn remove_domain_loaded(&mut self){
         unsafe{(*self.ptr).remove_domain_loading_cb()};
     }
-    ///Adds callback to be called when runtime is started.
+    /// Adds callback to be called when runtime is started.
     pub fn add_domain_loaded(&mut self,cb: fn (profiler:&mut Profiler<T>,&mut Domain)){
         unsafe{(*self.ptr).add_domain_loading_cb(cb)};
     }
-    ///Removes callback added by [`add_domain_unloading`]
+    /// Removes callback added by [`fn@add_domain_unloading()`]
     pub fn remove_domain_unloading(&mut self){
         unsafe{(*self.ptr).remove_domain_unloading_cb()};
     }
-    ///Adds callback to be called when runtime is started.
+    /// Adds callback to be called when runtime is started.
     pub fn add_domain_unloading(&mut self,cb: fn (profiler:&mut Profiler<T>,&mut Domain)){
         unsafe{(*self.ptr).add_domain_unloading_cb(cb)};
     }
-    ///Removes callback added by [`add_domain_unloading`]
+    /// Removes callback added by [`fn@add_domain_unloaded()`]
     pub fn remove_domain_unloaded(&mut self){
         unsafe{(*self.ptr).remove_domain_unloading_cb()};
     }
-    ///Adds callback to be called when runtime is started.
+    /// Adds callback to be called when runtime is started.
     pub fn add_domain_unloaded(&mut self,cb: fn (profiler:&mut Profiler<T>,&mut Domain)){
         unsafe{(*self.ptr).add_domain_unloading_cb(cb)};
     }
-    ///Removes callback added by [`add_domain_unloading`]
+    /// Removes callback added by [`fn@add_domain_name()`]
     pub fn remove_domain_name(&mut self){
         unsafe{(*self.ptr).remove_domain_name_cb()};
     }
-    ///Adds callback to be called when runtime is started.
+    /// Adds callback to be called when runtime is started.
     pub fn add_domain_name(&mut self,cb: fn (profiler:&mut Profiler<T>,&mut Domain,&str)){
         unsafe{(*self.ptr).add_domain_name_cb(cb)};
     }
-    ///Removes callback added by [`add_domain_unloading`]
+    /// Removes callback added by [fn@add_jit_begin()]
     pub fn remove_jit_begin(&mut self){
         unsafe{(*self.ptr).remove_jit_begin_cb()};
     }
     #[doc(hidden)]
-    ///Adds callback to be called when runtime is started.
+    /// Adds callback to be called when runtime is started.
     pub fn add_jit_begin(&mut self,cb: fn (profiler:&mut Profiler<T>,&Method<String>)){
         unsafe{(*self.ptr).add_jit_begin_cb(cb)};
     }

@@ -444,7 +444,7 @@ impl ClassField{
     /// Creates [`ClassField`] form *cf_ptr*. Returns [`Some(ClassField)`] if pointer is not null, and [`None`] if it is.
     /// # Safety
     /// *cf_ptr* must be either a valid pointer to [`MonoClassField`] or null pointer.
-    pub fn from_ptr(cf_ptr:*mut MonoClassField)->Option<Self>{
+    pub unsafe fn from_ptr(cf_ptr:*mut MonoClassField)->Option<Self>{
         if cf_ptr.is_null(){
             return None;
         }
@@ -563,7 +563,10 @@ pub struct ClassProperity{
     prop_ptr:*mut MonoProperty,
 }
 impl ClassProperity{
-    pub fn from_ptr(ptr:*mut MonoProperty)->Option<ClassProperity>{
+    /// Creates new [`ClassProperity`] from a *mut [`MonoProperty`].
+    /// # Safety
+    /// The *ptr* must be either null or a vaild pointer to *mut [`MonoProperty`]  or null.
+    pub unsafe fn from_ptr(ptr:*mut MonoProperty)->Option<ClassProperity>{
         if ptr.is_null(){
             None
         }

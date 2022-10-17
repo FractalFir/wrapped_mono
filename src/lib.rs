@@ -64,6 +64,7 @@ mod testing;
 mod tupleutilis; // Some utility traits used internally.
 
 #[doc(inline)]
+/// Custom macros used by `wrapped_mono`
 pub use wrapped_mono_macros; // Custom macros  
 #[doc(inline)]
 pub use object::{Object,ObjectTrait};

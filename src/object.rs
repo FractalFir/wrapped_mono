@@ -5,6 +5,8 @@ use crate::domain::Domain;
 use crate::exception::except_managed;
 use crate::gc::{GCHandle,gc_unsafe_enter,gc_unsafe_exit};
 use crate::interop::{InteropRecive,InteropSend};
+#[allow(unused_imports)] // for docs
+use crate::delegate::Delegate;
 ///Safe representation of a refernece to a manged Object. Is **not nullable** when passed between managed and unmanged code(e.g when added as an argument to function exposed as an interna call). 
 ///It means that while it may represent a nullable type, wrapped-mono will automaticly panic when recived null value.
 ///For nullable support use `Option<Object>`.
@@ -18,7 +20,7 @@ use crate::mstring::MString;
 ///Trait contining functions common for all types of manged objects.
 pub trait ObjectTrait{
     /// get hash of this object: This hash is **not** based on values of objects fields, and differs from result of calling object.GetHash()
-    /// #Example 
+    /// # Example 
     /// ```rust
     /// let object = Object::new(&domain,&class);
     /// let object_copy = object.clone_managed_object();
@@ -62,9 +64,11 @@ pub trait ObjectTrait{
     fn get_class(&self)->Class;
     /// Returns result of calling ToString on this [`Object`]. Returns [`Exception`] if raised, and [`Option<MString>`] if not. Function returns [`Option<MString>`] to allow for null value to be returned. 
     fn to_mstring(&self)->Result<Option<MString>,Exception>;
-    //
+    /// Casts a type implementing [`ObjectTrait`] to an object.
     fn cast_to_object(&self)->Object;
-    //
+    /// Tries to cast an object to a sepcific object type, and returns None if canst impossible.
+    /// # WARNING
+    /// This cast does not work fully for [`Delegate`]-s with less than 2 arguments(casts that should fail will not fail).
     fn cast_from_object(obj:&Object)->Option<Self> where Self:Sized;
 }
 use crate::exception::Exception;

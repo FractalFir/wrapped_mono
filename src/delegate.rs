@@ -10,6 +10,13 @@ use crate::ObjectTrait;
 #[allow(unused_imports)] // for docs
 use crate::Method;
 /// A safe representation of a delegate.
+/// Args - a Tuple type made from types of all arguments accepted by this particular delegate
+/// # Safety
+/// ## Type Mismatch
+/// When a delegate is received from mono runtime it's argument types are checked, but those checks are not yet made for a delegate with either 1 or no arguments.
+/// This is not a bug, it only means that safety features will not catch some of your errors(wrong types provided by the user of this crate). As long as the signature on the Rust side matches the signature on the C#/F# side, you will never encounter this problem.
+/// ## All arguments **must** implement InteropClass!
+/// While this is not enforced jet because of limitations of the API(no support for C# tuples), **IT IS STILL NECESSARY**. Ignoring this warning and using Delegates with arguments not implementing InteropClass **will lead to crashes and undefined behaviour**. Before filing bug reports, check that all arguments of your function implement InteropClass.
 pub struct Delegate<Args:InteropSend>{
     #[cfg(not(feature = "referneced_objects"))]
     dptr:*mut MonoDelegate,

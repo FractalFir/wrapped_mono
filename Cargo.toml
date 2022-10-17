@@ -10,11 +10,12 @@ readme = "README.md"
 keywords = [".NET","mono","C#","F#","framework","embedding"]
 categories = ["api-bindings","memory-management"]
 authors = ["FractalFir <fractalfirdev@gmail.com>"]
+exclude = ["src/wrapped_mono_macros","test"]
 
 [build-dependencies]
 bindgen = {version = "0.60.1",optional = true}
 [dependencies]
-wrapped_mono_macros = {path = "src/wrapped_mono_macros",version = "0.1.1"} # Macros used by wrapped_mono
+wrapped_mono_macros = {path = "src/wrapped_mono_macros",version = "0.2.0"} # Macros used by wrapped_mono
 document-features = "0.2.3" # Used for documenting features of this crate
 lazy_static = "1.4.0" # Used for certain class types
 [dev-dependencies]

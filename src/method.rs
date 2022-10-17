@@ -10,7 +10,7 @@ use std::ffi::CString;
 /// # Safety
 /// ## Type Mismatch
 /// When a method is received from mono runtime it's argument types are checked, but those checks are not yet made for a method with either 1 or no arguments.
-/// This is a result of a limitation of rust type system, and it can't be worked around in a nice way in the current version of the API, but will be adressed in the futute.
+/// This is not a bug, it only means that safety features will not catch some of your errors(wrong types provided by the user of this crate). As long as the signature on the Rust side matches the signature on the C#/F# side, you will never encounter this problem.
 /// ## All arguments **must** implement InteropClass!
 /// While this is not enforced jet because of limitations of the API(no support for C# tuples), **IT IS STILL NECESSARY**. Ignoring this warning and using Methods with
 /// arguments not implementing InteropClass **will lead to crashes and undefined behaviour**. Before filing bug reports, check that all arguments of your function implement InteropClass.
