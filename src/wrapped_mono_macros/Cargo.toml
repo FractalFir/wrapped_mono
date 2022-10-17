@@ -6,7 +6,7 @@ license = "MIT"
 readme = "README.md"
 description = "Macros for wrapped_mono. Useless without it."
 repository = "https://github.com/FractalFir/wrapped_mono"
-keywords = ["DotNET","mono","C#","F#","macros","derive"]
+keywords = ["DotNET","mono","CSharp","FSharp","macros","derive"]
 authors = ["FractalFir <fractalfirdev@gmail.com>"]
 categories = ["macros"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
