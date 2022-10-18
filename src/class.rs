@@ -2,6 +2,7 @@ use crate::binds::MonoClass;
 use crate::{Image,Method,MethodTrait,InteropSend};
 use std::ffi::CString;
 use core::ffi::c_void;
+use crate::PointerConversion;
 ///  Safe representation of a managed class.(eg. System.Int64, System.Object, etc.);
 #[derive(Eq,Copy,Clone)]
 pub struct Class{

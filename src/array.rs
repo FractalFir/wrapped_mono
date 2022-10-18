@@ -5,6 +5,7 @@ use crate::{Object,ObjectTrait};
 use core::marker::PhantomData;
 use crate::domain::Domain;
 use crate::binds::MonoArray;
+use crate::PointerConversion;
 // Documentation finished.
 /// Safe representation of MonoArray(a reference to a managed array). Requires it's generic argument to implement InvokePass in order to automatically convert value from managed type to rust type.
 /// Will panic on creating an array with type mismatch between runtime and rust.
@@ -22,6 +23,45 @@ pub struct Array<const DIMENSIONS:u32,T:InteropSend + InteropRecive + InteropCla
     pd:PhantomData<T>,
     lengths:[u32;DIMENSIONS as usize],
 } 
+impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> PointerConversion for Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
+    type PtrType = MonoArray;
+    fn get_ptr(&self)->*mut Self::PtrType{
+         #[cfg(not(feature = "referneced_objects"))]
+        return self.arr_ptr;
+        #[cfg(feature = "referneced_objects")]
+        return self.handle.get_target() as *mut MonoArray;
+    }
+    unsafe fn from_ptr(ptr:*mut Self::PtrType)->Option<Self>{
+        use crate::{Method,MethodTrait};
+        if ptr.is_null(){
+            return None;
+        }
+        #[cfg(not(feature = "referneced_objects"))]
+        let mut res = Array{arr_ptr:ptr,pd:PhantomData,lengths:[0;DIMENSIONS as usize]};
+        #[cfg(feature = "referneced_objects")]
+        let mut res = Array{handle:GCHandle::create_default(ptr as *mut MonoObject),pd:PhantomData,lengths:[0;DIMENSIONS as usize]};
+        #[cfg(not(feature = "unsafe_arrays"))]
+        {
+            let rank = res.get_class().get_rank();
+            assert!(rank == DIMENSIONS,"Array dimension mismatch got:{}, expected:{}",rank,DIMENSIONS);
+            let sclass = res.to_object().get_class(); 
+            let tclass = <Self as InteropClass>::get_mono_class();
+            if sclass.get_element_class() != tclass.get_element_class(){
+                panic!("tried to create array of type `{}` from object of type `{}`",&tclass.get_name(),&sclass.get_name());
+            }
+        }
+        //get array size
+        {
+            let dim:Method<i32> = Method::get_from_name(&Class::get_array(),"GetLength",1)
+            .expect("Array type does not have GetLength method, even toug it is impossible.");
+            for i in 0..DIMENSIONS{
+                let dim_obj = dim.invoke(Some(res.to_object()),i as i32).expect("Got an exception while calling Array.GetLength").expect("Got null instead of int");
+                res.lengths[i as usize] = dim_obj.unbox::<i32>() as u32;
+            }
+        }
+        Some(res)
+    }
+}
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32> Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
     // Private function used to calculate index in an array based on its dimensions.
     fn get_index(&self,indices:[usize;DIMENSIONS as usize])->usize{

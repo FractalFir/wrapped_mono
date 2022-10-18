@@ -12,11 +12,20 @@ pub struct ReflectionType{
     #[cfg(feature = "referneced_objects")]
     handle:GCHandle,
 }
-impl ReflectionType{
-    /// Creates [`ReflectionType`] from a pointer to [`MonoReflectionType`]. 
-    /// # Safety
-    /// The pointer must be either a valid pointer to [`MonoReflectionType`] received from mono runtime, or a null pointer.
-    pub unsafe  fn from_ptr(type_ptr:*mut MonoReflectionType)->Option<Self>{
+use crate::PointerConversion;
+impl PointerConversion for ReflectionType{
+    type PtrType = MonoReflectionType;
+    fn get_ptr(&self)->*mut Self::PtrType{
+        #[cfg(not(feature = "referneced_objects"))]
+          {
+                self.type_ptr 
+          }
+          #[cfg(feature = "referneced_objects")]
+          {
+                self.handle.get_target() as *mut _
+          }
+    }
+    unsafe fn from_ptr(type_ptr:*mut Self::PtrType)->Option<Self>{
         #[cfg(not(feature = "referneced_objects"))]
         {
             if type_ptr.is_null(){
@@ -32,17 +41,8 @@ impl ReflectionType{
             Some(Self{handle:GCHandle::create_default(type_ptr as *mut _)})
         }
     }
-    /// Gets the internal pointer to [`MonoReflectionType`]
-    pub fn get_ptr(&self)->*mut MonoReflectionType{
-          #[cfg(not(feature = "referneced_objects"))]
-          {
-                self.type_ptr 
-          }
-          #[cfg(feature = "referneced_objects")]
-          {
-                self.handle.get_target() as *mut _
-          }
-    }
+}
+impl ReflectionType{
     /// Converts a class to a [`MonoReflectionType`]
     pub fn from_class(class:&Class)->Self{
         #[cfg(feature = "referneced_objects")]

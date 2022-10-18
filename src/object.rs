@@ -5,6 +5,7 @@ use crate::domain::Domain;
 use crate::exception::except_managed;
 use crate::gc::{GCHandle,gc_unsafe_enter,gc_unsafe_exit};
 use crate::interop::{InteropRecive,InteropSend};
+
 #[allow(unused_imports)] // for docs
 use crate::delegate::Delegate;
 ///Safe representation of a refernece to a manged Object. Is **not nullable** when passed between managed and unmanged code(e.g when added as an argument to function exposed as an interna call). 
@@ -16,9 +17,39 @@ pub struct Object{
     #[cfg(feature = "referneced_objects")]
     handle:GCHandle,
 }
+use crate::PointerConversion;
+impl PointerConversion for Object{
+    type PtrType = MonoObject;
+    fn get_ptr(&self)->*mut Self::PtrType{
+        #[cfg(not(feature = "referneced_objects"))]
+        {
+            self.obj_ptr
+        }
+        #[cfg(feature = "referneced_objects")]
+        {
+            self.handle.get_target()
+        }
+    }
+    unsafe fn from_ptr(obj_ptr:*mut Self::PtrType)->Option<Self>{
+        #[cfg(not(feature = "referneced_objects"))]
+        {
+            if obj_ptr.is_null(){
+                return None;
+            }
+            Some(Self{obj_ptr})
+        }
+        #[cfg(feature = "referneced_objects")]
+        {
+            if obj_ptr.is_null(){
+                return None;
+            }
+            Some(Self{handle:GCHandle::create_default(obj_ptr)})
+        }
+    }
+}
 use crate::mstring::MString;
 ///Trait contining functions common for all types of manged objects.
-pub trait ObjectTrait{
+pub trait ObjectTrait where Self:PointerConversion{
     /// get hash of this object: This hash is **not** based on values of objects fields, and differs from result of calling object.GetHash()
     /// # Example 
     /// ```rust
@@ -171,25 +202,6 @@ impl Object{
         gc_unsafe_exit(marker);
         obj
     }
-    ///Creates new [`Object`] from pointer *obj_ptr*. Checks if it is null, and returns [`None`] if so.
-    /// # Safety
-    /// *obj_ptr* must be either a valid [`MonoObject`] pointer or null, otherwise resulting [`Object`] will not be valid and will **cause crashes**.
-    pub unsafe fn from_ptr(obj_ptr:*mut crate::binds::MonoObject)->Option<Self>{
-        #[cfg(not(feature = "referneced_objects"))]
-        {
-            if obj_ptr.is_null(){
-                return None;
-            }
-            Some(Self{obj_ptr})
-        }
-        #[cfg(feature = "referneced_objects")]
-        {
-            if obj_ptr.is_null(){
-                return None;
-            }
-            Some(Self{handle:GCHandle::create_default(obj_ptr)})
-        }
-    }
     ///Retrives and unboxed value. 
     /// # Safety 
     /// Calling it on a type which can't be unboxed **will lead to a crash**.
@@ -244,17 +256,6 @@ impl Object{
         unsafe{Self::box_val_unsafe(
             domain,&class,&mut data as *mut <T as InteropSend>::TargetType as *mut std::ffi::c_void
         )}
-    }
-    ///Gets internal [`MonoObject`] pointer.
-    pub fn get_ptr(&self)->*mut MonoObject{
-        #[cfg(not(feature = "referneced_objects"))]
-        {
-            self.obj_ptr
-        }
-        #[cfg(feature = "referneced_objects")]
-        {
-            self.handle.get_target()
-        }
     }
     ///Gets an implenentation virtual [`Method`] *method* for a specific [`Object`] *obj*.<br>
     /// # Explanation

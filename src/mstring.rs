@@ -6,18 +6,47 @@ use crate::interop::{InteropRecive,InteropSend,InteropClass};
 use crate::Class;
 use crate::gc::{GCHandle,gc_unsafe_exit,gc_unsafe_enter};
 use crate::ObjectTrait;
-
+use crate::PointerConversion;
 ///needed for docs
 #[allow(unused_imports)]
 use crate::object::Object;
 #[warn(unused_imports)]
-///Representaiton of [`Object`] of type **System.String**. 
+///Representation of [`Object`] of type **System.String**. 
 pub struct MString{
     #[cfg(not(feature = "referneced_objects"))]
     s_ptr:*mut MonoString,
     #[cfg(feature = "referneced_objects")]
     handle:GCHandle,
-} 
+}
+impl PointerConversion for MString{
+    type PtrType = MonoString; 
+    unsafe fn from_ptr(s_ptr:*mut Self::PtrType)->Option<Self>{
+        #[cfg(not(feature = "referneced_objects"))]{
+            if s_ptr.is_null(){
+                None
+            }
+            else{
+                Some(Self{s_ptr:ptr})
+            }
+        }
+        #[cfg(feature = "referneced_objects")]
+        {
+            if s_ptr.is_null(){
+                return None;
+            }
+            Some(Self{handle:GCHandle::create_default(s_ptr as *mut MonoObject)})
+        }
+    }
+    fn get_ptr(&self)->*mut Self::PtrType{
+        #[cfg(not(feature = "referneced_objects"))]{
+            self.s_ptr
+        }
+        #[cfg(feature = "referneced_objects")]
+        {
+            self.handle.get_target() as *mut MonoString
+        }
+    }
+}
 impl MString{
     ///Creates new managed **String** in *domain* with content of *string*.
     pub fn new(domain:&Domain,string:&str)->Self{
@@ -50,36 +79,7 @@ impl MString{
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         hsh
-    }
-    //Cretes [`MString`] form pointer , or returns [`None`] if pointer equal to null.
-    /// # Safety
-    /// *ptr* must be either a valid [`MonoString`] pointer or null. Pasing any other value will lead to undefined behaviour.
-    pub unsafe fn from_ptr(ptr:*mut MonoString)->Option<Self>{
-        #[cfg(not(feature = "referneced_objects"))]{
-            if ptr.is_null(){
-                None
-            }
-            else{
-                Some(Self{s_ptr:ptr})
-            }
-        }
-        #[cfg(feature = "referneced_objects")]
-        {
-            if ptr.is_null(){
-                return None;
-            }
-            Some(Self{handle:GCHandle::create_default(ptr as *mut MonoObject)})
-        }
-    }
-    pub fn get_ptr(&self)->*mut MonoString{
-        #[cfg(not(feature = "referneced_objects"))]{
-            self.s_ptr
-        }
-        #[cfg(feature = "referneced_objects")]
-        {
-            self.handle.get_target() as *mut MonoString
-        }
-    }
+    }   
 }
 impl InteropRecive for MString{
     type SourceType = *mut MonoString;
