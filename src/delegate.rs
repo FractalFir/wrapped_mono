@@ -1,11 +1,10 @@
-use crate::binds::{MonoDelegate,MonoMethod};
 use crate::gc::{GCHandle,gc_unsafe_exit,gc_unsafe_enter};
 use crate::{InteropSend,InteropRecive,InteropClass,Class,Exception,MString,Domain,Object};
 use std::marker::PhantomData;
 use crate::tupleutilis::{CompareClasses,TupleToPtrs};
 use core::ptr::null_mut;
 use std::ffi::c_void;
-use crate::binds::{MonoObject,MonoException};
+use crate::binds::{MonoObject,MonoException,MonoDelegate,MonoMethod};
 use crate::ObjectTrait;
 #[allow(unused_imports)] // for docs
 use crate::Method;
@@ -24,6 +23,69 @@ pub struct Delegate<Args:InteropSend>{
     handle:GCHandle,
     args_type:PhantomData<Args>,
 } 
+use crate::PointerConversion;
+impl<Args:InteropSend> PointerConversion for Delegate<Args>{
+    default type PtrType = MonoDelegate;
+    default fn get_ptr(&self)->*mut Self::PtrType{
+        #[cfg(not(feature = "referneced_objects"))]
+        {self.dptr}
+        #[cfg(feature = "referneced_objects")]
+        {self.handle.get_target() as *mut Self::PtrType}
+    }
+    default unsafe fn from_ptr(ptr:*mut Self::PtrType)->Option<Self>{
+        if ptr.is_null(){
+            None
+        }
+        else{
+            #[cfg(not(feature = "referneced_objects"))]
+            {Some(Self{dptr:ptr,args_type:PhantomData})}
+            #[cfg(feature = "referneced_objects")]
+            {Some(Self{handle:GCHandle::create_default(ptr as *mut crate::binds::MonoObject),args_type:PhantomData})}                
+        }
+    }
+}
+use crate::object::ManagedObject;
+impl<Args:InteropSend> ManagedObject  for Delegate<Args> where <Args as InteropSend>::TargetType:TupleToPtrs+CompareClasses{
+    default fn is_inst(class:&Class)->bool{
+       true // TODO: fix this <<Args as InteropSend>::TargetType as CompareClasses>::compare(&params)
+    }
+}
+impl<Args:InteropSend> ManagedObject for Delegate<Args>{
+    default fn is_inst(class:&Class)->bool{
+       true // TODO:fix it 
+    }
+}
+impl<Args:InteropSend> PointerConversion for Delegate<Args> where <Args as InteropSend>::TargetType:TupleToPtrs+CompareClasses{
+    default type PtrType = MonoDelegate;
+    default fn get_ptr(&self)->*mut Self::PtrType{
+        #[cfg(not(feature = "referneced_objects"))]
+        {self.dptr}
+        #[cfg(feature = "referneced_objects")]
+        {self.handle.get_target() as *mut Self::PtrType}
+    }
+    default unsafe fn from_ptr(ptr:*mut Self::PtrType)->Option<Self>{
+        let res = {if ptr.is_null(){
+            return None
+        }
+        else{
+            #[cfg(not(feature = "referneced_objects"))]
+            {Self{dptr:ptr,args_type:PhantomData}}
+            #[cfg(feature = "referneced_objects")]
+            {Self{handle:GCHandle::create_default(ptr as *mut crate::binds::MonoObject),args_type:PhantomData}}                
+        }};
+        // Do type checks
+        let params = res.get_params();
+        if !<<Args as InteropSend>::TargetType as CompareClasses>::compare(&params){
+            use std::fmt::Write;
+            let mut msg = format!("Delegate Type Mismatch! Got a deleagte accepting {} arguments of types:",params.len());
+            for param in params{
+                write!(msg,",\"{}\"",param.get_name_sig()).expect("Could not print inproper function argument types!");
+            }
+            panic!("{}",msg);
+        }
+        Some(res)
+    }
+}
 impl<Args:InteropSend> Delegate<Args>{
     fn get_ptr(&self)->*mut MonoDelegate{
         #[cfg(not(feature = "referneced_objects"))]
@@ -108,17 +170,6 @@ impl<Args:InteropSend> Delegate<Args>{
 }
 /// Trait implemented only for [`Delegate`] type. Splits some functions up from from main [`Method`] type, allowing for different amount of delegate arguments.
 pub trait DelegateTrait<Args:InteropSend>{
-    /// Creates new Delegate type from a *mut MonoDelegate. Checks if arguments of [`MonoDelegate`] and rust representation of a [`Delegate`] match and if not panic. 
-    /// Returns [`None`] if pointer is null.
-    /// # Arguments
-    /// |Name   |Type   |Description|
-    /// |-------|-------|------|
-    /// |met_ptr|*mut [`MonoDelegate`]|Pointer to delegate to create a representation for.|
-    /// # Safety 
-    /// Pointer must be either a valid pointer to [`MonoDelegate`] recived from mono runtime, or a null pointer.
-    /// **WARNING** argument types not yet checked for delegates with 1 or 0 arguments. This results from limitations of Rust type system and this version of the API, and can't be solved without some realy nasty hacks,
-    /// but will be fixed in the future.
-    unsafe fn from_ptr(ptr:*mut MonoDelegate)->Option<Self> where Self:Sized;
     /// Creates new Delegate type from a *mut MonoDelegate. Checks if arguments of [`MonoDelegate`] and rust representation of a [`Delegate`] match and if not returns None.
     /// Returns [`None`] if pointer is null.
     /// # Arguments
@@ -139,18 +190,6 @@ pub trait DelegateTrait<Args:InteropSend>{
     fn invoke(&self,params:Args)->Result<Option<Object>,Exception>;
 }
 impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args>{
-    default unsafe fn from_ptr(ptr:*mut MonoDelegate)->Option<Self>{
-        if ptr.is_null(){
-            None
-        }
-        else{
-            #[cfg(not(feature = "referneced_objects"))]
-            {Some(Self{dptr:ptr,args_type:PhantomData})}
-            #[cfg(feature = "referneced_objects")]
-            {Some(Self{handle:GCHandle::create_default(ptr as *mut crate::binds::MonoObject),args_type:PhantomData})}                
-        }
-
-    }
     default unsafe fn from_ptr_checked(ptr:*mut MonoDelegate)->Option<Self>{
         if ptr.is_null(){
             None
@@ -195,28 +234,6 @@ impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args>{
     }
 }
 impl<Args:InteropSend> DelegateTrait<Args> for Delegate<Args> where <Args as InteropSend>::TargetType:TupleToPtrs+CompareClasses{
-    default unsafe fn from_ptr(ptr:*mut MonoDelegate)->Option<Self>{
-        let res = {if ptr.is_null(){
-            return None
-        }
-        else{
-            #[cfg(not(feature = "referneced_objects"))]
-            {Self{dptr:ptr,args_type:PhantomData}}
-            #[cfg(feature = "referneced_objects")]
-            {Self{handle:GCHandle::create_default(ptr as *mut crate::binds::MonoObject),args_type:PhantomData}}                
-        }};
-        // Do type checks
-        let params = res.get_params();
-        if !<<Args as InteropSend>::TargetType as CompareClasses>::compare(&params){
-            use std::fmt::Write;
-            let mut msg = format!("Delegate Type Mismatch! Got a deleagte accepting {} arguments of types:",params.len());
-            for param in params{
-                write!(msg,",\"{}\"",param.get_name_sig()).expect("Could not print inproper function argument types!");
-            }
-            panic!("{}",msg);
-        }
-        Some(res)
-    }
     default unsafe fn from_ptr_checked(ptr:*mut MonoDelegate)->Option<Self>{
         let res = {if ptr.is_null(){
             return None
@@ -272,7 +289,7 @@ impl <Args:InteropSend> InteropRecive for Delegate<Args>{
     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(ptr:*mut MonoDelegate)->Delegate<Args>{
-       unsafe{Self::from_ptr(ptr).expect("Expected non-null value but got null")}
+       unsafe{Self::from_ptr(ptr as *mut <Delegate<Args> as PointerConversion>::PtrType).expect("Expected non-null value but got null")}
     }
 }
 impl <Args:InteropSend> InteropRecive for Option<Delegate<Args>>{
@@ -280,7 +297,7 @@ impl <Args:InteropSend> InteropRecive for Option<Delegate<Args>>{
     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(ptr:*mut MonoDelegate)->Option<Delegate<Args>>{
-        unsafe{Delegate::from_ptr(ptr)}
+        unsafe{Delegate::from_ptr(ptr as *mut <Delegate<Args> as PointerConversion>::PtrType)}
     }
 }
 impl <Args:InteropSend> InteropClass for Delegate<Args>{
@@ -295,9 +312,6 @@ impl <Args:InteropSend> InteropSend for Delegate<Args>{
     }
 }
 impl<Args:InteropSend> ObjectTrait for Delegate<Args>{
-    fn hash(&self)->i32{
-        unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut _)}
-    }
     fn get_domain(&self)->Domain{
         unsafe{Domain::from_ptr(crate::binds::mono_object_get_domain(self.get_ptr() as *mut _))}
     }

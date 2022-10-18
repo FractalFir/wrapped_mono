@@ -2,6 +2,7 @@ use crate::binds::MonoClass;
 use crate::{Image,Method,MethodTrait,InteropSend};
 use std::ffi::CString;
 use core::ffi::c_void;
+use crate::PointerConversion;
 ///  Safe representation of a managed class.(eg. System.Int64, System.Object, etc.);
 #[derive(Eq,Copy,Clone)]
 pub struct Class{
@@ -347,7 +348,7 @@ impl Class{
         )}.expect("Impossible condition reached")
     }
     /// Returns [`Class`] representing the type **System.Exception**.
-    pub fn get_exception_class()->Class{
+    pub fn get_exception()->Class{
         unsafe{Class::from_ptr(crate::binds::mono_get_exception_class())}.expect("Could not get ExceptionClass!")
     }
     /// Returns [`Class`] representing the type **System.Delegate**.

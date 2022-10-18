@@ -15,6 +15,32 @@ pub struct Exception{
     #[cfg(feature = "referneced_objects")]
     handle:GCHandle,
 } 
+use crate::PointerConversion;
+impl PointerConversion for Exception{
+    type PtrType = MonoException;
+    unsafe fn from_ptr(exc_ptr: *mut Self::PtrType)->Option<Self>{
+        #[cfg(not(feature = "referneced_objects"))]
+        {
+            if exc_ptr.is_null(){
+                None
+            }
+            else {Some(Self{exc_ptr})}
+        }
+        #[cfg(feature = "referneced_objects")]
+        {
+            if exc_ptr.is_null(){
+                None
+            }
+            else {Some(Self{handle:GCHandle::create_default(exc_ptr as *mut _)})}
+        }
+    }
+    fn get_ptr(&self)->*mut Self::PtrType{
+        #[cfg(not(feature = "referneced_objects"))]
+        {self.exc_ptr}
+        #[cfg(feature = "referneced_objects")]
+        {self.handle.get_target() as *mut MonoException}
+    }
+}
 impl Exception{
     /// Raise exception (it can be then cathed by cath clause in managed code)
     /// # Example
@@ -95,7 +121,7 @@ impl Exception{
     }
     ///Casts object to exception. Returns [`None`] if cast failed
     pub fn cast_from_object(object:&Object)->Option<Exception>{
-        if !Class::get_exception_class().is_assignable_from(&object.get_class()){
+        if !Class::get_exception().is_assignable_from(&object.get_class()){
             return None;
         }
         #[cfg(feature = "referneced_objects")]
@@ -486,33 +512,6 @@ impl Exception{
         gc_unsafe_exit(marker);
         res
     }
-    //TODO: implement mono_get_exception_reflection_type_load
-    /// Creates [`Exception`] from a [`MonoException`] pointer
-    /// # Safety
-    /// *exec_ptr* mus be either null, or a valid MonoException pointer.
-    pub unsafe fn from_ptr(exc_ptr:*mut MonoException)->Option<Self>{
-        #[cfg(not(feature = "referneced_objects"))]
-        {
-            if exc_ptr.is_null(){
-                None
-            }
-            else {Some(Self{exc_ptr})}
-        }
-        #[cfg(feature = "referneced_objects")]
-        {
-            if exc_ptr.is_null(){
-                None
-            }
-            else {Some(Self{handle:GCHandle::create_default(exc_ptr as *mut _)})}
-        }
-
-    }
-    pub fn get_ptr(&self)->*mut MonoException{
-        #[cfg(not(feature = "referneced_objects"))]
-        {self.exc_ptr}
-        #[cfg(feature = "referneced_objects")]
-        {self.handle.get_target() as *mut MonoException}
-    }
 }
 /// Variant of except which instead of panicking will raise a managed exception.
 pub fn except_managed<T:Sized>(option:Option<T>,msg:&str)->T{
@@ -542,15 +541,13 @@ impl core::fmt::Debug for Exception{
     }
 }
 use crate::MString;
-impl crate::object::ObjectTrait for Exception{
-    fn hash(&self)->i32{
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let hash = unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject)};
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        hash
+use crate::object::ManagedObject;
+impl ManagedObject for Exception{
+    fn is_inst(class:&Class)->bool{
+        Class::get_exception().is_assignable_from(class)
     }
+}
+impl crate::object::ObjectTrait for Exception{
     fn get_domain(&self)->crate::domain::Domain{
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
@@ -624,7 +621,7 @@ impl crate::object::ObjectTrait for Exception{
 }
 impl InteropClass for Exception{
     fn get_mono_class()->Class{
-        Class::get_exception_class()
+        Class::get_exception()
     }
 }
 impl Clone for Exception{
