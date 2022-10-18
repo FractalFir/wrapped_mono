@@ -1,6 +1,7 @@
 use rusty_fork::rusty_fork_test;
 use crate as wrapped_mono;
 use wrapped_mono::jit;
+use wrapped_mono::object::ObjectTrait;
 use wrapped_mono::object::*;
 rusty_fork_test!{ 
     #[test]
@@ -11,7 +12,7 @@ rusty_fork_test!{
         let img = asm.get_image();
         let test_class = Class::from_name(&img,"","Secondary").expect("Could not find class!");
         let obj = Object::new(&main,&test_class);
-        let _hsh = obj.hash();
+        let _hsh = hash(&obj);
     }
     #[test]
     fn object_box(){

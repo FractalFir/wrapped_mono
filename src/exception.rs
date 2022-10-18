@@ -121,7 +121,7 @@ impl Exception{
     }
     ///Casts object to exception. Returns [`None`] if cast failed
     pub fn cast_from_object(object:&Object)->Option<Exception>{
-        if !Class::get_exception_class().is_assignable_from(&object.get_class()){
+        if !Class::get_exception().is_assignable_from(&object.get_class()){
             return None;
         }
         #[cfg(feature = "referneced_objects")]
@@ -541,15 +541,13 @@ impl core::fmt::Debug for Exception{
     }
 }
 use crate::MString;
-impl crate::object::ObjectTrait for Exception{
-    fn hash(&self)->i32{
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let hash = unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject)};
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        hash
+use crate::object::ManagedObject;
+impl ManagedObject for Exception{
+    fn is_inst(class:&Class)->bool{
+        Class::get_exception().is_assignable_from(class)
     }
+}
+impl crate::object::ObjectTrait for Exception{
     fn get_domain(&self)->crate::domain::Domain{
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
@@ -623,7 +621,7 @@ impl crate::object::ObjectTrait for Exception{
 }
 impl InteropClass for Exception{
     fn get_mono_class()->Class{
-        Class::get_exception_class()
+        Class::get_exception()
     }
 }
 impl Clone for Exception{

@@ -47,18 +47,20 @@ impl PointerConversion for Object{
         }
     }
 }
+pub trait ManagedObject where Self:PointerConversion{
+    fn is_inst(class:&Class)->bool;
+}
+impl ManagedObject for Object{
+    fn is_inst(class:&Class)->bool{true}
+}
+/*
+impl<T:ManagedObject> ObjectTrait for T{
+    
+}
+*/
 use crate::mstring::MString;
 ///Trait contining functions common for all types of manged objects.
-pub trait ObjectTrait where Self:PointerConversion{
-    /// get hash of this object: This hash is **not** based on values of objects fields, and differs from result of calling object.GetHash()
-    /// # Example 
-    /// ```rust
-    /// let object = Object::new(&domain,&class);
-    /// let object_copy = object.clone_managed_object();
-    /// assert!(object.hash() != object_copy.hash()); // Objects object and object_copy have exacly 
-    /// // the same values of their fileds, but are diffrent instances, so their hash is diffrent.
-    /// ```
-    fn hash(&self)->i32;
+pub trait ObjectTrait where Self:ManagedObject{
     /// get [`Domain`] this object exists in.
     /// # Example
     ///```rust
@@ -102,16 +104,24 @@ pub trait ObjectTrait where Self:PointerConversion{
     /// This cast does not work fully for [`Delegate`]-s with less than 2 arguments(casts that should fail will not fail).
     fn cast_from_object(obj:&Object)->Option<Self> where Self:Sized;
 }
-use crate::exception::Exception;
-impl ObjectTrait for Object{
-    fn hash(&self)->i32{
+/// get hash of this object: This hash is **not** based on values of objects fields, and differs from result of calling object.GetHash()
+/// # Example 
+/// ```rust
+/// let object = Object::new(&domain,&class);
+/// let object_copy = object.clone_managed_object();
+/// assert!(object.hash() != object_copy.hash()); // Objects object and object_copy have exacly 
+/// // the same values of their fileds, but are diffrent instances, so their hash is diffrent.
+/// ```
+pub fn hash<T:ObjectTrait>(obj:&T)->i32{
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let hsh = unsafe{crate::binds::mono_object_hash(self.get_ptr())};
+        let hsh = unsafe{crate::binds::mono_object_hash(obj.get_ptr() as _)};
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         hsh
-    }
+}
+use crate::exception::Exception;
+impl ObjectTrait for Object{
     fn get_domain(&self)->Domain{
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();

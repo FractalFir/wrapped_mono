@@ -44,6 +44,17 @@ impl<Args:InteropSend> PointerConversion for Delegate<Args>{
         }
     }
 }
+use crate::object::ManagedObject;
+impl<Args:InteropSend> ManagedObject  for Delegate<Args> where <Args as InteropSend>::TargetType:TupleToPtrs+CompareClasses{
+    default fn is_inst(class:&Class)->bool{
+       true // TODO: fix this <<Args as InteropSend>::TargetType as CompareClasses>::compare(&params)
+    }
+}
+impl<Args:InteropSend> ManagedObject for Delegate<Args>{
+    default fn is_inst(class:&Class)->bool{
+       true // TODO:fix it 
+    }
+}
 impl<Args:InteropSend> PointerConversion for Delegate<Args> where <Args as InteropSend>::TargetType:TupleToPtrs+CompareClasses{
     default type PtrType = MonoDelegate;
     default fn get_ptr(&self)->*mut Self::PtrType{
@@ -301,9 +312,6 @@ impl <Args:InteropSend> InteropSend for Delegate<Args>{
     }
 }
 impl<Args:InteropSend> ObjectTrait for Delegate<Args>{
-    fn hash(&self)->i32{
-        unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut _)}
-    }
     fn get_domain(&self)->Domain{
         unsafe{Domain::from_ptr(crate::binds::mono_object_get_domain(self.get_ptr() as *mut _))}
     }

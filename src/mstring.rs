@@ -18,6 +18,12 @@ pub struct MString{
     #[cfg(feature = "referneced_objects")]
     handle:GCHandle,
 }
+use crate::object::ManagedObject;
+impl ManagedObject for MString{
+    fn is_inst(class:&Class)->bool{
+        Class::get_string().is_assignable_from(class)
+    }
+}
 impl PointerConversion for MString{
     type PtrType = MonoString; 
     unsafe fn from_ptr(s_ptr:*mut Self::PtrType)->Option<Self>{
@@ -132,14 +138,6 @@ impl ToString for MString{
 use crate::Exception;
 use crate::binds::MonoObject;
 impl ObjectTrait for MString{
-    fn hash(&self)->i32{
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let hsh = unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject)};
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        hsh
-    }
     fn get_domain(&self)->crate::domain::Domain{
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();

@@ -348,7 +348,7 @@ impl Class{
         )}.expect("Impossible condition reached")
     }
     /// Returns [`Class`] representing the type **System.Exception**.
-    pub fn get_exception_class()->Class{
+    pub fn get_exception()->Class{
         unsafe{Class::from_ptr(crate::binds::mono_get_exception_class())}.expect("Could not get ExceptionClass!")
     }
     /// Returns [`Class`] representing the type **System.Delegate**.
