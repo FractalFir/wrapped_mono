@@ -12,12 +12,6 @@ pub struct ReflectionType{
     #[cfg(feature = "referneced_objects")]
     handle:GCHandle,
 }
-use crate::object::ManagedObject;
-impl ManagedObject for ReflectionType{
-    fn is_inst(class:&Class)->bool{
-       TYPE_CLASS.is_assignable_from(class)
-    }
-}
 use crate::PointerConversion;
 impl PointerConversion for ReflectionType{
     type PtrType = MonoReflectionType;
@@ -137,6 +131,14 @@ impl From<Class> for ReflectionType{
     }
 }
 impl ObjectTrait for ReflectionType{
+    fn hash(&self)->i32{
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let hsh = unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut _)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        hsh
+    }
     fn get_domain(&self)->Domain{
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();

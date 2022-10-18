@@ -315,13 +315,15 @@ use core::ptr::null_mut;
 use crate::binds::MonoObject;
 use crate::mstring::MString;
 use crate::Exception;
- use crate::object::ManagedObject;
-impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  ManagedObject for Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
-     fn is_inst(class:&Class)->bool{
-        <Self as InteropClass>::get_mono_class().is_assignable_from(class)
-    }
-}
 impl<T:InteropSend + InteropRecive + InteropClass, const DIMENSIONS:u32>  crate::object::ObjectTrait for Array<DIMENSIONS,T> where [();DIMENSIONS as usize]:Copy{
+    fn hash(&self)->i32{
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let hash = unsafe{crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject)};
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        hash
+    }
     fn get_domain(&self)->crate::domain::Domain{
          #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
