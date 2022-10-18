@@ -2,7 +2,6 @@ use core::{marker::PhantomData,ffi::c_void};
 use crate::{InteropSend,Object,Exception,Class};
 use crate::tupleutilis::*;
 use crate::binds::{MonoMethod,MonoException,MonoObject};
-use crate::PointerConversion;
 use std::ptr::null_mut;
 use std::ffi::CString;
 //Depends on: #![feature(specialization)]

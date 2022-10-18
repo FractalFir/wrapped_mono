@@ -15,32 +15,6 @@ pub struct Exception{
     #[cfg(feature = "referneced_objects")]
     handle:GCHandle,
 } 
-use crate::PointerConversion;
-impl PointerConversion for Exception{
-    type PtrType = MonoException;
-    unsafe fn from_ptr(exc_ptr: *mut Self::PtrType)->Option<Self>{
-        #[cfg(not(feature = "referneced_objects"))]
-        {
-            if exc_ptr.is_null(){
-                None
-            }
-            else {Some(Self{exc_ptr})}
-        }
-        #[cfg(feature = "referneced_objects")]
-        {
-            if exc_ptr.is_null(){
-                None
-            }
-            else {Some(Self{handle:GCHandle::create_default(exc_ptr as *mut _)})}
-        }
-    }
-    fn get_ptr(&self)->*mut Self::PtrType{
-        #[cfg(not(feature = "referneced_objects"))]
-        {self.exc_ptr}
-        #[cfg(feature = "referneced_objects")]
-        {self.handle.get_target() as *mut MonoException}
-    }
-}
 impl Exception{
     /// Raise exception (it can be then cathed by cath clause in managed code)
     /// # Example
@@ -511,6 +485,33 @@ impl Exception{
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         res
+    }
+    //TODO: implement mono_get_exception_reflection_type_load
+    /// Creates [`Exception`] from a [`MonoException`] pointer
+    /// # Safety
+    /// *exec_ptr* mus be either null, or a valid MonoException pointer.
+    pub unsafe fn from_ptr(exc_ptr:*mut MonoException)->Option<Self>{
+        #[cfg(not(feature = "referneced_objects"))]
+        {
+            if exc_ptr.is_null(){
+                None
+            }
+            else {Some(Self{exc_ptr})}
+        }
+        #[cfg(feature = "referneced_objects")]
+        {
+            if exc_ptr.is_null(){
+                None
+            }
+            else {Some(Self{handle:GCHandle::create_default(exc_ptr as *mut _)})}
+        }
+
+    }
+    pub fn get_ptr(&self)->*mut MonoException{
+        #[cfg(not(feature = "referneced_objects"))]
+        {self.exc_ptr}
+        #[cfg(feature = "referneced_objects")]
+        {self.handle.get_target() as *mut MonoException}
     }
 }
 /// Variant of except which instead of panicking will raise a managed exception.

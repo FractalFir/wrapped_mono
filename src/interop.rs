@@ -1,4 +1,3 @@
-use crate::PointerConversion;
 /// Tratit specifing how to convert a type when transfering it between managed and unmanaged code. It specifies how to convert
 /// SourceType used by MonoRuntime to type implementing this trait.
 pub trait InteropRecive{

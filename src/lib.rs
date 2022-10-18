@@ -108,9 +108,3 @@ static STR2CSTR_ERR:&str = "Cold not create CString!";
 static CSTR2STR_ERR:&str = "Could not convert CString to String";
 #[doc(hidden)]
 fn hold<T>(_:&T){}
-pub trait PointerConversion{
-    type PtrType;
-    fn get_ptr(&self)->*mut Self::PtrType;
-    unsafe fn from_ptr(ptr:*mut Self::PtrType)->Option<Self> where Self: Sized;
-}
-
