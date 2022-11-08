@@ -58,7 +58,7 @@ Rust nightly allows use of unfinished features of the rust language that are use
         // Get the image, the part of assembly containing executable code(classes,methods, etc.)
         let image = assembly.get_image(); 
         // Get class named SomeClass in SomeNamespace
-        let class = Class::from_name(&image,"SomeNamespace","SomeClass").expect("Could not find SomeClass!);
+        let class = Class::from_name(&image,"SomeNamespace","SomeClass").expect("Could not find SomeClass!");
         // Create an instance of this class
         let instance = Object::new(&domain,&class);
         // Creating an instance of a class DOES NOT CALL ITS CONSTRUCTOR. The constructor is a method named '.ctor', that has to be called separately
