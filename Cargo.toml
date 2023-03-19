@@ -39,3 +39,5 @@ regen_binds = ["bindgen"]
 dump_macro_results = ["wrapped_mono_macros/dump_macro_results"]
 ## Prevents objects in use by rust from being removed by mono runtime, adds slight overhead but is essential for storing objects long term. Can be disabled, but disabling it forces manual management of object lifetimes using GC handles.
 referneced_objects = []
+## Uses some old variants of mono API. Try if `mono_threads_enter_gc_unsafe_region` symbol is missing during linking.
+old_gc_unsafe = []
