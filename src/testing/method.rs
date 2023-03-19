@@ -1,8 +1,12 @@
-use rusty_fork::rusty_fork_test;
 use crate as wrapped_mono;
-use wrapped_mono::wrapped_mono_macros::*;
 use crate::object::ObjectTrait;
-use wrapped_mono::{jit,class::Class,method::{Method,MethodTrait}};
+use rusty_fork::rusty_fork_test;
+use wrapped_mono::wrapped_mono_macros::*;
+use wrapped_mono::{
+    class::Class,
+    jit,
+    method::{Method, MethodTrait},
+};
 rusty_fork_test! {
     #[test]
     fn getting_method(){
@@ -329,19 +333,26 @@ rusty_fork_test! {
         };
     }
 }
-use crate::{InteropRecive,InteropSend,InteropClass};
 use crate::InteropBox;
-#[derive(InteropRecive,InteropSend,Copy,Clone,PartialEq)]
+use crate::{InteropClass, InteropRecive, InteropSend};
+#[derive(InteropRecive, InteropSend, Copy, Clone, PartialEq)]
 #[repr(u64)]
-enum CLikeEnum{
+enum CLikeEnum {
     Val = 1,
     Val2 = 2,
     Val3 = 612,
 }
-impl InteropBox for CLikeEnum{}
+impl InteropBox for CLikeEnum {}
 use crate::assembly::Assembly;
-impl InteropClass for CLikeEnum{
-    fn get_mono_class()-> Class{
-        return Class::from_name(&Assembly::assembly_loaded("Test").expect("Could not find assembly").get_image(),"","CLikeEnum").expect("Could not get class!");
+impl InteropClass for CLikeEnum {
+    fn get_mono_class() -> Class {
+        return Class::from_name(
+            &Assembly::assembly_loaded("Test")
+                .expect("Could not find assembly")
+                .get_image(),
+            "",
+            "CLikeEnum",
+        )
+        .expect("Could not get class!");
     }
 }

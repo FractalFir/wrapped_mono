@@ -1,8 +1,8 @@
-use rusty_fork::rusty_fork_test;
 use crate as wrapped_mono;
+use rusty_fork::rusty_fork_test;
 use wrapped_mono::jit;
 use wrapped_mono::object::*;
-rusty_fork_test!{ 
+rusty_fork_test! {
     #[test]
     fn object_creation(){
         use wrapped_mono::class::Class;
@@ -21,7 +21,7 @@ rusty_fork_test!{
     #[test]
     fn object_unbox(){
         let main = jit::init("main",None);
-        let val:i32 = 128; 
+        let val:i32 = 128;
         let obj = Object::box_val(&main,128);
         let unboxed = Object::unbox::<i32>(&obj);
         assert!(unboxed == val);
@@ -29,9 +29,9 @@ rusty_fork_test!{
     #[cfg(not(feature = "unsafe_boxing"))]
     #[should_panic]
     #[test]
-    fn object_unbox_wrong_type(){   
+    fn object_unbox_wrong_type(){
         let main = jit::init("main",None);
-        let val:i32 = 128; 
+        let val:i32 = 128;
         let obj = Object::box_val(&main,val);
         let _unboxed = Object::unbox::<i64>(&obj);
     }

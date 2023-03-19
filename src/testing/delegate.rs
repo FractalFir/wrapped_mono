@@ -1,7 +1,7 @@
-use rusty_fork::rusty_fork_test;
 use crate as wrapped_mono;
+use rusty_fork::rusty_fork_test;
 use wrapped_mono::*;
-rusty_fork_test!{
+rusty_fork_test! {
     #[test]
     fn getting_delegate_from_method(){
         let dom = jit::init("root",None);

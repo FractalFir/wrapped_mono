@@ -1,7 +1,7 @@
 #![cfg(test)]
-use rusty_fork::rusty_fork_test;
 use crate as wrapped_mono;
-rusty_fork_test!{
+use rusty_fork::rusty_fork_test;
+rusty_fork_test! {
     #[test]
     fn test_interface_iteration(){
         use wrapped_mono::*;
@@ -126,5 +126,5 @@ rusty_fork_test!{
         let met:Method<()> = Method::get_from_name(&class,"CreateTypeString",0).unwrap();
         let res = met.invoke(None,()).expect("Got an exception").unwrap();
     }
-         
-} 
+
+}

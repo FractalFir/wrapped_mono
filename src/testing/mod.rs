@@ -1,19 +1,19 @@
 #![cfg(test)]
 use rusty_fork::rusty_fork_test;
-mod internal_call;
-mod object;
-mod method;
-mod exception;
-mod class;
-mod profiler;
 mod array;
-mod gc;
 mod benchmarks;
+mod class;
 mod delegate;
+mod exception;
+mod gc;
+mod internal_call;
+mod method;
+mod object;
+mod profiler;
 mod reflection;
 use crate as wrapped_mono;
-use wrapped_mono::*;
 use mstring::MString;
+use wrapped_mono::*;
 //use invokable::InvokePass;
 use crate::assembly::Assembly;
 rusty_fork_test! {
@@ -167,11 +167,11 @@ rusty_fork_test! {
         let dom = jit::init("root",None);
         let tuple_class = <(i32,u32) as InteropClass>::get_mono_class();
     }*/
-} 
-use crate::wrapped_mono_macros::{InteropRecive,InteropSend};
-#[derive(InteropRecive,InteropSend)]
-struct Vec3{
-    x:f32,
-    y:f32,
-    z:f32,
+}
+use crate::wrapped_mono_macros::{InteropRecive, InteropSend};
+#[derive(InteropRecive, InteropSend)]
+struct Vec3 {
+    x: f32,
+    y: f32,
+    z: f32,
 }

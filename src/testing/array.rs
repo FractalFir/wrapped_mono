@@ -1,6 +1,12 @@
 use crate as wrapped_mono;
 use rusty_fork::rusty_fork_test;
-use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait},array::Array,method::{Method,MethodTrait}};
+use wrapped_mono::{
+    array::Array,
+    class::Class,
+    jit,
+    method::{Method, MethodTrait},
+    object::{Object, ObjectTrait},
+};
 rusty_fork_test! {
     #[test]
     fn get_2D_array_from_method(){

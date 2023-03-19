@@ -1,10 +1,10 @@
+use crate as wrapped_mono;
 use rusty_fork::rusty_fork_test;
 use wrapped_mono_macros::*;
-use crate as wrapped_mono;
-mod some_mod{
+mod some_mod {
     use wrapped_mono_macros::*;
     #[invokable]
-    pub fn some_fn(){}
+    pub fn some_fn() {}
 }
 rusty_fork_test! {
     #[test]
@@ -60,5 +60,5 @@ rusty_fork_test! {
         add_internal_call!("Test::SomeFN",some_mod::some_fn);
 
         let _res = jit::exec(&dom,&asm,args);
-    } 
+    }
 }

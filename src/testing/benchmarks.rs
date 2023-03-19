@@ -1,10 +1,10 @@
 extern crate test;
 use crate as wrapped_mono;
-use wrapped_mono::*;
-use test::Bencher;
 use lazy_static::*;
-lazy_static!{
-    static ref DOM:Domain = jit::init("dom",None); 
+use test::Bencher;
+use wrapped_mono::*;
+lazy_static! {
+    static ref DOM: Domain = jit::init("dom", None);
 }
 #[bench]
 fn create_object(b: &mut Bencher) {
@@ -15,7 +15,7 @@ fn create_object(b: &mut Bencher) {
     gc::collect(gc::max_generation());
     let class = Class::get_object();
     b.iter(|| {
-        let obj = Object::new(dom,&class);
+        let obj = Object::new(dom, &class);
     });
 }
 #[bench]
@@ -25,7 +25,7 @@ fn clone_object(b: &mut Bencher) {
     dom.attach_thread();
     //ensure that nursery is empty for accurate measures!
     gc::collect(gc::max_generation());
-    let obj = Object::box_val::<i32>(dom,34);
+    let obj = Object::box_val::<i32>(dom, 34);
     b.iter(|| {
         let obj2 = obj.clone();
     });
@@ -37,7 +37,7 @@ fn unbox_object(b: &mut Bencher) {
     dom.attach_thread();
     //ensure that nursery is empty for accurate measures!
     gc::collect(gc::max_generation());
-    let obj = Object::box_val::<i32>(dom,34);
+    let obj = Object::box_val::<i32>(dom, 34);
     b.iter(|| {
         let obj2 = obj.unbox::<i32>();
     });
@@ -50,7 +50,7 @@ fn create_mstring(b: &mut Bencher) {
     //ensure that nursery is empty for accurate measures!
     gc::collect(gc::max_generation());
     b.iter(|| {
-        let mstr = MString::new(dom,"A");
+        let mstr = MString::new(dom, "A");
     });
 }
 #[bench]
@@ -61,7 +61,7 @@ fn create_array(b: &mut Bencher) {
     //ensure that nursery is empty for accurate measures!
     gc::collect(gc::max_generation());
     b.iter(|| {
-        let arr:Array<1,i32> = Array::new(dom,&[2]);
+        let arr: Array<1, i32> = Array::new(dom, &[2]);
     });
 }
 #[bench]
@@ -82,7 +82,7 @@ fn clone_mstring(b: &mut Bencher) {
     dom.attach_thread();
     //ensure that nursery is empty for accurate measures!
     gc::collect(gc::max_generation());
-    let mstr = MString::new(dom,"A");
+    let mstr = MString::new(dom, "A");
     b.iter(|| {
         let mstr = mstr.clone();
     });
@@ -97,7 +97,7 @@ fn get_class(b: &mut Bencher) {
     let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
     let img = asm.get_image();
     b.iter(|| {
-        let class = Class::from_name(&img,"","TestFunctions").unwrap();
+        let class = Class::from_name(&img, "", "TestFunctions").unwrap();
     });
 }
 #[bench]
@@ -109,9 +109,9 @@ fn get_method(b: &mut Bencher) {
     gc::collect(gc::max_generation());
     let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
     let img = asm.get_image();
-    let class = Class::from_name(&img,"","TestFunctions").unwrap();
+    let class = Class::from_name(&img, "", "TestFunctions").unwrap();
     b.iter(|| {
-        let met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
+        let met: Method<i32> = Method::get_from_name(&class, "GetArg", 1).unwrap();
     });
 }
 #[bench]
@@ -123,14 +123,14 @@ fn call_method(b: &mut Bencher) {
     gc::collect(gc::max_generation());
     let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
     let img = asm.get_image();
-    let class = Class::from_name(&img,"","TestFunctions").unwrap();
-    let met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
+    let class = Class::from_name(&img, "", "TestFunctions").unwrap();
+    let met: Method<i32> = Method::get_from_name(&class, "GetArg", 1).unwrap();
     b.iter(|| {
-        met.invoke(None,8).unwrap().unwrap();
+        met.invoke(None, 8).unwrap().unwrap();
     });
 }
 #[bench]
-fn preform_gc(b: &mut Bencher){
+fn preform_gc(b: &mut Bencher) {
     let dom = &DOM;
     //enusure that used thread is attached to main domain
     dom.attach_thread();
@@ -139,8 +139,8 @@ fn preform_gc(b: &mut Bencher){
     //Guarantee constant test conditions
     gc::collect(gc::max_generation());
     let class = Class::get_object();
-    for i in 0..0xFFFF{
-        objs.push(Object::new(dom,&class));
+    for i in 0..0xFFFF {
+        objs.push(Object::new(dom, &class));
     }
     b.iter(|| {
         gc::collect(gc::max_generation());

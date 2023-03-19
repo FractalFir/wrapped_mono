@@ -1,6 +1,6 @@
 use crate::*;
 use rusty_fork::rusty_fork_test;
-rusty_fork_test! { 
+rusty_fork_test! {
     #[test]
     fn test_gc_object(){
         use crate::gc::count_objects;
@@ -9,10 +9,10 @@ rusty_fork_test! {
         for i in 0..800{
             let mut obj = Object::box_val::<i32>(&dom,i);
             for j in 0..1000{
-                obj = Object::box_val::<i32>(&dom,i); 
+                obj = Object::box_val::<i32>(&dom,i);
                 for i in 0..10{
                     let tmp = obj.clone();
-                } 
+                }
             }
             results.push(obj);
         }
@@ -45,7 +45,7 @@ rusty_fork_test! {
                 obj = MString::new(&dom,&format!("{}",i));
                 for i in 0..10{
                     let tmp = obj.clone();
-                } 
+                }
             }
             results.push(obj);
         }
@@ -72,7 +72,7 @@ rusty_fork_test! {
                 obj = Array::new(&dom,&[i/50 as usize]);
                 for i in 0..10{
                     let tmp = obj.clone();
-                } 
+                }
             }
             if i % 100 == 0{
                 println!("Created an array! {}",i);
@@ -103,7 +103,7 @@ rusty_fork_test! {
                 obj = Exception::arithmetic();
                 for i in 0..10{
                     let tmp = obj.clone();
-                } 
+                }
             }
             if i % 100 == 0{
                 println!("Created an array! {}",i);

@@ -1,11 +1,11 @@
 use crate as wrapped_mono;
-use wrapped_mono::*;
 use crate::profiler::Profiler;
 use rusty_fork::rusty_fork_test;
 use std::sync::Arc;
+use wrapped_mono::*;
 ///Local macro used to simplify tests
-macro_rules! profiler_test{
-    ($tname:ident)=>{
+macro_rules! profiler_test {
+    ($tname:ident) => {
         rusty_fork_test! {
             #[test]
             fn $tname (){
@@ -22,7 +22,7 @@ macro_rules! profiler_test{
             }
         }
     };
-    ($tname:ident,$rtime_code:block,$tpe:tt)=>{
+    ($tname:ident,$rtime_code:block,$tpe:tt) => {
         rusty_fork_test! {
             #[test]
             fn $tname (){
@@ -39,16 +39,16 @@ macro_rules! profiler_test{
                 assert!(*init_lisener.get_internal_data() == 1);
             }
         }
-    }
+    };
 }
 // Some tests do not pass because macro implementing them does not support code injection needed to test them propely.
-profiler_test!{add_runtime_initialized_callback}
-profiler_test!{add_runtime_shutown_begin_callback}
-profiler_test!{add_runtime_shutown_end_callback}
-profiler_test!{add_context_loaded}
-profiler_test!{add_context_unloaded}
-profiler_test!{add_domain_loading,{},(&mut Domain)}
-profiler_test!{add_domain_loaded,{},(&mut Domain)}
+profiler_test! {add_runtime_initialized_callback}
+profiler_test! {add_runtime_shutown_begin_callback}
+profiler_test! {add_runtime_shutown_end_callback}
+profiler_test! {add_context_loaded}
+profiler_test! {add_context_unloaded}
+profiler_test! {add_domain_loading,{},(&mut Domain)}
+profiler_test! {add_domain_loaded,{},(&mut Domain)}
 //Do not work.
 //profiler_test!{add_domain_unloading,{},(&mut Domain)}
 //profiler_test!{add_domain_unloaded,{},(&mut Domain)}
@@ -67,4 +67,4 @@ rusty_fork_test! {
         prof.destroy();
     }
 }
-*/ 
+*/
