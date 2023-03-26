@@ -341,7 +341,7 @@ where
         }
         Some(res)
     }
-     /// Creates new Method type from a *mut MonoMethod, checks if arguments of [`MonoMethod`] and rust representation of a [`Method`] match and returns [`None`] if so.
+    /// Creates new Method type from a *mut MonoMethod, checks if arguments of [`MonoMethod`] and rust representation of a [`Method`] match and returns [`None`] if so.
     /// Returns [`None`] if pointer is null.
     /// # Arguments
     /// |Name   |Type   |Description|

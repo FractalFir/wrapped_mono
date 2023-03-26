@@ -22,7 +22,10 @@ use crate::mstring::MString;
 pub trait ObjectTrait {
     /// get hash of this object: This hash is **not** based on values of objects fields, and differs from result of calling object.GetHash()
     /// # Example
-    /// ```rust
+    /// ```no_run
+    /// # use wrapped_mono::*;
+    /// # let class = Class::get_int_32();
+    /// # let domain = Domain::get_current().unwrap();
     /// let object = Object::new(&domain,&class);
     /// let object_copy = object.clone_managed_object();
     /// assert!(object.hash() != object_copy.hash()); // Objects object and object_copy have exacly
@@ -31,24 +34,31 @@ pub trait ObjectTrait {
     fn hash(&self) -> i32;
     /// get [`Domain`] this object exists in.
     /// # Example
-    ///```rust
-    /// let domain = Domain.create(); //create Domain dom
-    /// let object = Object::new(&dom,&class); //create object in Domain dom.
+    ///```no_run
+    /// # use wrapped_mono::*;
+    /// # let class = Class::get_int_32();
+    /// let domain = Domain::create(); //create Domain dom
+    /// let object = Object::new(&domain,&class); //create object in Domain dom.
     /// let obj_domain = object.get_domain(); //get doamin object is in
     /// assert!(domain == obj_domain);
     ///```
     fn get_domain(&self) -> crate::domain::Domain;
     /// get size of managed object referenced by *self* in bytes. Does include builtin hidden data.
     /// # Example
-    ///```csharp
+    ///```ignore
     /// class SomeClass{};
     /// class OtherClass{int some_int;};
     ///```
-    ///```rust
-    /// let size = some_obj.get_size();  //Get size of some_obj(in this case an insatce of SomeClass)
-    /// assert!(size == std::mem::size_of::<MonoObject>()); // 8 bytes on 32 bit systems, 16 on 64 bit ones (size of two pointers).
-    /// let size_other = other_obj.get_size(); //Get size of other_obj(in this case an insatce of OtherClass)
-    /// assert!(size_other == std::mem::size_of::<MonoObject>() + 8); //size of two hidden pointers + some_int filed.
+    ///```no_run
+    /// # use wrapped_mono::*;
+    /// # use wrapped_mono::binds::MonoObject;
+    /// # let domain = Domain::get_current().unwrap();
+    /// # let some_obj = Object::new(&domain,&Class::get_void());
+    /// # let other_obj = Object::box_val::<i32>(&domain,77);
+    /// let size = some_obj.get_size();  //Get size of some_obj(in this case an instance of SomeClass)
+    /// assert!(size == std::mem::size_of::<MonoObject>() as u32); // 8 bytes on 32 bit systems, 16 on 64 bit ones (size of two pointers).
+    /// let size_other = other_obj.get_size(); //Get size of other_obj(in this case an instance of OtherClass)
+    /// assert!(size_other == (std::mem::size_of::<MonoObject>() + std::mem::size_of::<i32>()) as u32); //size of two hidden pointers + some_int filed.
     ///```
     fn get_size(&self) -> u32;
     /// get reflection token
@@ -57,7 +67,10 @@ pub trait ObjectTrait {
     fn reflection_get_token(&self) -> u32;
     /// returns [`Class`] of this object.
     /// # Example
-    /// ```rust
+    /// ```no_run
+    /// # use wrapped_mono::*;
+    /// # let domain = Domain::get_current().unwrap();
+    /// # let class = Class::get_void();
     /// let object = Object::new(&domain,&class);
     /// let object_class = object.get_class();
     /// assert!(class == object_class);
@@ -173,8 +186,11 @@ impl Object {
     }
     ///Allocates new object of [`Class`] class. **Does not call the constructor**, to call constuctor call the `.ctor` method after creating the object.
     /// # Examples
-    /// ```rust
-    /// let new_obj = Object::new(some_domain,new_objects_class);
+    /// ```no_run
+    /// # use wrapped_mono::*;
+    /// # let domain = Domain::get_current().unwrap();
+    /// # let class = Class::get_void();
+    /// let new_obj = Object::new(&domain,&class);
     /// ```
     pub fn new(domain: &crate::domain::Domain, class: &Class) -> Self {
         #[cfg(feature = "referneced_objects")]
@@ -216,13 +232,14 @@ impl Object {
     /// Calling it on a type which can't be unboxed **will lead to a crash**.
     /// Unboxing type
     ///C#<br>
-    ///```cs
+    ///```ignore
     ///int num = 123;
     ///Object boxed = num;
     ///RustFunction(boxed);
     ///```
     ///Rust
-    ///```rust
+    ///```no_run
+    /// # use wrapped_mono::*;
     ///#[invokable]
     ///fn rust_function(o:Object){
     ///    let val = o.unbox::<i32>();
@@ -270,9 +287,11 @@ impl Object {
     }
     ///Boxes value into an object.
     /// # Examples
-    ///```
+    ///```no_run
+    /// # use wrapped_mono::*;
+    /// # let domain = Domain::get_current().unwrap();
     /// let mut val:i32 = 0;
-    /// let obj = Object::box_val(&domain,&int_class,val); //New object of type `Int32?`
+    /// let obj = Object::box_val::<i32>(&domain,val); //New object of type `Int32?`
     ///```
     pub fn box_val<T: InteropBox>(domain: &Domain, data: T) -> crate::object::Object {
         let mut data = <T as InteropSend>::get_mono_rep(data);
@@ -299,7 +318,7 @@ impl Object {
     ///Gets an implenentation virtual [`Method`] *method* for a specific [`Object`] *obj*.<br>
     /// # Explanation
     /// with given C# code
-    ///```csharp
+    ///```ignore
     /// class ParrentClass{
     ///     virtual void SomeMehod(){
     ///         //SomeFunction

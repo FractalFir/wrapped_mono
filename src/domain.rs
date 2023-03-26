@@ -10,7 +10,9 @@ impl Domain {
     /// Loads [`Assembly`] at path into domain, returns **None** if assembly could not be loaded(is missing or broken), and **Some(Assembly)** if it was successfully loaded.
     pub fn assembly_open(&self, path: &str) -> Option<Assembly> {
         //! # Example
-        //!```rust
+        //!```no_run
+        //! # use wrapped_mono::*;
+        //! # let domain = jit::init("name",None);
         //! let asm = domain.assembly_open("SomeAssembly.dll").expect("Could not load assembly!");
         //!```
         let cstr = CString::new(path).expect(crate::STR2CSTR_ERR);
@@ -23,8 +25,9 @@ impl Domain {
     }
     /// Creates a new empty domain
     /// # Example
-    /// ```rust
-    /// let domain1 = jit::init();
+    /// ```no_run
+    /// # use wrapped_mono::*;
+    /// let domain1 = jit::init("name",None);
     /// let domain2 = Domain::create();
     /// ```
     pub fn create() -> Domain {

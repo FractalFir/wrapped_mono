@@ -4,11 +4,13 @@ use std::ffi::CString;
 static mut HAS_BEEN_INITIALIZED: bool = false;
 /// This function starts up MonoRuntime,and returns main domain. It should be called before any other mono function is called. **Can be only called once per process.**
 /// Version argument specifies runtime version, if **None** passed, default version will be selected.
-/// ```rust
+/// ```no_run
+/// # use wrapped_mono::*;
 /// let main_domain = jit::init("domain_name",None);
 /// ```
-/// ```rust
-/// let main_domain_with_version = jit::init("domain_name","v4.0.30319");
+/// ```no_run
+/// # use wrapped_mono::*;
+/// let main_domain_with_version = jit::init("domain_name",Some("v4.0.30319"));
 /// ```
 pub fn init(name: &str, version: Option<&str>) -> Domain {
     unsafe {
@@ -36,7 +38,8 @@ pub fn init(name: &str, version: Option<&str>) -> Domain {
 }
 /// This function shuts down MonoRuntime.
 /// **WARNING!** after it is called, MonoRuntime **will not be** able to be used again in the same process, since it can be only started up once.
-/// ```rust
+/// ```no_run
+/// # use wrapped_mono::*;
 /// let main_domain = jit::init("main",None);
 /// // All code using MonoRuntime goes here
 /// jit::cleanup(main_domain);
@@ -46,7 +49,7 @@ pub fn cleanup(domain: Domain) {
 }
 use crate::assembly::Assembly;
 /// Function used to call main function from assembly in domain with arguments.
-/// ```csharp
+/// ```ignore
 /// //C# code in file "SomeAssembly.dll"
 /// class Apllication{
 /// public static void Main(string args[]){
@@ -54,11 +57,12 @@ use crate::assembly::Assembly;
 ///     }
 /// }
 /// ```
-/// ```rust
-/// let main_doamin = jit::init("main",None);
-/// let asm = main_domain.assembly_open("SomeAssembly.dll");
+/// ```no_run
+/// # use wrapped_mono::*;
+/// let main_domain = jit::init("main",None);
+/// let asm = main_domain.assembly_open("SomeAssembly.dll").expect("Could not open the assembly!");
 /// let args = vec!["arg1","arg2","arg3"];
-/// let res = jit::exec(main_domain,asm,args);
+/// let res = jit::exec(&main_domain,&asm,args);
 /// ```
 pub fn exec(domain: &Domain, assembly: &Assembly, args: Vec<&str>) -> i32 {
     let argc: i32 = args.len() as i32 + 1;

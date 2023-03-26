@@ -63,19 +63,21 @@ where
     /// |self|&Self|[`Array`] to read from.|
     /// |indices|`[usize;DIMENSIONS as usize]`| An n-dimensional array containing indices to read value at|
     /// # Examples
-    /// ```rust
-    /// fn some_get_fn(input:&Array<1,f32>)->f32{
-    ///     let a = input.get(&[0]);  
-    ///     let b = input.get(&[1]);
-    ///     return a + b;  
+    /// ```no_run
+    /// # use wrapped_mono::*;
+    /// fn some_get_fn(input:&Array<Dim1D,f32>)->f32{
+    ///     let a = input.get([0]);  
+    ///     let b = input.get([1]);
+    ///     a + b
     /// }
     /// ```
-    /// ```rust
-    /// fn some_get_fn_2D(input:&Array<2,f32>)->f32{
-    ///     let a = input.get(&[0,0]);  
-    ///     let b = input.get(&[1,1]);
-    ///     let b = input.get(&[0,1]);
-    ///     return a + b + c;  
+    /// ```no_run
+    /// # use wrapped_mono::*;
+    /// fn some_get_fn_2D(input:&Array<Dim2D,f32>)->f32{
+    ///     let a = input.get([0,0]);  
+    ///     let b = input.get([1,1]);
+    ///     let c = input.get([0,1]);
+    ///      a + b + c 
     /// }
     /// ```
     pub fn get(&self, indices: Dim::Lengths) -> T {
@@ -102,17 +104,19 @@ where
     /// |indices|`[usize;DIMENSIONS as usize]`| An n-dimensional array containing indices to set value at|
     /// |value  |`T`|value to set element at index to.|
     /// # Example
-    /// ```rust
-    /// fn set_fn(input:&mut Array<1,i32>){
-    ///     input.set(&[0],0);
-    ///     input.set(&[1],1);
+    /// ```no_run
+    /// # use wrapped_mono::*;
+    /// fn set_fn(input:&mut Array<Dim1D,i32>){
+    ///     input.set([0],0);
+    ///     input.set([1],1);
     /// }
     /// ```
-    /// ```rust
-    /// fn set_fn_2D(input:&mut Array<2,i32>){
-    ///     input.set(&[0,0],0);
-    ///     input.set(&[1,1],1);
-    ///     input.set(&[1,0],9);
+    /// ```no_run
+    /// # use wrapped_mono::*;
+    /// fn set_fn_2D(input:&mut Array<Dim2D,i32>){
+    ///     input.set([0,0],0);
+    ///     input.set([1,1],1);
+    ///     input.set([1,0],9);
     /// }
     /// ```
     pub fn set(&mut self, indices: Dim::Lengths, value: T) {
@@ -137,13 +141,14 @@ where
     /// |-------|-------|------|
     /// |self|&Self|[`Array`] to get length of|
     /// # Example
-    /// ```rust
-    /// fn get_avg(input:&Array<1,f32>)->f32{
+    /// ```no_run
+    /// # use wrapped_mono::*;
+    /// fn get_avg(input:&Array<Dim1D,f32>)->f32{
     ///     let mut sum = 0.0;
-    ///     for i in 0..input.len{
-    ///         sum+=input.get(&[i]);
+    ///     for i in 0..input.len(){
+    ///         sum += input.get([i]);
     ///     }
-    ///     return sum/(input.len() as f32);
+    ///     sum/(input.len() as f32)
     /// }
     /// ```
     pub fn len(&self) -> usize {
@@ -232,9 +237,12 @@ where
     }
     /// Allocate new array in *domain* with size *DIMENSIONS* with elements of type *class*.
     /// # Example
-    /// ```rust
+    /// ```no_run
+    /// # use wrapped_mono::*;
+    /// # let domain = Domain::get_current().unwrap();
+    /// # let int_managed_class = Class::get_int_32();
     /// let arr_len = 8;
-    /// let arr = Array<i32>::new(&domain,&int_managed_class,arr_len);
+    /// let arr = Array::<Dim1D,i32>::new(&domain,&[arr_len]);
     /// assert!(arr.len() == arr_len);
     /// ```
     ///

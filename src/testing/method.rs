@@ -2,11 +2,7 @@ use crate as wrapped_mono;
 use crate::object::ObjectTrait;
 use rusty_fork::rusty_fork_test;
 use wrapped_mono::wrapped_mono_macros::*;
-use wrapped_mono::{
-    class::Class,
-    jit,
-    method::{Method},
-};
+use wrapped_mono::{class::Class, jit, method::Method};
 rusty_fork_test! {
     #[test]
     fn getting_method(){
