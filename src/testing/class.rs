@@ -46,7 +46,7 @@ rusty_fork_test! {
     fn class_get_array_element_class(){
         use wrapped_mono::*;
         let domain = jit::init("main",None);
-        let arr:Array<1,i64> = Array::new(&domain,&[32]);
+        let arr:Array<Dim1D,i64> = Array::new(&domain,&[32]);
         let arr_class = arr.get_class();
         assert!(Class::get_int_64() == arr_class.get_element_class());
     }
@@ -54,7 +54,7 @@ rusty_fork_test! {
     fn class_get_rank(){
         use wrapped_mono::*;
         let domain = jit::init("main",None);
-        let arr:Array<1,i64> = Array::new(&domain,&[32]);
+        let arr:Array<Dim1D,i64> = Array::new(&domain,&[32]);
         let arr_class = arr.get_class();
         let rank = arr_class.get_rank();
         assert!(rank == 1);

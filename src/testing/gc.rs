@@ -63,11 +63,11 @@ rusty_fork_test! {
     fn test_gc_array(){
         use crate::gc::count_objects;
         let dom = jit::init("dom",None);
-        let mut results:Vec<Array<1,i32>> = Vec::with_capacity(4000);
+        let mut results:Vec<Array<Dim1D,i32>> = Vec::with_capacity(4000);
         println!("Preparing to create test arrays!");
         // Having more temporary Arrays fills up the nursery, and causes problems with garbage collection(can't unlock a thread)
         for i in 0..17{
-            let mut obj:Array<1,i32> = Array::new(&dom,&[i/50 as usize]);
+            let mut obj:Array<Dim1D,i32> = Array::new(&dom,&[i/50 as usize]);
             for j in 0..1000{
                 obj = Array::new(&dom,&[i/50 as usize]);
                 for i in 0..10{

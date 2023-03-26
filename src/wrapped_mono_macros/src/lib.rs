@@ -1,5 +1,5 @@
 #![recursion_limit = "32"]
-#![feature(proc_macro_span)]
+
 extern crate quote;
 extern crate syn;
 

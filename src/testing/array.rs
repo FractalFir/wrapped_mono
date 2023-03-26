@@ -6,6 +6,7 @@ use wrapped_mono::{
     jit,
     method::{Method, MethodTrait},
     object::{Object, ObjectTrait},
+    *
 };
 rusty_fork_test! {
     #[test]
@@ -16,7 +17,7 @@ rusty_fork_test! {
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
         let mthd:Method<()> = Method::get_from_name(&class,"Get2DIntArray",0).expect("Could not load function");
-        let arr:Array<2,i32> = unsafe{Array::from_ptr((
+        let arr:Array<Dim2D,i32> = unsafe{Array::from_ptr((
             mthd.invoke(None,()).expect("Exception").expect("got null").get_ptr() as *mut crate::binds::MonoArray
         ))}.expect("got null again");
         assert!(arr.len() == 8*16);
@@ -24,7 +25,7 @@ rusty_fork_test! {
     #[test]
     fn create_4D_array(){
         let dom = jit::init("root",None);
-        let arr:Array<4,i32> = Array::new(&dom,&[1,2,3,4]);
+        let arr:Array<Dim4D,i32> = Array::new(&dom,&[1,2,3,4]);
         assert!(arr.get_lenghts() == [1,2,3,4]);
         assert!(arr.len() == 1*2*3*4);
         assert!(arr.get_class().get_rank() == 4);
@@ -32,7 +33,7 @@ rusty_fork_test! {
     #[test]
     fn create_1D_array(){
         let dom = jit::init("root",None);
-        let arr:Array<1,i32> = Array::new(&dom,&[89]);
+        let arr:Array<Dim1D,i32> = Array::new(&dom,&[89]);
         assert!(arr.get_lenghts() == [89]);
         assert!(arr.len() == 89);
         assert!(arr.get_class().get_rank() == 1);
@@ -40,7 +41,7 @@ rusty_fork_test! {
     #[test]
     fn acces_1D_array(){
         let dom = jit::init("root",None);
-        let mut arr:Array<1,i32> = Array::new(&dom,&[89]);
+        let mut arr:Array<Dim1D,i32> = Array::new(&dom,&[89]);
         assert!(arr.get_lenghts() == [89]);
         assert!(arr.len() == 89);
         assert!(arr.get_class().get_rank() == 1);
@@ -54,7 +55,7 @@ rusty_fork_test! {
     #[test]
     fn acces_2D_array(){
         let dom = jit::init("root",None);
-        let mut arr:Array<2,usize> = Array::new(&dom,&[89,13]);
+        let mut arr:Array<Dim2D,usize> = Array::new(&dom,&[89,13]);
         assert!(arr.get_lenghts() == [89,13]);
         assert!(arr.len() == 89 * 13);
         assert!(arr.get_class().get_rank() == 2);
@@ -76,7 +77,7 @@ rusty_fork_test! {
     #[should_panic]
     fn outsiede_bound_acces_2D_array(){
         let dom = jit::init("root",None);
-        let mut arr:Array<2,usize> = Array::new(&dom,&[89,13]);
+        let mut arr:Array<Dim2D,usize> = Array::new(&dom,&[89,13]);
         assert!(arr.get_lenghts() == [89,13]);
         assert!(arr.len() == 89 * 13);
         assert!(arr.get_class().get_rank() == 2);

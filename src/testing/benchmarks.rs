@@ -1,3 +1,4 @@
+/*
 extern crate test;
 use crate as wrapped_mono;
 use lazy_static::*;
@@ -145,4 +146,4 @@ fn preform_gc(b: &mut Bencher) {
     b.iter(|| {
         gc::collect(gc::max_generation());
     });
-}
+}*/

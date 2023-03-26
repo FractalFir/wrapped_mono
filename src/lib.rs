@@ -1,11 +1,11 @@
 // Some experimental features simply need to be enabled to make wrapped_mono work. They are used rarely and with special caution.
 #![allow(incomplete_features)]
 // Necessary for proper work of Method, usage rather simple, but bugs possible when changes to compiler are made.
-#![feature(specialization)]
+ #![feature(specialization)]
 // used only for array sizes, in a very simple, limited manner. Should not cause troubles when updating.
-#![feature(generic_const_exprs)]
+// #![feature(generic_const_exprs)]
 // used for benchmarking
-#![feature(test)]
+// #![feature(test)]
 // doctests are disabled, because they do not work with rusty_fork! which is required for testing mono runtime
 #![cfg(not(doctest))]
 //! `wrapped_mono` is a safe, lightweight wrapper around the mono library. It allows embedding of the mono runtime inside a rust project. Inside this embedded runtime code written in languages supporting the .NET framework, such as C\# and F\#, can be run. This allows usage of libraries written in those languages, and using them as a scripting language. The mono runtime is used by many game engines, and this wrapper allows using it with projects written in Rust too.
@@ -21,7 +21,9 @@
 //! More precise <a href = "https://docs.microsoft.com/en-us/dotnet/standard/managed-code">explanation</a>
 //! ## Feature flags
 #![doc = document_features::document_features!()]
-
+pub mod dimensions;
+#[doc(inline)]
+pub use dimensions::*;
 /// Utilities related to managed arrays.
 pub mod array;
 /// Functions and types related to MonoAssembly type.
