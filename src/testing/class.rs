@@ -118,7 +118,7 @@ rusty_fork_test! {
     }
     #[test]
     fn get_generic_class_string(){
-        use crate::{Method,Class,MethodTrait};
+        use crate::{Method,Class};
         let dom = crate::jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();

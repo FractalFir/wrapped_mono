@@ -88,7 +88,7 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
     };
     let method = tokens.pop().unwrap().to_string();
     //unque name for
-    let res =  TokenStream::from_str(
+    let res = TokenStream::from_str(
         &format!("let cstr = std::ffi::CString::new({}).expect(\"Could note create cstring\");
         let fnc_ptr:*const core::ffi::c_void = unsafe{{ std::mem::transmute({}_invokable as {}_fn_type) }};
         unsafe{{ wrapped_mono::binds::mono_add_internal_call(cstr.as_ptr(),fnc_ptr) }};

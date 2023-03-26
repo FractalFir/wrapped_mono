@@ -14,12 +14,16 @@ use std::ptr::null_mut;
 /// ## All arguments **must** implement InteropClass!
 /// While this is not enforced jet because of limitations of the API(no support for C# tuples), **IT IS STILL NECESSARY**. Ignoring this warning and using Methods with
 /// arguments not implementing InteropClass **will lead to crashes and undefined behaviour**. Before filing bug reports, check that all arguments of your function implement InteropClass.
-pub struct Method<Args: InteropSend> {
+pub struct Method<Args: InteropSend + CompareClasses>
+where
+    <Args as InteropSend>::TargetType: TupleToPtrs,
+{
     method: *mut MonoMethod,
     args_type: PhantomData<Args>,
 }
 /// Trait implemented only for [`Method`] type. Spiliting it from main [`Method`] type allows for different amount of method arguments.
-pub trait MethodTrait<Args: InteropSend>
+/*
+pub trait MethodTrait<Args: InteropSend + CompareClasses>
 where
     Self: Sized,
 {
@@ -54,7 +58,11 @@ where
     /// but will be fixed in the future
     unsafe fn from_ptr_checked(met_ptr: *mut MonoMethod) -> Option<Self>;
 }
-impl<Args: InteropSend> Method<Args> {
+*/
+impl<Args: InteropSend + CompareClasses> Method<Args>
+where
+    <Args as InteropSend>::TargetType: TupleToPtrs,
+{
     /// Gets the internal pointer to [`MonoMethod`].
     /// # Arguments
     /// |Name   |Type   |Description|
@@ -69,7 +77,10 @@ impl<Args: InteropSend> Method<Args> {
     /// |-------|-------|------|
     /// |self   |&[`Method`]|   Rust representation of the method preforiming the call.|
     /// |called |&[`Method`]|   Rust representation of the method beeing called.|
-    pub fn can_acces_method<T: InteropSend>(&self, called: &Method<T>) -> bool {
+    pub fn can_acces_method<T: InteropSend + CompareClasses>(&self, called: &Method<T>) -> bool
+    where
+        <T as InteropSend>::TargetType: TupleToPtrs,
+    {
         (unsafe { crate::binds::mono_method_can_access_method(self.method, called.method) } != 0)
     }
     ///Metadata token. Not working without MetadataAPI
@@ -178,11 +189,12 @@ impl<Args: InteropSend> Method<Args> {
         }
     }
 }
-impl<Args: InteropSend> MethodTrait<Args> for Method<Args> {
-    default fn invoke(
+/*
+impl<Arg: InteropSend> MethodTrait<(Arg,)> for Method<(Arg,)> {
+    fn invoke(
         &self,
         object: Option<Object>,
-        args: Args,
+        arg: (Arg,),
     ) -> Result<Option<Object>, Exception> {
         //convert object to invoke on to a pointer.
         let obj_ptr = match object {
@@ -191,7 +203,7 @@ impl<Args: InteropSend> MethodTrait<Args> for Method<Args> {
         };
         let mut expect: *mut MonoException = null_mut();
         //convert argument types
-        let mut args = <Args as InteropSend>::get_mono_rep(args);
+        let mut args = <Arg as InteropSend>::get_mono_rep(arg.0);
         //convert arguments to pointers
         let mut params = &mut args as *mut _ as *mut c_void;
         //invoke the method itself
@@ -218,7 +230,7 @@ impl<Args: InteropSend> MethodTrait<Args> for Method<Args> {
             Err(except)
         }
     }
-    default unsafe fn from_ptr(met_ptr: *mut MonoMethod) -> Option<Self> {
+    unsafe fn from_ptr(met_ptr: *mut MonoMethod) -> Option<Self> {
         if met_ptr.is_null() {
             return None;
         }
@@ -240,7 +252,7 @@ impl<Args: InteropSend> MethodTrait<Args> for Method<Args> {
         //assert!(params[0] == <Args as InteropClass>::get_mono_class());
         Some(res)
     }
-    default unsafe fn from_ptr_checked(met_ptr: *mut MonoMethod) -> Option<Self> {
+    unsafe fn from_ptr_checked(met_ptr: *mut MonoMethod) -> Option<Self> {
         if met_ptr.is_null() {
             return None;
         }
@@ -252,15 +264,19 @@ impl<Args: InteropSend> MethodTrait<Args> for Method<Args> {
         Some(res)
     }
 }
-impl<Args: InteropSend> MethodTrait<Args> for Method<Args>
+*/
+impl<Args: InteropSend + CompareClasses> Method<Args>
 where
-    <Args as InteropSend>::TargetType: TupleToPtrs + CompareClasses,
+    <Args as InteropSend>::TargetType: TupleToPtrs,
 {
-    default fn invoke(
-        &self,
-        object: Option<Object>,
-        args: Args,
-    ) -> Result<Option<Object>, Exception> {
+    /// Invoke this method on object *object* with arguments *args*
+    /// # Arguments
+    /// | Name   | Type   | Description|
+    /// |--------|--------|-------|
+    /// | self   | &`Self`|Reference to method to invoke. |
+    /// | object | [`Option<Object>`] |Object to invoke method on. Pass [`None`] if method is static. |
+    /// | args   | `Args`|Arguments to pass to method |
+    pub fn invoke(&self, object: Option<Object>, args: Args) -> Result<Option<Object>, Exception> {
         //convert object to invoke on to a pointer.
         let obj_ptr = match object {
             Some(obj) => obj.get_ptr(),
@@ -294,7 +310,15 @@ where
             Err(except)
         }
     }
-    default unsafe fn from_ptr(met_ptr: *mut MonoMethod) -> Option<Self> {
+    /// Creates new Method type from a *mut MonoMethod, checks if arguments of [`MonoMethod`] and rust representation of a [`Method`] match and if not panic.
+    /// Returns [`None`] if pointer is null.
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |met_ptr|*mut [`MonoMethod`]|Pointer to method to create a representation for.|
+    /// # Safety
+    /// Pointer must be either a valid pointer to [`MonoMethod`] recived from mono runtime, or a null pointer.
+    pub unsafe fn from_ptr(met_ptr: *mut MonoMethod) -> Option<Self> {
         if met_ptr.is_null() {
             return None;
         }
@@ -303,7 +327,7 @@ where
             args_type: PhantomData,
         };
         let params = res.get_params();
-        if !<<Args as InteropSend>::TargetType as CompareClasses>::compare(&params) {
+        if !<Args as CompareClasses>::compare(&params) {
             use std::fmt::Write;
             let mut msg = format!(
                 "Method Type Mismatch! Got a method accepting {} arguments of types:",
@@ -317,7 +341,15 @@ where
         }
         Some(res)
     }
-    default unsafe fn from_ptr_checked(met_ptr: *mut MonoMethod) -> Option<Self> {
+     /// Creates new Method type from a *mut MonoMethod, checks if arguments of [`MonoMethod`] and rust representation of a [`Method`] match and returns [`None`] if so.
+    /// Returns [`None`] if pointer is null.
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |met_ptr|*mut [`MonoMethod`]|Pointer to method to create a representation for.|
+    /// # Safety
+    /// Pointer must be either a valid pointer to [`MonoMethod`] recived from mono runtime, or a null pointer.
+    pub unsafe fn from_ptr_checked(met_ptr: *mut MonoMethod) -> Option<Self> {
         if met_ptr.is_null() {
             return None;
         }
@@ -326,10 +358,13 @@ where
             args_type: PhantomData,
         };
         let params = res.get_params();
-        if !(<<Args as InteropSend>::TargetType as CompareClasses>::compare(&params)) {
+        if !<Args as CompareClasses>::compare(&params) {
             return None;
         }
         Some(res)
     }
 }
-unsafe impl<Args: InteropSend> Sync for Method<Args> {}
+unsafe impl<Args: InteropSend + CompareClasses> Sync for Method<Args> where
+    <Args as InteropSend>::TargetType: TupleToPtrs
+{
+}

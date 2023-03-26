@@ -1,7 +1,7 @@
 use crate::binds::{MonoReflectionType, MonoType};
 use crate::dimensions::Dim1D;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
-use crate::{Array, Class, Domain, Image, Method, MethodTrait};
+use crate::{Array, Class, Domain, Image, Method};
 use crate::{Exception, MString};
 use crate::{InteropClass, InteropRecive, InteropSend};
 use crate::{Object, ObjectTrait};
@@ -100,7 +100,7 @@ impl ReflectionType {
             None => return None,
         };
         let arr: Array<Dim1D, ReflectionType> = gargs.into();
-        let res = MAKE_GENERIC_TYPE_MET.invoke(Some(res.cast_to_object()), arr);
+        let res = MAKE_GENERIC_TYPE_MET.invoke(Some(res.cast_to_object()), (arr,));
         // handle exceptions
         let res = match res {
             Ok(res) => res,
@@ -236,7 +236,7 @@ lazy_static! {
         Class::from_name_case(&img, "System", "Type")
             .expect("Could not get System.Type class form mscorlib!")
     };
-    static ref MAKE_GENERIC_TYPE_MET: Method<Array<Dim1D, ReflectionType>> = {
+    static ref MAKE_GENERIC_TYPE_MET: Method<(Array<Dim1D, ReflectionType>,)> = {
         let img = crate::Assembly::assembly_loaded("mscorlib")
             .expect("Assembly mscorlib not loaded, could not get System.Type class!")
             .get_image();

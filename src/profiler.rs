@@ -1,6 +1,6 @@
 use crate::binds::{MonoProfiler, MonoProfilerCallContext, MonoProfilerHandle, _MonoProfiler};
 use crate::interop::InteropRecive;
-use crate::{Domain, Method, MethodTrait, Object};
+use crate::{Domain, Method, Object};
 // Profiler is not finished so it has some dead code that will fixed addressed in the future TODO: fix profiler dead code
 struct _Profiler<T> {
     handle: MonoProfilerHandle,
@@ -17,7 +17,7 @@ struct _Profiler<T> {
     domain_set_name_cb: Option<fn(profiler: &mut Profiler<T>, dom: &mut Domain, &str)>,
     //TODO: fix jit_negin_cb: main method has either type Method<Object,iszie,isize,isize> or Method<String> signature.
     #[allow(clippy::type_complexity)]
-    jit_begin_cb: Option<fn(profiler: &mut Profiler<T>, &Method<String>)>,
+    jit_begin_cb: Option<fn(profiler: &mut Profiler<T>, &Method<(String,)>)>,
     pub data: T,
 }
 pub struct ProfilerCallContext {
@@ -517,7 +517,7 @@ impl<T> _Profiler<T> {
         met: *mut crate::binds::MonoMethod,
     ) {
         let this = &mut *(profiler);
-        let method:Method<String> = Method::from_ptr(met).expect("Could not get jit main method while executing jit begin. This is an internal profiler error.");
+        let method:Method<(String,)> = Method::from_ptr(met).expect("Could not get jit main method while executing jit begin. This is an internal profiler error.");
         match this.jit_begin_cb{
             Some(cb)=>{
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
@@ -533,7 +533,7 @@ impl<T> _Profiler<T> {
             self.jit_begin_cb = None;
         }
     }
-    pub fn add_jit_begin_cb(&mut self, cb: fn(profiler: &mut Profiler<T>, &Method<String>)) {
+    pub fn add_jit_begin_cb(&mut self, cb: fn(profiler: &mut Profiler<T>, &Method<(String,)>)) {
         //Check if another callback has been registered ind if so, renove it.
         unsafe {
             crate::binds::mono_profiler_set_jit_begin_callback(
@@ -672,7 +672,7 @@ impl<T> Profiler<T> {
     }
     #[doc(hidden)]
     /// Adds callback to be called when runtime is started.
-    pub fn add_jit_begin(&mut self, cb: fn(profiler: &mut Profiler<T>, &Method<String>)) {
+    pub fn add_jit_begin(&mut self, cb: fn(profiler: &mut Profiler<T>, &Method<(String,)>)) {
         unsafe { (*self.ptr).add_jit_begin_cb(cb) };
     }
 }

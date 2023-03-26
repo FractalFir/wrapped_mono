@@ -129,9 +129,6 @@ pub fn gc_unsafe_enter() -> (GCUnsafeAreaMarker, MonoStackData) {
             dummy: 0,
             stack_ptr: &stack_item as *const u8,
         }; // StackDataObject used to restore the stack.
-        let marker = GCUnsafeAreaMarker {
-            gc_unsafe_cookie: std::ptr::null_mut(),
-        };
         let marker = unsafe { crate::gc::mono_threads_enter_gc_unsafe_region_internal(&msd) }; // Entering GC Unsafe mode (signalling to GC that we will be using managed objects that should not be moved)
         (marker, msd)
     }
@@ -142,9 +139,6 @@ pub fn gc_unsafe_enter() -> (GCUnsafeAreaMarker, MonoStackData) {
             dummy: 0,
             stack_ptr: &stack_item as *const u8,
         }; // StackDataObject used to restore the stack.
-        let marker = GCUnsafeAreaMarker {
-            gc_unsafe_cookie: std::ptr::null_mut(),
-        };
         let marker = unsafe { crate::gc::mono_threads_enter_gc_unsafe_region(&msd) }; // Entering GC Unsafe mode (signalling to GC that we will be using managed objects that should not be moved)
         (marker, msd)
     }

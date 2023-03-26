@@ -1,5 +1,6 @@
 use crate::binds::MonoClass;
-use crate::{Image, InteropSend, Method, MethodTrait};
+use crate::tupleutilis::CompareClasses;
+use crate::{Image, InteropSend, Method};
 use core::ffi::c_void;
 use std::ffi::CString;
 ///  Safe representation of a managed class.(eg. System.Int64, System.Object, etc.);
@@ -697,11 +698,14 @@ impl ClassProperity {
         }
     }
     /// Gets getter method of this property.
-    pub fn get_get_method<T: InteropSend>(&self) -> Option<Method<T>> {
+    pub fn get_get_method<T: InteropSend + InteropClass>(&self) -> Option<Method<(T,)>> {
         unsafe { Method::from_ptr(crate::binds::mono_property_get_get_method(self.prop_ptr)) }
     }
     /// Gets setter method of this property.
-    pub fn get_set_method<T: InteropSend>(&self) -> Option<Method<T>> {
+    pub fn get_set_method<T: InteropSend + CompareClasses>(&self) -> Option<Method<T>>
+    where
+        <T as InteropSend>::TargetType: crate::tupleutilis::TupleToPtrs,
+    {
         unsafe { Method::from_ptr(crate::binds::mono_property_get_get_method(self.prop_ptr)) }
     }
     /// Gets class this property is attached to

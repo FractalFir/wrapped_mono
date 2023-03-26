@@ -4,9 +4,9 @@ use wrapped_mono::{
     array::Array,
     class::Class,
     jit,
-    method::{Method, MethodTrait},
+    method::Method,
     object::{Object, ObjectTrait},
-    *
+    *,
 };
 rusty_fork_test! {
     #[test]

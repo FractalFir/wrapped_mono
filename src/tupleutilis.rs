@@ -6,6 +6,19 @@ pub trait TupleToPtrs {
     type Res;
     fn get_ptrs(ptr: *mut Self) -> Self::Res;
 }
+impl TupleToPtrs for () {
+    type Res = [*mut c_void; 0];
+    fn get_ptrs(ptr: *mut Self) -> Self::Res {
+        []
+    }
+}
+impl<A> TupleToPtrs for (A,) {
+    type Res = [*mut c_void; 1];
+    fn get_ptrs(ptr: *mut Self) -> Self::Res {
+        let a = ptr as usize;
+        [a as VoidPtr]
+    }
+}
 impl<A, B> TupleToPtrs for (A, B) {
     type Res = [*mut c_void; 2];
     fn get_ptrs(ptr: *mut Self) -> Self::Res {
@@ -380,6 +393,16 @@ impl<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> TupleToPtrs
 use crate::{Class, InteropClass};
 pub trait CompareClasses {
     fn compare(clases: &[Class]) -> bool;
+}
+impl CompareClasses for () {
+    fn compare(clases: &[Class]) -> bool {
+        (clases.len() == 0)
+    }
+}
+impl<A: InteropClass> CompareClasses for (A,) {
+    fn compare(clases: &[Class]) -> bool {
+        (clases.len() == 1) && (A::get_mono_class().is_assignable_from(&clases[0]))
+    }
 }
 impl<A: InteropClass, B: InteropClass> CompareClasses for (A, B)
 where

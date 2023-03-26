@@ -1,12 +1,12 @@
 use crate::binds::MonoArray;
+use crate::dimensions::DimensionTrait;
 use crate::domain::Domain;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
 use crate::interop::{InteropClass, InteropRecive, InteropSend};
 use crate::Class;
 use crate::{Object, ObjectTrait};
 use core::marker::PhantomData;
-use crate::dimensions::DimensionTrait;
-use std::borrow::{BorrowMut,Borrow};
+use std::borrow::{Borrow, BorrowMut};
 use std::ops::Index;
 // Documentation finished.
 /// Safe representation of MonoArray(a reference to a managed array). Requires it's generic argument to implement InvokePass in order to automatically convert value from managed type to rust type.
@@ -19,8 +19,9 @@ use std::ops::Index;
 */
 pub struct Array<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass>
 where
-   Dim::Lengths : std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy, <Dim::Lengths as std::ops::Index<usize>>::Output : BorrowMut<usize>,
-  <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
     #[cfg(not(feature = "referneced_objects"))]
     arr_ptr: *mut MonoArray,
@@ -31,9 +32,10 @@ where
 }
 impl<T: InteropSend + InteropRecive + InteropClass, Dim: DimensionTrait> Array<Dim, T>
 where
-   Dim::Lengths : std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy + Copy, <Dim::Lengths as std::ops::Index<usize>>::Output : BorrowMut<usize>,
-  <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
-  <Dim as DimensionTrait>::Lengths : BorrowMut<[usize]> 
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
+    <Dim as DimensionTrait>::Lengths: BorrowMut<[usize]>,
 {
     // Private function used to calculate index in an array based on its dimensions.
     fn get_index(&self, indices: Dim::Lengths) -> usize {
@@ -168,7 +170,7 @@ where
     /// |-------|-------|------|
     /// |ptr| *mut [`MonoArray`] | pointer to array to create representation for|
     pub unsafe fn from_ptr(ptr: *mut MonoArray) -> Option<Self> {
-        use crate::{Method, MethodTrait};
+        use crate::Method;
         if ptr.is_null() {
             return None;
         }
@@ -187,10 +189,7 @@ where
         #[cfg(not(feature = "unsafe_arrays"))]
         {
             let rank = res.get_class().get_rank() as usize;
-            assert_eq!(
-                rank,Dim::DIMENSIONS,
-                "Array dimension mismatch!",
-            );
+            assert_eq!(rank, Dim::DIMENSIONS, "Array dimension mismatch!",);
             let sclass = res.to_object().get_class();
             let tclass = <Self as InteropClass>::get_mono_class();
             if sclass.get_element_class() != tclass.get_element_class() {
@@ -203,16 +202,16 @@ where
         }
         //get array size
         {
-            let dim: Method<i32> = Method::get_from_name(&Class::get_array(), "GetLength", 1)
+            let dim: Method<(i32,)> = Method::get_from_name(&Class::get_array(), "GetLength", 1)
                 .expect("Array type does not have GetLength method, even toug it is impossible.");
             for i in 0..Dim::DIMENSIONS {
                 let dim_obj = dim
-                    .invoke(Some(res.to_object()), i as i32)
+                    .invoke(Some(res.to_object()), (i as i32,))
                     .expect("Got an exception while calling Array.GetLength")
                     .expect("Got null instead of int");
-                let mut len_ref:&mut Dim::Lengths = &mut res.lengths;
-                let mut len_ref:&mut[usize] = (len_ref).borrow_mut();
-                len_ref[i as usize] = dim_obj.unbox::<i32>() as usize;
+                let len_ref: &mut Dim::Lengths = &mut res.lengths;
+                let mut len_ref: &mut [usize] = (len_ref).borrow_mut();
+                len_ref[i] = dim_obj.unbox::<i32>() as usize;
             }
         }
         Some(res)
@@ -289,22 +288,26 @@ where
     ///Returns class of this array
     pub fn get_class() -> Class {
         //TODO: change array to support multidimensional arrays.
-        Class::get_array_class(&<T as InteropClass>::get_mono_class(), Dim::DIMENSIONS as u32)
+        Class::get_array_class(
+            &<T as InteropClass>::get_mono_class(),
+            Dim::DIMENSIONS as u32,
+        )
     }
     /// Returns n-dimensional length of this array.
     /// # Arguments
     /// |Name   |Type   |Description|
     /// |-------|-------|------|
     /// |self|&Array|Array to get size of|
-    pub fn get_lenghts(&self) -> Dim::Lengths{
+    pub fn get_lenghts(&self) -> Dim::Lengths {
         self.lengths
     }
 }
 impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropRecive
     for Array<Dim, T>
 where
-   Dim::Lengths : std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy + Copy, <Dim::Lengths as std::ops::Index<usize>>::Output : BorrowMut<usize>,
-  <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
     type SourceType = *mut crate::binds::MonoArray;
     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
@@ -326,8 +329,9 @@ where
 impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropSend
     for Array<Dim, T>
 where
-   Dim::Lengths : std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy, <Dim::Lengths as std::ops::Index<usize>>::Output : BorrowMut<usize>,
-  <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
     type TargetType = *mut crate::binds::MonoArray;
     fn get_mono_rep(arg: Self) -> Self::TargetType {
@@ -337,8 +341,9 @@ where
 impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropClass
     for Array<Dim, T>
 where
-   Dim::Lengths : std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy, <Dim::Lengths as std::ops::Index<usize>>::Output : BorrowMut<usize>,
-  <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
     fn get_mono_class() -> Class {
         Self::get_class()
@@ -351,8 +356,9 @@ use core::ptr::null_mut;
 impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> ObjectTrait
     for Array<Dim, T>
 where
-   Dim::Lengths : std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy, <Dim::Lengths as std::ops::Index<usize>>::Output : BorrowMut<usize>,
-  <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
     fn hash(&self) -> i32 {
         #[cfg(feature = "referneced_objects")]
@@ -449,8 +455,9 @@ where
 impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropRecive
     for Option<Array<Dim, T>>
 where
-   Dim::Lengths : std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy, <Dim::Lengths as std::ops::Index<usize>>::Output : BorrowMut<usize>,
-  <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
     type SourceType = *mut crate::binds::MonoArray;
     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
@@ -462,8 +469,9 @@ where
 impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropSend
     for Option<Array<Dim, T>>
 where
-   Dim::Lengths : std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy, <Dim::Lengths as std::ops::Index<usize>>::Output : BorrowMut<usize>,
-  <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
     type TargetType = *mut crate::binds::MonoArray;
     fn get_mono_rep(arg: Self) -> Self::TargetType {
@@ -473,21 +481,22 @@ where
         }
     }
 }
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> Clone
-    for Array<Dim, T>
+impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> Clone for Array<Dim, T>
 where
-   Dim::Lengths : std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy, <Dim::Lengths as std::ops::Index<usize>>::Output : BorrowMut<usize>,
-  <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
     fn clone(&self) -> Self {
         unsafe { Self::from_ptr(self.get_ptr()).unwrap() } //If object exists then it can't be null
     }
 }
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass,O:ObjectTrait>
-    PartialEq<O>  for Array<Dim, T>
+impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass, O: ObjectTrait>
+    PartialEq<O> for Array<Dim, T>
 where
-   Dim::Lengths : std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy, <Dim::Lengths as std::ops::Index<usize>>::Output : BorrowMut<usize>,
-  <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
     fn eq(&self, other: &O) -> bool {
         self.get_ptr() as *mut _ == other.cast_to_object().get_ptr()

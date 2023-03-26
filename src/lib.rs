@@ -1,7 +1,7 @@
 // Some experimental features simply need to be enabled to make wrapped_mono work. They are used rarely and with special caution.
 #![allow(incomplete_features)]
 // Necessary for proper work of Method, usage rather simple, but bugs possible when changes to compiler are made.
- #![feature(specialization)]
+// #![feature(specialization)]
 // used only for array sizes, in a very simple, limited manner. Should not cause troubles when updating.
 // #![feature(generic_const_exprs)]
 // used for benchmarking
@@ -29,11 +29,12 @@ pub mod array;
 /// Functions and types related to MonoAssembly type.
 pub mod assembly;
 /// Autognerated, unsafe binds to mono library
+#[doc(hidden)]
 pub mod binds;
 /// Representation of managed classes and utilities related to them.
 pub mod class;
 /// Safe representation of a delegate.
-pub mod delegate;
+// pub mod delegate;
 /// Functions and types related to MonoDomain type.
 pub mod domain;
 ///Utilities related to Exceptions.
@@ -72,7 +73,7 @@ pub use assembly::Assembly;
 #[doc(inline)]
 pub use class::{Class, ClassField, ClassProperity};
 #[doc(inline)]
-pub use delegate::{Delegate, DelegateTrait};
+// pub use delegate::{Delegate, DelegateTrait};
 #[doc(inline)]
 pub use domain::Domain;
 #[doc(inline)]
@@ -82,7 +83,7 @@ pub use image::Image;
 #[doc(inline)]
 pub use interop::{InteropBox, InteropClass, InteropRecive, InteropSend};
 #[doc(inline)]
-pub use method::{Method, MethodTrait};
+pub use method::Method;
 #[doc(inline)]
 pub use mstring::MString;
 #[doc(inline)]

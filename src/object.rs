@@ -1,12 +1,13 @@
 use crate::binds::MonoObject;
 use crate::class::Class;
 #[allow(unused_imports)] // for docs
-use crate::delegate::Delegate;
+// use crate::delegate::Delegate;
 use crate::domain::Domain;
 use crate::exception::except_managed;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
 use crate::interop::{InteropRecive, InteropSend};
-use crate::method::{Method, MethodTrait};
+use crate::method::Method;
+use crate::tupleutilis::{CompareClasses, TupleToPtrs};
 ///Safe representation of a refernece to a manged Object. Is **not nullable** when passed between managed and unmanged code(e.g when added as an argument to function exposed as an interna call).
 ///It means that while it may represent a nullable type, wrapped-mono will automaticly panic when recived null value.
 ///For nullable support use `Option<Object>`.
@@ -312,10 +313,13 @@ impl Object {
     ///```
     /// When you call get_vitual_method on object that is instance of **ChildClass**
     /// and method **ParrentClass::SomeMethod** you will get return value of **ChildClass::SomeMethod**.
-    pub fn get_virtual_method<T: InteropSend>(
+    pub fn get_virtual_method<T: TupleToPtrs + CompareClasses + InteropSend>(
         obj: Object,
         method: &Method<T>,
-    ) -> Option<Method<T>> {
+    ) -> Option<Method<T>>
+    where
+        <T as InteropSend>::TargetType: TupleToPtrs,
+    {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {

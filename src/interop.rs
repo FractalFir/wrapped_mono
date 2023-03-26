@@ -356,6 +356,12 @@ impl InteropBox for char {}
 
 //use crate::tupleutilis::*;
 //Conversion of a tuple from one format to another
+impl<A: InteropSend> InteropSend for (A,) {
+    type TargetType = (A::TargetType,);
+    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
+        (A::get_mono_rep(rust_arg.0),)
+    }
+}
 impl<A: InteropSend, B: InteropSend> InteropSend for (A, B) {
     type TargetType = (A::TargetType, B::TargetType);
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {

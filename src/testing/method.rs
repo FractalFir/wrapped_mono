@@ -5,7 +5,7 @@ use wrapped_mono::wrapped_mono_macros::*;
 use wrapped_mono::{
     class::Class,
     jit,
-    method::{Method, MethodTrait},
+    method::{Method},
 };
 rusty_fork_test! {
     #[test]
@@ -14,7 +14,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let _met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
+        let _met:Method<(i32,)> = Method::get_from_name(&class,"GetArg",1).unwrap();
     }
     #[test]
     fn getting_method_no_gargs(){
@@ -39,7 +39,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
+        let met:Method<(i32,)> = Method::get_from_name(&class,"GetArg",1).unwrap();
         assert!(met.get_return() == Class::get_int_32());
     }
     #[test]
@@ -68,8 +68,8 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
-        let obj = met.invoke(None,7).expect("Exception").expect("Got null on a non-nullable!");
+        let met:Method<(i32,)> = Method::get_from_name(&class,"GetArg",1).unwrap();
+        let obj = met.invoke(None,(7,)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i32>();
         assert!(res == 7);
     }
@@ -262,7 +262,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
+        let met:Method<(i32,)> = Method::get_from_name(&class,"GetArg",1).unwrap();
         println!("method params:");
         assert!(met.get_param_count() == 1);
     }
@@ -272,7 +272,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<i32> = Method::get_from_name(&class,"GetArg",1).unwrap();
+        let met:Method<(i32,)> = Method::get_from_name(&class,"GetArg",1).unwrap();
         println!("method params:");
         assert!(met.get_param_count() == 1);
         for param in met.get_param_names(){
@@ -286,7 +286,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let _met:Method<i32> = Method::get_from_name(&class,"Missing",1).unwrap();
+        let _met:Method<(i32,)> = Method::get_from_name(&class,"Missing",1).unwrap();
     }
     #[should_panic]
     #[test]
@@ -296,7 +296,7 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let _met:Method<i32> = Method::get_from_name(&class,"GetArg",3).unwrap();
+        let _met:Method<(i32,)> = Method::get_from_name(&class,"GetArg",3).unwrap();
     }
     #[test]
     fn passing_enum_method(){
@@ -304,9 +304,9 @@ rusty_fork_test! {
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let met:Method<CLikeEnum> = Method::get_from_name(&class,"GetEnum",1).unwrap();
+        let met:Method<(CLikeEnum,)> = Method::get_from_name(&class,"GetEnum",1).unwrap();
         let arg1:CLikeEnum = CLikeEnum::Val;
-        let obj = met.invoke(None,arg1).expect("Exception").expect("Got null on a non-nullable!");
+        let obj = met.invoke(None,(arg1,)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<CLikeEnum>();
         assert!(res == arg1);
     }

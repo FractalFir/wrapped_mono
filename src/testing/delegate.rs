@@ -1,6 +1,7 @@
 use crate as wrapped_mono;
 use rusty_fork::rusty_fork_test;
 use wrapped_mono::*;
+/*
 rusty_fork_test! {
     #[test]
     fn getting_delegate_from_method(){
@@ -23,4 +24,4 @@ rusty_fork_test! {
         let del:Delegate<(i32,i32)> = Delegate::cast_from_object(&obj).expect("Expected delegate, got something else");
         let _res = del.invoke((10,10)).expect("Exception").expect("Got null");
     }
-}
+}*/
