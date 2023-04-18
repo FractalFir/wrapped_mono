@@ -77,7 +77,7 @@ where
     ///     let a = input.get([0,0]);  
     ///     let b = input.get([1,1]);
     ///     let c = input.get([0,1]);
-    ///      a + b + c 
+    ///      a + b + c
     /// }
     /// ```
     pub fn get(&self, indices: Dim::Lengths) -> T {
@@ -215,7 +215,7 @@ where
                     .expect("Got an exception while calling Array.GetLength")
                     .expect("Got null instead of int");
                 let len_ref: &mut Dim::Lengths = &mut res.lengths;
-                let mut len_ref: &mut [usize] = (len_ref).borrow_mut();
+                let len_ref: &mut [usize] = (len_ref).borrow_mut();
                 len_ref[i] = dim_obj.unbox::<i32>() as usize;
             }
         }

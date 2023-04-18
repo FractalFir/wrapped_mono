@@ -36,8 +36,9 @@ impl Exception {
     ///```
     /// ## Rust
     ///```rust
+    /// # use wrapped_mono::{invokable,Exception};
     /// #[invokable]
-    /// fn  exception_thrower(){
+    /// fn exception_thrower(){
     ///     let exception = Exception::not_implemented("This function will just throw exceptions!");
     ///     exception.raise();
     /// }

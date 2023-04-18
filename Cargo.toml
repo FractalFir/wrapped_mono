@@ -1,6 +1,6 @@
 [package]
 name = "wrapped_mono"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 links = "mono-2.0"
 license = "MIT"
@@ -15,7 +15,7 @@ exclude = ["src/wrapped_mono_macros","test"]
 [build-dependencies]
 bindgen = {version = "0.60.1",optional = true}
 [dependencies]
-wrapped_mono_macros = {path = "src/wrapped_mono_macros",version = "0.2.0"} # Macros used by wrapped_mono
+wrapped_mono_macros = {path = "src/wrapped_mono_macros",version = "0.3.0"} # Macros used by wrapped_mono
 document-features = "0.2.3" # Used for documenting features of this crate
 lazy_static = "1.4.0" # Used for certain class types
 [dev-dependencies]
@@ -41,3 +41,5 @@ dump_macro_results = ["wrapped_mono_macros/dump_macro_results"]
 referneced_objects = []
 ## Uses some old variants of mono API. Try if `mono_threads_enter_gc_unsafe_region` symbol is missing during linking.
 old_gc_unsafe = []
+
+profiler_api= []

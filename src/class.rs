@@ -31,7 +31,7 @@ impl Class {
     /// |namespace| &[`str`]| path to namespace this class is in |
     /// |name| &[`str`]| name of class to get |
     /// # Example
-    /// ```no_run 
+    /// ```no_run
     /// # use wrapped_mono::*;
     /// # let some_image = Assembly::assembly_loaded("mscorlib").expect("Assembly mscorlib not loaded, could not get System.Type class!").get_image();
     /// // Not case sensitive!
@@ -58,7 +58,7 @@ impl Class {
     /// |namespace| &[`str`] | path to namespace this class is in |
     /// |name| &[`str`] | name of class to get |
     /// # Example
-    /// ```no_run 
+    /// ```no_run
     /// # use wrapped_mono::*;
     /// # let some_image = Assembly::assembly_loaded("mscorlib").expect("Assembly mscorlib not loaded, could not get System.Type class!").get_image();
     /// let some_class = Class::from_name_case(&some_image,"System","Type").expect("Could not find a class!");
@@ -90,7 +90,7 @@ impl Class {
     /// }
     ///```
     /// ## Rust
-    ///```no_run 
+    ///```no_run
     /// # use wrapped_mono::*;
     /// # let some_image = Assembly::assembly_loaded("mscorlib").expect("Assembly mscorlib not loaded, could not get System.Type class!").get_image();
     /// # let some_class = Class::from_name_case(&some_image,"System","Type").expect("Could not find a class!");
@@ -104,7 +104,7 @@ impl Class {
                 cstr.as_ptr(),
             ))
         };
-        crate::hold(&cstr);
+        let _ = &cstr;
         res
     }
     /// Returns name of this class
@@ -490,7 +490,7 @@ impl ClassField {
     }
     /// Gets the name of [`ClassField`]
     /// # Example
-    ///```no_run 
+    ///```no_run
     /// # use wrapped_mono::*;
     /// # let some_image = Assembly::assembly_loaded("mscorlib").expect("Assembly mscorlib not loaded, could not get System.Type class!").get_image();
     /// # let some_class = Class::from_name_case(&some_image,"System","Type").expect("Could not find a class!");
@@ -516,8 +516,11 @@ impl ClassField {
     }
     /// Returns [`Class`] this field is attached to.
     /// # Example
-    ///```no_run 
- /// # use wrapped_mono::*;
+    ///```no_run
+    /// # use wrapped_mono::*;
+    /// # let some_image = Assembly::assembly_loaded("mscorlib").expect("Assembly mscorlib not loaded, could not get System.Type class!").get_image();
+    /// # let some_class = Class::from_name_case(&some_image,"System","Type").expect("Could not find a class!");
+    /// let some_field_name = "Delimeter";
     /// let some_field = some_class.get_field_from_name(some_field_name).expect("Could not find field!");
     /// let some_field_class = some_field.get_parent();
     /// assert!(some_field_class == some_class);
@@ -536,8 +539,8 @@ impl ClassField {
     /// }
     ///```
     /// ## Rust
-    ///```no_run 
- /// # use wrapped_mono::*;
+    ///```no_compile
+    /// # use wrapped_mono::*;
     /// let some_field_value_object = some_field.get_value_object(&instance_of_some_class);
     /// // Retrived value *some_field_value_object* is a boxed int, so we must unbox it.
     /// let some_field_value = some_field_value_object.unbox::<i32>();
@@ -562,7 +565,7 @@ impl ClassField {
     /// }
     ///```
     /// ## Rust
-    ///```no_run 
+    ///```no_compile
     /// # use wrapped_mono::*;
     /// # let some_image = Assembly::assembly_loaded("mscorlib").expect("Assembly mscorlib not loaded, could not get System.Type class!").get_image();
     /// # let some_class = Class::from_name_case(&some_image,"System","Type").expect("Could not find a class!");

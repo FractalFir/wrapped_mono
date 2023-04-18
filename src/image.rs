@@ -55,8 +55,8 @@ impl Image {
     /// Closes this image, unloading it from memory.
     /// # Safety
     /// All references to types within image will be made invalid after this call.
-    pub fn close(&mut self) {
-        unsafe { crate::binds::mono_image_close(self.img_ptr) };
-        crate::hold(&self);
+    pub unsafe fn close(&mut self) {
+        crate::binds::mono_image_close(self.img_ptr);
+        let _ = &self;
     }
 }

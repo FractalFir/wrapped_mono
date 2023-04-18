@@ -9,6 +9,7 @@ mod gc;
 mod internal_call;
 mod method;
 mod object;
+#[cfg(feature = "profiler_api")]
 mod profiler;
 mod reflection;
 use crate as wrapped_mono;
@@ -105,7 +106,7 @@ rusty_fork_test! {
         let asm = main.assembly_open("test/dlls/Pinvoke.dll").unwrap();
         let mut img = asm.get_image();
         let _test_class = Class::from_name(&img,"","Secondary").expect("Could not find class!");
-        img.close();
+        unsafe{img.close()};
     }
     #[test]
     fn create_mstring(){

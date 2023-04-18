@@ -26,14 +26,14 @@ pub fn init(name: &str, version: Option<&str>) -> Domain {
             Some(s) => {
                 let v_cstr = CString::new(s).expect(crate::STR2CSTR_ERR);
                 let ptr = mono_jit_init_version(n_cstr.as_ptr(), v_cstr.as_ptr());
-                crate::hold(&v_cstr);
+                let _ = &v_cstr;
                 ptr
             }
             None => mono_jit_init(n_cstr.as_ptr()),
         })
     };
     unsafe { crate::binds::mono_jit_thread_attach(res.get_ptr()) };
-    crate::hold(&n_cstr);
+    let _ = &n_cstr;
     res
 }
 /// This function shuts down MonoRuntime.
@@ -87,6 +87,6 @@ pub fn exec(domain: &Domain, assembly: &Assembly, args: Vec<&str>) -> i32 {
             argv.as_mut_ptr(),
         )
     };
-    crate::hold(&cstr_args);
+    let _ = &cstr_args;
     res
 }

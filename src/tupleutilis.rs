@@ -4,33 +4,33 @@ type VoidPtr = *mut c_void;
 //Conversion of a tuple to pointers
 pub trait TupleToPtrs {
     type Res;
-    fn get_ptrs(ptr: *mut Self) -> Self::Res;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res;
 }
 impl TupleToPtrs for () {
     type Res = [*mut c_void; 0];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
         []
     }
 }
 impl<A> TupleToPtrs for (A,) {
     type Res = [*mut c_void; 1];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         [a as VoidPtr]
     }
 }
 impl<A, B> TupleToPtrs for (A, B) {
     type Res = [*mut c_void; 2];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         [a as VoidPtr, b as VoidPtr]
     }
 }
 impl<A, B, C> TupleToPtrs for (A, B, C) {
     type Res = [*mut c_void; 3];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         [a as VoidPtr, b as VoidPtr, c as VoidPtr]
@@ -38,8 +38,8 @@ impl<A, B, C> TupleToPtrs for (A, B, C) {
 }
 impl<A, B, C, D> TupleToPtrs for (A, B, C, D) {
     type Res = [*mut c_void; 4];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         let d = c + std::mem::size_of::<C>();
@@ -48,8 +48,8 @@ impl<A, B, C, D> TupleToPtrs for (A, B, C, D) {
 }
 impl<A, B, C, D, E> TupleToPtrs for (A, B, C, D, E) {
     type Res = [*mut c_void; 5];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         let d = c + std::mem::size_of::<C>();
@@ -65,8 +65,8 @@ impl<A, B, C, D, E> TupleToPtrs for (A, B, C, D, E) {
 }
 impl<A, B, C, D, E, F> TupleToPtrs for (A, B, C, D, E, F) {
     type Res = [*mut c_void; 6];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         let d = c + std::mem::size_of::<C>();
@@ -84,8 +84,8 @@ impl<A, B, C, D, E, F> TupleToPtrs for (A, B, C, D, E, F) {
 }
 impl<A, B, C, D, E, F, G> TupleToPtrs for (A, B, C, D, E, F, G) {
     type Res = [*mut c_void; 7];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         let d = c + std::mem::size_of::<C>();
@@ -105,8 +105,8 @@ impl<A, B, C, D, E, F, G> TupleToPtrs for (A, B, C, D, E, F, G) {
 }
 impl<A, B, C, D, E, F, G, H> TupleToPtrs for (A, B, C, D, E, F, G, H) {
     type Res = [*mut c_void; 8];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         let d = c + std::mem::size_of::<C>();
@@ -128,8 +128,8 @@ impl<A, B, C, D, E, F, G, H> TupleToPtrs for (A, B, C, D, E, F, G, H) {
 }
 impl<A, B, C, D, E, F, G, H, I> TupleToPtrs for (A, B, C, D, E, F, G, H, I) {
     type Res = [*mut c_void; 9];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         let d = c + std::mem::size_of::<C>();
@@ -153,8 +153,8 @@ impl<A, B, C, D, E, F, G, H, I> TupleToPtrs for (A, B, C, D, E, F, G, H, I) {
 }
 impl<A, B, C, D, E, F, G, H, I, J> TupleToPtrs for (A, B, C, D, E, F, G, H, I, J) {
     type Res = [*mut c_void; 10];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         let d = c + std::mem::size_of::<C>();
@@ -180,8 +180,8 @@ impl<A, B, C, D, E, F, G, H, I, J> TupleToPtrs for (A, B, C, D, E, F, G, H, I, J
 }
 impl<A, B, C, D, E, F, G, H, I, J, K> TupleToPtrs for (A, B, C, D, E, F, G, H, I, J, K) {
     type Res = [*mut c_void; 11];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         let d = c + std::mem::size_of::<C>();
@@ -209,8 +209,8 @@ impl<A, B, C, D, E, F, G, H, I, J, K> TupleToPtrs for (A, B, C, D, E, F, G, H, I
 }
 impl<A, B, C, D, E, F, G, H, I, J, K, L> TupleToPtrs for (A, B, C, D, E, F, G, H, I, J, K, L) {
     type Res = [*mut c_void; 12];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         let d = c + std::mem::size_of::<C>();
@@ -242,8 +242,8 @@ impl<A, B, C, D, E, F, G, H, I, J, K, L, M> TupleToPtrs
     for (A, B, C, D, E, F, G, H, I, J, K, L, M)
 {
     type Res = [*mut c_void; 13];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         let d = c + std::mem::size_of::<C>();
@@ -277,8 +277,8 @@ impl<A, B, C, D, E, F, G, H, I, J, K, L, M, N> TupleToPtrs
     for (A, B, C, D, E, F, G, H, I, J, K, L, M, N)
 {
     type Res = [*mut c_void; 14];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         let d = c + std::mem::size_of::<C>();
@@ -314,8 +314,8 @@ impl<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> TupleToPtrs
     for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)
 {
     type Res = [*mut c_void; 15];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         let d = c + std::mem::size_of::<C>();
@@ -353,8 +353,8 @@ impl<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> TupleToPtrs
     for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)
 {
     type Res = [*mut c_void; 16];
-    fn get_ptrs(ptr: *mut Self) -> Self::Res {
-        let a = ptr as usize;
+    fn get_ptrs(base_ptr:*mut Self) -> Self::Res {
+        let a = base_ptr as usize;
         let b = a + std::mem::size_of::<A>();
         let c = b + std::mem::size_of::<B>();
         let d = c + std::mem::size_of::<C>();
@@ -396,7 +396,7 @@ pub trait CompareClasses {
 }
 impl CompareClasses for () {
     fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 0)
+        clases.is_empty()
     }
 }
 impl<A: InteropClass> CompareClasses for (A,) {

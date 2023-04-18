@@ -22,7 +22,7 @@
 //! ## Feature flags
 #![doc = document_features::document_features!()]
 pub mod dimensions;
-#[doc(inline)]
+
 pub use dimensions::*;
 /// Utilities related to managed arrays.
 pub mod array;
@@ -56,7 +56,7 @@ pub mod mstring;
 /// Utilities related to managed objects.
 pub mod object;
 /// Experimental Profiler API. Bare bones and may contain bugs.
-#[allow(dead_code)]
+#[cfg(feature = "profiler_api")]#[allow(dead_code)]
 pub mod profiler;
 /// Safe representation of the `System.Type` type.
 pub mod reflection_type;
@@ -109,5 +109,4 @@ pub use wrapped_mono_macros::{add_internal_call, invokable, InteropRecive, Inter
 */
 static STR2CSTR_ERR: &str = "Cold not create CString!";
 static CSTR2STR_ERR: &str = "Could not convert CString to String";
-#[doc(hidden)]
-fn hold<T>(_: &T) {}
+

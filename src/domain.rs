@@ -20,7 +20,7 @@ impl Domain {
         if ptr.is_null() {
             return None;
         }
-        crate::hold(&cstr);
+        let _ = &cstr;
         Some(unsafe { Assembly::from_ptr(ptr) })
     }
     /// Creates a new empty domain

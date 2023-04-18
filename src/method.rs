@@ -189,82 +189,6 @@ where
         }
     }
 }
-/*
-impl<Arg: InteropSend> MethodTrait<(Arg,)> for Method<(Arg,)> {
-    fn invoke(
-        &self,
-        object: Option<Object>,
-        arg: (Arg,),
-    ) -> Result<Option<Object>, Exception> {
-        //convert object to invoke on to a pointer.
-        let obj_ptr = match object {
-            Some(obj) => obj.get_ptr(),
-            None => core::ptr::null_mut(),
-        };
-        let mut expect: *mut MonoException = null_mut();
-        //convert argument types
-        let mut args = <Arg as InteropSend>::get_mono_rep(arg.0);
-        //convert arguments to pointers
-        let mut params = &mut args as *mut _ as *mut c_void;
-        //invoke the method itself
-        let res_ptr = unsafe {
-            crate::binds::mono_runtime_invoke(
-                self.get_ptr(),
-                obj_ptr as *mut std::os::raw::c_void,
-                &mut params as *mut *mut c_void,
-                &mut expect as *mut *mut MonoException as *mut *mut MonoObject,
-            )
-        };
-        //hold args as long as params lives.
-        crate::hold(&args);
-        //get result
-        let res = unsafe { Object::from_ptr(res_ptr) };
-        println!("expect:{}", expect as usize);
-        if expect.is_null() {
-            Ok(res)
-        } else {
-            let except = unsafe {
-                Exception::from_ptr(expect)
-                    .expect("Imposible: pointer is null and not null at the same time.")
-            };
-            Err(except)
-        }
-    }
-    unsafe fn from_ptr(met_ptr: *mut MonoMethod) -> Option<Self> {
-        if met_ptr.is_null() {
-            return None;
-        }
-        let res = Self {
-            method: met_ptr,
-            args_type: PhantomData,
-        };
-        let params = res.get_params();
-        //TODO: Add checks for Methods with less than 2 arguments
-        if params.len() != 1 && !params.is_empty() {
-            use std::fmt::Write;
-            let mut msg = format!("Expected method accepting 1 argument but got a method accepting {} arguments of types:",params.len());
-            for param in params {
-                write!(msg, ",\"{}\"", param.get_name_sig())
-                    .expect("Could not print inproper function argument types!");
-            }
-            panic!("{}", msg);
-        }
-        //assert!(params[0] == <Args as InteropClass>::get_mono_class());
-        Some(res)
-    }
-    unsafe fn from_ptr_checked(met_ptr: *mut MonoMethod) -> Option<Self> {
-        if met_ptr.is_null() {
-            return None;
-        }
-        let res = Self {
-            method: met_ptr,
-            args_type: PhantomData,
-        };
-        let _params = res.get_params();
-        Some(res)
-    }
-}
-*/
 impl<Args: InteropSend + CompareClasses> Method<Args>
 where
     <Args as InteropSend>::TargetType: TupleToPtrs,
@@ -296,8 +220,8 @@ where
                 &mut expect as *mut *mut MonoException as *mut *mut MonoObject,
             )
         };
-        //hold args as long as params lives.
-        crate::hold(&args);
+        //ensure args lives  as long as params lives.
+        let _ = &args;
         //get result
         let res = unsafe { Object::from_ptr(res_ptr) };
         if expect.is_null() {
