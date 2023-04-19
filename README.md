@@ -14,7 +14,7 @@ Rust nightly allows use of unfinished features of the rust language that are use
 ## External
 * Mono library - the library this crate wraps around. Can be downloaded <a href="https://www.mono-project.com/download/stable/">here</a>. When installing, use default instructions from the website. Only needed on the system crate is compiled on (linked statically).
 ## Rust 
-* `wrapped_mono_macros` - sub crate containing custom macros used by wrapped_mono. When cloned from github, bundled by default. Separate in order to make cargo happy.
+* `wrapped_mono_macros` - sub crate containing custom macros used by wrapped_mono. When cloned from github, bundled by default. Separate, because proc\_macro's must be separate crates. 
 * `document-features` - used for documentation 
 * `lazy_static` - used to lazy-load classes such as *System.Delegate* when using the crate.
 # Features
@@ -49,51 +49,53 @@ Rust nightly allows use of unfinished features of the rust language that are use
 - [ ] Debugging features
 # Example
 ```rust
-    use wrapped_mono::*;
-    fn main(){
-        // Initialize the runtime with default version(`None`), and root domian named "main_domain"
-        let domain = jit::init("main_domain",None); 
-        // Load assembly "SomeAssembly.dll" 
-        let assembly = domain.assembly_open("SomeAssembly.dll").expect("Could not load assembly!"); 
-        // Get the image, the part of assembly containing executable code(classes,methods, etc.)
-        let image = assembly.get_image(); 
-        // Get class named SomeClass in SomeNamespace
-        let class = Class::from_name(&image,"SomeNamespace","SomeClass").expect("Could not find SomeClass!");
-        // Create an instance of this class
-        let instance = Object::new(&domain,&class);
-        // Creating an instance of a class DOES NOT CALL ITS CONSTRUCTOR. The constructor is a method named '.ctor', that has to be called separately
-        // Get a constructor method of SomeClass accepting an intiger and a string (2 parameters)
-        let ctor:Method<i32,String> = Method::get_from_name(class,".ctor(int,System.String)",2);
-        // Call the constructor
-        ctor.invoke(Some(instance),(12,"SomeString".to_owned())).expect("Got an exception while calling the constuctor!");
-        // Get a method "DoABackflip" form SomeClass with 1 parameter of type int returning a byte
-        let met:Method<i32,String> = Method::get_from_name(class,"DoABackflip",1);
-        // Call "DoABackflip" method on an instance
-        let res = met.invoke(Some(instance),32).expect("Got an exception while calling DoABackflip!").expect("Got null from DoABackFlip");
-        // Unbox the result to get a raw intiger from a boxed intiger
-        let res = obj.unbox::<u8>();
-        // Create a function with the special "invokable" atribute
-        #[invokable]
-        fn sqrt(input:f32){
-            if input < 0{
-                // can't get sqrt of a negative number, so create a managed exception and throw it
-                Exception::arthmetic().raise();
-            }
-            return input.sqrt();
+use wrapped_mono::*;
+fn main(){
+    // Initialise the runtime with default version(`None`), and root domian named "main_domain"
+    let domain = jit::init("main_domain",None);
+
+    // Load assembly "SomeAssembly.dll"
+    let assembly = domain.assembly_open("SomeAssembly.dll").expect("Could not load assembly!");
+    // Get the image, the part of assembly containing executable code(classes,methods, etc.)
+    let image = assembly.get_image();
+    // Get class named SomeClass in SomeNamespace
+    let class = Class::from_name(&image,"SomeNamespace","SomeClass").expect("Could not find SomeClass!");
+    // Create an instance of this class
+    let instance = Object::new(&domain,&class);
+    // Creating an instance of a class DOES NOT CALL ITS CONSTRUCTOR. The constructor is a method named '.ctor', that has to be called separately
+
+    // Get a constructor method of SomeClass accepting an integer and a string (2 parameters)
+    let ctor:Method<(i32,String)> = Method::get_from_name(&class,".ctor(int,System.String)",2).expect("Could not find the constructor!");
+    // Call the constructor
+    ctor.invoke(Some(instance.clone()),(12,"SomeString".to_owned())).expect("Got an exception while calling the constructor!");
+    // Get a method "DoABackflip" form SomeClass with 1 parameter of type int returning a byte
+    let met:Method<(i32,String)> = Method::get_from_name(&class,"DoABackflip",1).expect("Could not find method \"DoABackFlip\"!");
+    // Call "DoABackflip" method on an instance
+    let res_obj = met.invoke(Some(instance),(32,"Message".to_owned())).expect("Got an exception while calling DoABackflip!").expect("Got null from DoABackFlip");
+    // Unbox the result to get a raw integer from a boxed integer
+    let res = res_obj.unbox::<u8>();
+    // Create a function with the special "invokable" attribute
+    #[invokable]
+    fn sqrt(input:f32)->f32{
+        if input < 0.0{
+            // can't get sqrt of a negative number, so create a managed exception and throw it
+            Exception::arithmetic().raise();
         }
-        // Replace a method with "[MethodImplAttribute(MethodImplOptions.InternalCall)]" atribute with a rust function
-        add_internal_call!("SomeClass::SqrtInternalCall",sqrt);
-        // This supports all types with `InteropRecive` trait
-        #[invokable]
-        fn avg(input:Array<1,f32>){
-            let mut avg = 0.0;
-            for i in 0..input.len(){
-                let curr = input.get(&[i])// get the element at index i
-                avg += curr/input.len();
-            }
-            return avg;
-        }
-        // Replace a method with "[MethodImplAttribute(MethodImplOptions.InternalCall)]" atribute with a rust function
-        add_internal_call!("SomeClass::AvgInternalCall",sqrt);
+        input.sqrt()
     }
+    // Replace a method with "[MethodImplAttribute(MethodImplOptions.InternalCall)]" atribute with a rust function
+    add_internal_call!("SomeClass::SqrtInternalCall",sqrt);
+    // This supports all types with `InteropRecive` trait
+    #[invokable]
+    fn avg(input:Array<Dim1D,f32>)->f32{
+        let mut avg = 0.0;
+        for i in 0..input.len(){
+            let curr = input.get([i]);// get the element at index i
+            avg += curr/(input.len() as f32);
+          }
+        avg
+    }
+    // Replace a method with "[MethodImplAttribute(MethodImplOptions.InternalCall)]" attribute with a rust function
+    add_internal_call!("SomeClass::AvgInternalCall",sqrt);
+}
 ```

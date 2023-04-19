@@ -2,6 +2,7 @@ use crate::binds::MonoAssembly;
 use crate::image::Image;
 use std::ffi::CString;
 /// Safe representation of an executable file containing managed code and data about it.
+#[derive(Clone, Copy)]
 pub struct Assembly {
     ptr: *mut crate::binds::MonoAssembly,
 }

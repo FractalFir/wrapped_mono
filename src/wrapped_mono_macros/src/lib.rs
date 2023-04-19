@@ -201,12 +201,15 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
             let member_name = memeber[0].to_string();
             let member_type = memeber[2].to_string();
             type_res.extend(
-                TokenStream::from_str(&format!("<{} as InteropRecive>::SourceType,", member_type))
-                    .expect(TS_CR_FAIL),
+                TokenStream::from_str(&format!(
+                    "<{} as wrapped_mono::InteropRecive>::SourceType,",
+                    member_type
+                ))
+                .expect(TS_CR_FAIL),
             );
             fn_impl_res.extend(
                 TokenStream::from_str(&format!(
-                    "let {member_name} = <{member_type} as InteropRecive>::get_rust_rep(arg.{i});"
+                    "let {member_name} = <{member_type} as wrapped_mono::InteropRecive>::get_rust_rep(arg.{i});"
                 ))
                 .expect(TS_CR_FAIL),
             );
@@ -298,11 +301,13 @@ pub fn derive_send(input: TokenStream) -> TokenStream {
             let member_name = memeber[0].to_string();
             let member_type = memeber[2].to_string();
             type_res.extend(
-                TokenStream::from_str(&format!("<{member_type} as InteropSend>::TargetType,"))
-                    .expect(TS_CR_FAIL),
+                TokenStream::from_str(&format!(
+                    "<{member_type} as wrapped_mono::InteropSend>::TargetType,"
+                ))
+                .expect(TS_CR_FAIL),
             );
             fn_impl_res.extend(TokenStream::from_str(
-                &format!("let {member_name} = <{member_type} as InteropSend>::get_mono_rep(arg.{member_name});")
+                &format!("let {member_name} = <{member_type} as wrapped_mono::InteropSend>::get_mono_rep(arg.{member_name});")
             ).expect(TS_CR_FAIL));
             ret_self.extend(TokenStream::from_str(&format!("{member_name},")).expect(TS_CR_FAIL));
         }
@@ -352,20 +357,11 @@ pub fn derive_send(input: TokenStream) -> TokenStream {
 mod dumping {
     static mut HAS_BEGUN_DUMP: bool = false;
     pub fn dump_stream(stream: &proc_macro::TokenStream) {
-        use proc_macro::Span;
         use std::io::Write;
         let mut file = get_dump_file();
         writeln!(
             file,
             "//##############################################################################"
-        );
-        let span = Span::call_site();
-        writeln!(
-            file,
-            "// inserted in file `{}` at `{}:{}`",
-            span.source_file().path().display(),
-            span.end().line,
-            span.end().column
         );
         writeln!(file, "{}", stream);
     }

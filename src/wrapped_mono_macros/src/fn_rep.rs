@@ -114,7 +114,7 @@ impl FnRep {
         for (curr, arg) in self.args.iter().enumerate() {
             let separator = if curr < len - 1 { ',' } else { ' ' };
             inner.extend(TokenStream::from_str(&format!(
-                "{}:<{} as InteropRecive>::SourceType{}",
+                "{}:<{} as wrapped_mono::InteropRecive>::SourceType{}",
                 arg.name,
                 arg.get_type_string(),
                 separator
@@ -179,7 +179,9 @@ impl FnRep {
                 //println!("#|#\n{}\n#|#",ret);
                 stream.extend(TokenStream::from_str("-><"));
                 stream.extend(TokenStream::from(ret.clone()));
-                stream.extend(TokenStream::from_str("as InteropSend>::TargetType"));
+                stream.extend(TokenStream::from_str(
+                    "as wrapped_mono::InteropSend>::TargetType",
+                ));
             }
             None => (),
         }
@@ -208,7 +210,7 @@ impl FnRep {
         inner.extend(TokenStream::from_str(";"));
         if let Some(ret) = &self.ret {
             inner.extend(TokenStream::from_str(&format!(
-                "return <{} as InteropSend>::get_mono_rep(fnc_call_res_val);",
+                "return <{} as wrapped_mono::InteropSend>::get_mono_rep(fnc_call_res_val);",
                 ret
             )));
         }

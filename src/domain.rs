@@ -1,7 +1,7 @@
 use crate::assembly::Assembly;
 use crate::binds::{mono_domain_assembly_open, mono_domain_create, MonoDomain};
 /// Safe representation of [`MonoDomain`] type.
-#[derive(Eq)]
+#[derive(Eq, Clone, Copy)]
 pub struct Domain {
     ptr: *mut MonoDomain,
 }
