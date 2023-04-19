@@ -1,7 +1,7 @@
 use crate as wrapped_mono;
-use crate::object::ObjectTrait;
+
 use rusty_fork::rusty_fork_test;
-use wrapped_mono::wrapped_mono_macros::*;
+
 use wrapped_mono::{class::Class, jit, method::Method};
 rusty_fork_test! {
     #[test]
@@ -78,7 +78,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64)> = Method::get_from_name(&class,"Mul",2).unwrap();
         let obj = met.invoke(None,(1,2)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2);
+        assert!(res == 2);
     }
     #[test]
     fn getting_method_2_args(){
@@ -106,7 +106,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64)> = Method::get_from_name(&class,"Mul",3).unwrap();
         let obj = met.invoke(None,(1,2,3)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3);
+        assert!(res == 2*3);
     }
     #[test]
     fn calling_method_4_args(){
@@ -117,7 +117,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",4).unwrap();
         let obj = met.invoke(None,(1,2,3,4)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3*4);
+        assert!(res == 2*3*4);
     }
     #[test]
     fn calling_method_5_args(){
@@ -128,7 +128,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",5).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3*4*5);
+        assert!(res == 2*3*4*5);
     }
     #[test]
     fn calling_method_6_args(){
@@ -139,7 +139,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",6).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3*4*5*6);
+        assert!(res == 2*3*4*5*6);
     }
     #[test]
     fn calling_method_7_args(){
@@ -150,7 +150,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",7).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3*4*5*6*7);
+        assert!(res == 2*3*4*5*6*7);
     }
     #[test]
     fn calling_method_8_args(){
@@ -161,7 +161,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",8).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3*4*5*6*7*8);
+        assert!(res == 2*3*4*5*6*7*8);
     }
     #[test]
     fn calling_method_9_args(){
@@ -172,7 +172,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",9).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3*4*5*6*7*8*9);
+        assert!(res == 2*3*4*5*6*7*8*9);
     }
     #[test]
     fn calling_method_10_args(){
@@ -183,7 +183,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",10).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3*4*5*6*7*8*9*10);
+        assert!(res == 2*3*4*5*6*7*8*9*10);
     }
     #[test]
     fn calling_method_11_args(){
@@ -194,7 +194,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",11).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3*4*5*6*7*8*9*10*11);
+        assert!(res == 2*3*4*5*6*7*8*9*10*11);
     }
     #[test]
     fn calling_method_12_args(){
@@ -205,7 +205,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",12).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12);
+        assert!(res == 2*3*4*5*6*7*8*9*10*11*12);
     }
     #[test]
     fn calling_method_13_args(){
@@ -216,7 +216,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",13).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12,13)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12*13);
+        assert!(res == 2*3*4*5*6*7*8*9*10*11*12*13);
     }
     #[test]
     fn calling_method_14_args(){
@@ -227,7 +227,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",14).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12,13,14)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12*13*14);
+        assert!(res == 2*3*4*5*6*7*8*9*10*11*12*13*14);
     }
     #[test]
     fn calling_method_15_args(){
@@ -238,7 +238,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",15).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12*13*14*15);
+        assert!(res == 2*3*4*5*6*7*8*9*10*11*12*13*14*15);
     }
     #[test]
     fn calling_method_16_args(){
@@ -249,7 +249,7 @@ rusty_fork_test! {
         let met:Method<(i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64,i64)> = Method::get_from_name(&class,"Mul",16).unwrap();
         let obj = met.invoke(None,(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)).expect("Exception").expect("Got null on a non-nullable!");
         let res = obj.unbox::<i64>();
-        assert!(res == 1*2*3*4*5*6*7*8*9*10*11*12*13*14*15*16);
+        assert!(res == 2*3*4*5*6*7*8*9*10*11*12*13*14*15*16);
     }
     #[test]
     fn getting_method_arg_count(){
@@ -314,7 +314,7 @@ rusty_fork_test! {
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
         let met:Method<()> = Method::get_from_name(&class,"ExceptionThrower",0).unwrap();
-        let obj = met.invoke(None,()).expect("Got an Exception").expect("Got null on a non-nullable!");
+        let _obj = met.invoke(None,()).expect("Got an Exception").expect("Got null on a non-nullable!");
     }
     #[test]
     fn handling_exception_from_method(){
@@ -342,13 +342,13 @@ impl InteropBox for CLikeEnum {}
 use crate::assembly::Assembly;
 impl InteropClass for CLikeEnum {
     fn get_mono_class() -> Class {
-        return Class::from_name(
+        Class::from_name(
             &Assembly::assembly_loaded("Test")
                 .expect("Could not find assembly")
                 .get_image(),
             "",
             "CLikeEnum",
         )
-        .expect("Could not get class!");
+        .expect("Could not get class!")
     }
 }

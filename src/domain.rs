@@ -7,7 +7,8 @@ pub struct Domain {
 }
 use std::ffi::CString;
 impl Domain {
-    /// Loads [`Assembly`] at path into domain, returns **None** if assembly could not be loaded(is missing or broken), and **Some(Assembly)** if it was successfully loaded.
+    /// Loads [`Assembly`] at path into domain, returns **None** if assembly could not be loaded(is missing or broken), and `Some(Assembly)` if it was successfully loaded.
+    #[must_use]
     pub fn assembly_open(&self, path: &str) -> Option<Assembly> {
         //! # Example
         //!```no_run
@@ -30,16 +31,17 @@ impl Domain {
     /// let domain1 = jit::init("name",None);
     /// let domain2 = Domain::create();
     /// ```
+    #[must_use]
     pub fn create() -> Domain {
         unsafe { Self::from_ptr(mono_domain_create()) }
     }
-    /// Sets domain confing to one loaded from file *filename* in directory *base_directory*.
+    /// Sets domain confing to one loaded from file *filename* in directory *`base_directory`*.
     pub fn set_config(&self, base_directory: &str, filename: &str) {
         let bd_cstr = CString::new(base_directory).expect(crate::STR2CSTR_ERR);
         let fnme_cstr = CString::new(filename).expect(crate::STR2CSTR_ERR);
         unsafe {
-            crate::binds::mono_domain_set_config(self.ptr, bd_cstr.as_ptr(), fnme_cstr.as_ptr())
-        };
+            crate::binds::mono_domain_set_config(self.ptr, bd_cstr.as_ptr(), fnme_cstr.as_ptr());
+        }
         drop(bd_cstr);
         drop(fnme_cstr);
     }
@@ -50,12 +52,13 @@ impl Domain {
         Self { ptr }
     }
     /// Function returning internal pointer to [`MonoDomain`]
+    #[must_use]
     pub fn get_ptr(&self) -> *mut MonoDomain {
         self.ptr
     }
     /// Sets domain as the current domain.
     pub fn set(&self, active: bool) {
-        unsafe { crate::binds::mono_domain_set(self.ptr, active as i32) };
+        unsafe { crate::binds::mono_domain_set(self.ptr, i32::from(active)) };
     }
     /// Attaches current thread (makes domain "aware" of this threads existence, allowing domain to eg. automatically stop it during garbage collection to prevent errors.) Should be done for all threads that will interact with this domain.  
     pub fn attach_thread(&self) {
@@ -78,6 +81,7 @@ impl Domain {
     }
     */
     /// Returns current domain or `None` if mono runtime is not initialized yet.
+    #[must_use]
     pub fn get_current() -> Option<Domain> {
         let ptr = unsafe { crate::binds::mono_domain_get() };
         if ptr.is_null() {

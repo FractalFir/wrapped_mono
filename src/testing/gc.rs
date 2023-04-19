@@ -8,16 +8,16 @@ rusty_fork_test! {
         let mut results:Vec<Object> = Vec::with_capacity(4000);
         for i in 0..800{
             let mut obj = Object::box_val::<i32>(&dom,i);
-            for j in 0..1000{
+            for _j in 0..1000{
                 obj = Object::box_val::<i32>(&dom,i);
-                for i in 0..10{
-                    let tmp = obj.clone();
+                for _i in 0..10{
+                    let _tmp = obj.clone();
                 }
             }
             results.push(obj);
         }
         let prev = gc::count_objects();
-        gc::collect(gc::max_generation());
+        gc::collect();
         let next = count_objects();
         assert!(next<prev,"{} >= {}",next,prev);
         for (i,obj) in results.into_iter().enumerate(){
@@ -27,11 +27,11 @@ rusty_fork_test! {
     }
     #[test]
     fn test_gc_object_multiref(){
-        use crate::gc::count_objects;
+
         let dom = jit::init("dom",None);
         let obj = Object::box_val::<i32>(&dom,10);
-        for i in 0..100{
-            let sec_ref = obj.clone();
+        for _i in 0..100{
+            let _sec_ref = obj.clone();
         }
     }
     #[test]
@@ -41,16 +41,16 @@ rusty_fork_test! {
         let mut results:Vec<MString> = Vec::with_capacity(4000);
         for i in 0..800{
             let mut obj = MString::new(&dom,&format!("{}",i));
-            for j in 0..1000{
+            for _j in 0..1000{
                 obj = MString::new(&dom,&format!("{}",i));
-                for i in 0..10{
-                    let tmp = obj.clone();
+                for _i in 0..10{
+                    let _tmp = obj.clone();
                 }
             }
             results.push(obj);
         }
         let prev = gc::count_objects();
-        gc::collect(gc::max_generation());
+        gc::collect();
         let next = count_objects();
         assert!(next<prev,"{} >= {}",next,prev);
         for (i,obj) in results.into_iter().enumerate(){
@@ -67,22 +67,22 @@ rusty_fork_test! {
         println!("Preparing to create test arrays!");
         // Having more temporary Arrays fills up the nursery, and causes problems with garbage collection(can't unlock a thread)
         for i in 0..17{
-            let mut obj:Array<Dim1D,i32> = Array::new(&dom,&[i/50 as usize]);
-            for j in 0..1000{
-                obj = Array::new(&dom,&[i/50 as usize]);
-                for i in 0..10{
-                    let tmp = obj.clone();
+            let mut obj:Array<Dim1D,i32> = Array::new(&dom,&[i/50_usize]);
+            for _j in 0..1000{
+                obj = Array::new(&dom,&[i/50_usize]);
+                for _i in 0..10{
+                    let _tmp = obj.clone();
                 }
             }
             if i % 100 == 0{
                 println!("Created an array! {}",i);
-                gc::collect(gc::max_generation());
+                gc::collect();
             }
             results.push(obj);
         }
         println!("Created all test arrays!");
         let prev = gc::count_objects();
-        gc::collect(gc::max_generation());
+        gc::collect();
         let next = count_objects();
         assert!(next<prev,"{} >= {}",next,prev);
         println!("Ran GC!");
@@ -93,27 +93,27 @@ rusty_fork_test! {
     #[test]
     fn test_gc_exception(){
         use crate::gc::count_objects;
-        let dom = jit::init("dom",None);
+        let _dom = jit::init("dom",None);
         let mut results:Vec<Exception> = Vec::with_capacity(17);
         println!("Preparing to create test arrays!");
         // Having more temporary Arrays fills up the nursery, and causes problems with garbage collection(can't unlock a thread)
         for i in 0..17{
             let mut obj:Exception = Exception::arithmetic();
-            for j in 0..10000{
+            for _j in 0..10000{
                 obj = Exception::arithmetic();
-                for i in 0..10{
-                    let tmp = obj.clone();
+                for _i in 0..10{
+                    let _tmp = obj.clone();
                 }
             }
             if i % 100 == 0{
                 println!("Created an array! {}",i);
-                gc::collect(gc::max_generation());
+                gc::collect();
             }
             results.push(obj);
         }
         println!("Created all test arrays!");
         let prev = gc::count_objects();
-        gc::collect(gc::max_generation());
+        gc::collect();
         let next = count_objects();
         assert!(next<prev,"{} >= {}",next,prev);
         println!("Ran GC!");

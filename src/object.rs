@@ -13,7 +13,7 @@ use crate::tupleutilis::{CompareClasses, TupleToPtrs};
 ///For nullable support use `Option<Object>`.
 pub struct Object {
     #[cfg(not(feature = "referneced_objects"))]
-    obj_ptr: *mut crate::binds::MonoObject,
+    obj_ptr: *mut MonoObject,
     #[cfg(feature = "referneced_objects")]
     handle: GCHandle,
 }
@@ -76,7 +76,9 @@ pub trait ObjectTrait {
     /// assert!(class == object_class);
     /// ```
     fn get_class(&self) -> Class;
-    /// Returns result of calling ToString on this [`Object`]. Returns [`Exception`] if raised, and [`Option<MString>`] if not. Function returns [`Option<MString>`] to allow for null value to be returned.
+    /// Returns result of calling `ToString` on this [`Object`].
+    /// # Errors
+    /// Returns [`Exception`] if raised, and [`Option<MString>`] if not. Function returns [`Option<MString>`] to allow for null value to be returned.
     fn to_mstring(&self) -> Result<Option<MString>, Exception>;
     /// Casts a type implementing [`ObjectTrait`] to an object.
     fn cast_to_object(&self) -> Object;
@@ -139,8 +141,7 @@ impl ObjectTrait for Object {
         let res = unsafe {
             MString::from_ptr(crate::binds::mono_object_to_string(
                 self.get_ptr(),
-                &mut exc as *mut *mut crate::binds::MonoException
-                    as *mut *mut crate::binds::MonoObject,
+                std::ptr::addr_of_mut!(exc).cast::<*mut MonoObject>(),
             ))
         };
         let exc = unsafe { Exception::from_ptr(exc) };
@@ -171,6 +172,7 @@ impl ObjectTrait for Object {
 use crate::interop::InteropBox;
 impl Object {
     ///returns [`Object`] *self* cast to *class* if *self* is derived from [`Class`] class. Does not affect original reference to object nor the object itself.
+    #[must_use]
     pub fn is_inst(&self, class: &Class) -> Option<Object> {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
@@ -192,6 +194,7 @@ impl Object {
     /// # let class = Class::get_void();
     /// let new_obj = Object::new(&domain,&class);
     /// ```
+    #[must_use]
     pub fn new(domain: &crate::domain::Domain, class: &Class) -> Self {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
@@ -206,10 +209,11 @@ impl Object {
         gc_unsafe_exit(marker);
         obj
     }
-    ///Creates new [`Object`] from pointer *obj_ptr*. Checks if it is null, and returns [`None`] if so.
+    /// Creates new [`Object`] from pointer *`obj_ptr`*. Checks if it is null, and returns [`None`] if so.
     /// # Safety
-    /// *obj_ptr* must be either a valid [`MonoObject`] pointer or null, otherwise resulting [`Object`] will not be valid and will **cause crashes**.
-    pub unsafe fn from_ptr(obj_ptr: *mut crate::binds::MonoObject) -> Option<Self> {
+    /// *`obj_ptr`* must be either a valid [`MonoObject`] pointer or null, otherwise resulting [`Object`] will not be valid and will **cause crashes**.
+    #[must_use]
+    pub unsafe fn from_ptr(obj_ptr: *mut MonoObject) -> Option<Self> {
         #[cfg(not(feature = "referneced_objects"))]
         {
             if obj_ptr.is_null() {
@@ -227,9 +231,11 @@ impl Object {
             })
         }
     }
-    ///Retrives and unboxed value.
+    /// Unboxes the value in [`Object`] `self`.
     /// # Safety
     /// Calling it on a type which can't be unboxed **will lead to a crash**.
+    /// # Panics
+    /// Type T must match the unboxed managed type.
     /// Unboxing type
     ///C#<br>
     ///```ignore
@@ -245,23 +251,24 @@ impl Object {
     ///    let val = o.unbox::<i32>();
     ///}
     ///```
+    #[must_use]
     pub fn unbox<T: InteropBox + Copy>(&self) -> T {
         #[cfg(not(feature = "unsafe_boxing"))]
         {
             let self_class = self.get_class();
             let t_class = <T as InteropClass>::get_mono_class();
-            if self_class != t_class {
-                panic!(
-                    "tried to unbox class of type `{}` as type `{}`",
-                    &self_class.get_name(),
-                    &t_class.get_name()
-                );
-            }
+            assert!(
+                self_class == t_class,
+                "tried to unbox class of type `{}` as type `{}`",
+                &self_class.get_name(),
+                &t_class.get_name()
+            );
         }
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let ptr = unsafe {
-            crate::binds::mono_object_unbox(self.get_ptr()) as *mut <T as InteropRecive>::SourceType
+            crate::binds::mono_object_unbox(self.get_ptr())
+                .cast::<<T as InteropRecive>::SourceType>()
         };
         let res = T::get_rust_rep(unsafe { *ptr });
         #[cfg(feature = "referneced_objects")]
@@ -285,7 +292,7 @@ impl Object {
         gc_unsafe_exit(marker);
         res
     }
-    ///Boxes value into an object.
+    /// Boxes value into an object.
     /// # Examples
     ///```no_run
     /// # use wrapped_mono::*;
@@ -300,11 +307,12 @@ impl Object {
             Self::box_val_unsafe(
                 domain,
                 &class,
-                &mut data as *mut <T as InteropSend>::TargetType as *mut std::ffi::c_void,
+                std::ptr::addr_of_mut!(data).cast::<std::ffi::c_void>(),
             )
         }
     }
     ///Gets internal [`MonoObject`] pointer.
+    #[must_use]
     pub fn get_ptr(&self) -> *mut MonoObject {
         #[cfg(not(feature = "referneced_objects"))]
         {
@@ -315,7 +323,7 @@ impl Object {
             self.handle.get_target()
         }
     }
-    ///Gets an implenentation virtual [`Method`] *method* for a specific [`Object`] *obj*.<br>
+    ///Gets an implementation virtual [`Method`] *`method`* for a specific [`Object`] *`obj`*.<br>
     /// # Explanation
     /// with given C# code
     ///```ignore
@@ -330,10 +338,11 @@ impl Object {
     ///     }
     /// }
     ///```
-    /// When you call get_vitual_method on object that is instance of **ChildClass**
-    /// and method **ParrentClass::SomeMethod** you will get return value of **ChildClass::SomeMethod**.
+    /// When you call`get_vitual_method` on object that is instance of **`ChildClass`**
+    /// and method **`ParrentClass::SomeMethod`** you will get return value of **`ChildClass::SomeMethod`**.
+    #[must_use]
     pub fn get_virtual_method<T: TupleToPtrs + CompareClasses + InteropSend>(
-        obj: Object,
+        obj: &Object,
         method: &Method<T>,
     ) -> Option<Method<T>>
     where
@@ -353,7 +362,7 @@ impl Object {
     }
 }
 impl InteropRecive for Object {
-    type SourceType = *mut crate::binds::MonoObject;
+    type SourceType = *mut MonoObject;
     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(arg: Self::SourceType) -> Self {
@@ -362,13 +371,13 @@ impl InteropRecive for Object {
     }
 }
 impl InteropSend for Object {
-    type TargetType = *mut crate::binds::MonoObject;
+    type TargetType = *mut MonoObject;
     fn get_mono_rep(arg: Self) -> Self::TargetType {
         arg.get_ptr()
     }
 }
 impl InteropRecive for Option<Object> {
-    type SourceType = *mut crate::binds::MonoObject;
+    type SourceType = *mut MonoObject;
     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(arg: Self::SourceType) -> Self {
@@ -376,7 +385,7 @@ impl InteropRecive for Option<Object> {
     }
 }
 impl InteropSend for Option<Object> {
-    type TargetType = *mut crate::binds::MonoObject;
+    type TargetType = *mut MonoObject;
     fn get_mono_rep(arg: Self) -> Self::TargetType {
         match arg {
             Some(arg) => arg.get_ptr(),
@@ -385,7 +394,8 @@ impl InteropSend for Option<Object> {
     }
 }
 impl Object {
-    ///Clones the underlying MonoObject *not* the reference to this object. (e.g when called on a reference to a managed object A will create second object B, not another reference to object A).
+    ///Clones the underlying [`MonoObject`] *not* the reference to this object. (e.g when called on a reference to a managed object A will create second object B, not another reference to object A).
+    #[must_use]
     pub fn clone_managed_object(&self) -> Self {
         //if clone fails, it means that there is a much bigger problem somewhere down the line, so it can be just ignored.
         #[cfg(feature = "referneced_objects")]

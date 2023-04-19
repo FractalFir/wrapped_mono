@@ -1,26 +1,36 @@
 use crate::Object;
 /// Preform collection on *generation* and any generation lower than that.
-/// WARNING: All references in wrapped_mono are temporary and do not survive collection. To make objects persistant set
-pub fn collect(generation: i32) {
+/// WARNING: If raw object pointers are used, collection may collect objects pointed to by those pointers.
+pub fn collect_generation(generation: i32) {
     unsafe { crate::binds::mono_gc_collect(generation) };
 }
+/// Preform collection on all generations of objects.
+/// WARNING: If raw object pointers are used, collection may collect objects pointed to by those pointers.
+pub fn collect() {
+    unsafe { crate::binds::mono_gc_collect(max_generation()) };
+}
 ///Get ammount of times garbage collection was preformed on *generation*.
+#[must_use]
 pub fn collection_count(generation: i32) -> i32 {
     unsafe { crate::binds::mono_gc_collection_count(generation) }
 }
 ///Get the maximum generation used by garbage collector.
+#[must_use]
 pub fn max_generation() -> i32 {
     unsafe { crate::binds::mono_gc_max_generation() }
 }
 ///Get generation *object* belongs to. It is only a hint and may not be exact.
+#[must_use]
 pub fn get_generation(object: &Object) -> i32 {
     unsafe { crate::binds::mono_gc_get_generation(object.get_ptr()) }
 }
 ///Get size of the heap used by the garbage collector.
+#[must_use]
 pub fn get_heap_size() -> i64 {
     unsafe { crate::binds::mono_gc_get_heap_size() }
 }
 ///Gets ammount of heap that is in currently occupied by objects.
+#[must_use]
 pub fn get_used_size() -> i64 {
     unsafe { crate::binds::mono_gc_get_used_size() }
 }
@@ -31,6 +41,7 @@ pub struct GCHandle {
 use crate::binds::MonoObject;
 impl GCHandle {
     /// Gets a pointer to an object this handle targets.
+    #[must_use]
     pub fn get_target(&self) -> *mut MonoObject {
         unsafe { crate::binds::mono_gchandle_get_target(self.handle) }
     }
@@ -39,18 +50,17 @@ impl GCHandle {
     /// *ptr* must be a pointer to a valid object.
     pub unsafe fn create(ptr: *mut MonoObject, pinned: bool) -> GCHandle {
         GCHandle {
-            handle: unsafe { crate::binds::mono_gchandle_new(ptr, pinned as i32) },
+            handle: unsafe { crate::binds::mono_gchandle_new(ptr, i32::from(pinned)) },
         }
     }
     /// Creates a new Garbage Collector handle with default pin settings(unpinned).
     /// # Safety
     /// *ptr* must be a pointer to a valid object.
     pub unsafe fn create_default(ptr: *mut MonoObject) -> GCHandle {
-        GCHandle {
-            handle: unsafe { crate::binds::mono_gchandle_new(ptr, false as i32) },
-        }
+        Self::create(ptr, false)
     }
     /// Frees this handle, deleting the reference to object it targets.
+    #[allow(clippy::needless_pass_by_value)] //Not needles. Self is really consumed here.
     pub fn free(handle: Self) {
         unsafe { crate::binds::mono_gchandle_free(handle.handle) }
     }
@@ -67,20 +77,20 @@ pub fn count_objects() -> u32 {
     unsafe extern "C" fn heap_walker(
         _: *mut MonoObject,
         _: *mut MonoClass,
-        size: usize,
-        num: usize,
-        refs: *mut *mut MonoObject,
-        offsets: *mut usize,
+        _size: usize,
+        _num: usize,
+        _refs: *mut *mut MonoObject,
+        _offsets: *mut usize,
         count: *mut std::ffi::c_void,
     ) -> i32 {
         let count = count as *mut u32;
         (*count) += 1;
-        return 0;
+        0
     }
     unsafe {
         let mut count: u32 = 0;
         crate::binds::mono_gc_walk_heap(0, Some(heap_walker), &mut count as *mut u32 as *mut _);
-        return count;
+        count
     }
 }
 #[doc(hidden)]
@@ -121,13 +131,14 @@ pub struct GCUnsafeAreaMarker {
 }
 #[doc(hidden)]
 #[inline(always)]
+#[allow(clippy::inline_always)]
 pub fn gc_unsafe_enter() -> (GCUnsafeAreaMarker, MonoStackData) {
     #[cfg(old_gc_unsafe)]
     {
         let stack_item: u8 = 0; //Useless dummy value used to get the stack pointer.
         let msd = crate::gc::MonoStackData {
             dummy: 0,
-            stack_ptr: &stack_item as *const u8,
+            stack_ptr: std::ptr::addr_of!(stack_item),
         }; // StackDataObject used to restore the stack.
         let marker = unsafe { crate::gc::mono_threads_enter_gc_unsafe_region_internal(&msd) }; // Entering GC Unsafe mode (signalling to GC that we will be using managed objects that should not be moved)
         (marker, msd)
@@ -137,7 +148,7 @@ pub fn gc_unsafe_enter() -> (GCUnsafeAreaMarker, MonoStackData) {
         let stack_item: u8 = 0; //Useless dummy value used to get the stack pointer.
         let msd = crate::gc::MonoStackData {
             dummy: 0,
-            stack_ptr: &stack_item as *const u8,
+            stack_ptr: std::ptr::addr_of!(stack_item),
         }; // StackDataObject used to restore the stack.
         let marker = unsafe { crate::gc::mono_threads_enter_gc_unsafe_region(&msd) }; // Entering GC Unsafe mode (signalling to GC that we will be using managed objects that should not be moved)
         (marker, msd)
@@ -145,13 +156,14 @@ pub fn gc_unsafe_enter() -> (GCUnsafeAreaMarker, MonoStackData) {
 }
 #[doc(hidden)]
 #[inline(always)]
+#[allow(clippy::inline_always)]
 pub fn gc_unsafe_exit(markers: (GCUnsafeAreaMarker, MonoStackData)) {
     #[cfg(old_gc_unsafe)]
     unsafe {
-        crate::gc::mono_threads_exit_gc_unsafe_region_internal(markers.0, &markers.1)
-    };
+        crate::gc::mono_threads_exit_gc_unsafe_region_internal(markers.0, &markers.1);
+    }
     #[cfg(not(old_gc_unsafe))]
     unsafe {
-        crate::gc::mono_threads_exit_gc_unsafe_region(markers.0, &markers.1)
-    };
+        crate::gc::mono_threads_exit_gc_unsafe_region(markers.0, &markers.1);
+    }
 }

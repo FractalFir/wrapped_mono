@@ -20,6 +20,7 @@ pub struct MString {
 }
 impl MString {
     ///Creates new managed **String** in *domain* with content of *string*.
+    #[must_use]
     pub fn new(domain: &Domain, string: &str) -> Self {
         let cstr = CString::new(string).expect(crate::STR2CSTR_ERR);
         #[cfg(feature = "referneced_objects")]
@@ -37,6 +38,7 @@ impl MString {
         res
     }
     ///Compares two managed strings. Returns true if their **content** is equal, not if they are the same **object**.
+    #[must_use]
     pub fn is_equal(&self, other: &Self) -> bool {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
@@ -46,6 +48,7 @@ impl MString {
         equ
     }
     ///Creates hash of a [`String`].
+    #[must_use]
     pub fn hash(&self) -> u32 {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
@@ -72,10 +75,11 @@ impl MString {
                 return None;
             }
             Some(Self {
-                handle: GCHandle::create_default(ptr as *mut MonoObject),
+                handle: GCHandle::create_default(ptr.cast::<MonoObject>()),
             })
         }
     }
+    #[must_use]
     pub fn get_ptr(&self) -> *mut MonoString {
         #[cfg(not(feature = "referneced_objects"))]
         {
@@ -83,7 +87,7 @@ impl MString {
         }
         #[cfg(feature = "referneced_objects")]
         {
-            self.handle.get_target() as *mut MonoString
+            self.handle.get_target().cast::<MonoString>()
         }
     }
 }
@@ -135,7 +139,7 @@ impl ToString for MString {
         let marker = gc_unsafe_enter();
         let cstr = unsafe { CString::from_raw(crate::binds::mono_string_to_utf8(self.get_ptr())) };
         let res = cstr.to_str().expect("Colud not create String!").to_owned();
-        unsafe { crate::binds::mono_free(cstr.into_raw() as *mut std::os::raw::c_void) };
+        unsafe { crate::binds::mono_free(cstr.into_raw().cast::<std::os::raw::c_void>()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         res
@@ -147,7 +151,7 @@ impl ObjectTrait for MString {
     fn hash(&self) -> i32 {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let hsh = unsafe { crate::binds::mono_object_hash(self.get_ptr() as *mut MonoObject) };
+        let hsh = unsafe { crate::binds::mono_object_hash(self.get_ptr().cast::<MonoObject>()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         hsh
@@ -157,7 +161,7 @@ impl ObjectTrait for MString {
         let marker = gc_unsafe_enter();
         let dom = unsafe {
             crate::domain::Domain::from_ptr(crate::binds::mono_object_get_domain(
-                self.get_ptr() as *mut MonoObject
+                self.get_ptr().cast::<MonoObject>(),
             ))
         };
         #[cfg(feature = "referneced_objects")]
@@ -167,7 +171,8 @@ impl ObjectTrait for MString {
     fn get_size(&self) -> u32 {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let size = unsafe { crate::binds::mono_object_get_size(self.get_ptr() as *mut MonoObject) };
+        let size =
+            unsafe { crate::binds::mono_object_get_size(self.get_ptr().cast::<MonoObject>()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         size
@@ -176,7 +181,7 @@ impl ObjectTrait for MString {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let tok =
-            unsafe { crate::binds::mono_reflection_get_token(self.get_ptr() as *mut MonoObject) };
+            unsafe { crate::binds::mono_reflection_get_token(self.get_ptr().cast::<MonoObject>()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         tok
@@ -186,7 +191,7 @@ impl ObjectTrait for MString {
         let marker = gc_unsafe_enter();
         let class = unsafe {
             crate::class::Class::from_ptr(crate::binds::mono_object_get_class(
-                self.get_ptr() as *mut MonoObject
+                self.get_ptr().cast::<MonoObject>(),
             ))
             .expect("Could not get class of an object")
         };
@@ -200,9 +205,8 @@ impl ObjectTrait for MString {
         let marker = gc_unsafe_enter();
         let res = unsafe {
             MString::from_ptr(crate::binds::mono_object_to_string(
-                self.get_ptr() as *mut crate::binds::MonoObject,
-                &mut exc as *mut *mut crate::binds::MonoException
-                    as *mut *mut crate::binds::MonoObject,
+                self.get_ptr().cast::<MonoObject>(),
+                std::ptr::addr_of_mut!(exc).cast::<*mut MonoObject>(),
             ))
         };
         let exc = unsafe { Exception::from_ptr(exc) };
@@ -217,20 +221,17 @@ impl ObjectTrait for MString {
     fn cast_to_object(&self) -> Object {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let object = unsafe { Object::from_ptr(self.get_ptr() as *mut MonoObject) }.unwrap(); //impossible. If string exists, then object exists too.
+        let object = unsafe { Object::from_ptr(self.get_ptr().cast::<MonoObject>()) }.unwrap(); //impossible. If string exists, then object exists too.
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         object
     }
     fn cast_from_object(obj: &Object) -> Option<MString> {
         //TODO: adjust this after including GCHandles to speed things up.
-        let cast = match obj.is_inst(&<Self as InteropClass>::get_mono_class()) {
-            Some(cast) => cast,
-            None => return None,
-        };
+        let Some(cast) = obj.is_inst(&<Self as InteropClass>::get_mono_class()) else { return None };
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let cast = unsafe { Self::from_ptr(cast.get_ptr() as *mut _) };
+        let cast = unsafe { Self::from_ptr(cast.get_ptr().cast()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         cast
@@ -243,6 +244,6 @@ impl Clone for MString {
 }
 impl<O: ObjectTrait> PartialEq<O> for MString {
     fn eq(&self, other: &O) -> bool {
-        self.get_ptr() as *mut _ == other.cast_to_object().get_ptr()
+        self.get_ptr().cast() == other.cast_to_object().get_ptr()
     }
 }

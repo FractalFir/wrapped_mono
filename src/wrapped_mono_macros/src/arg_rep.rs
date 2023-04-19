@@ -57,7 +57,7 @@ impl ArgRep {
             }
         }
         if !tmp.is_empty() {
-            args.push(Self::from_vec(tmp))
+            args.push(Self::from_vec(tmp));
         };
         args
     }

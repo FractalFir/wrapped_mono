@@ -11,14 +11,14 @@ rusty_fork_test! {
         let test_class = Class::from_name(&img,"","TestFunctions").expect("Could not find class");
         let ifaces = test_class.get_interfaces();
         println!("{}",&test_class.get_name());
-        assert!(ifaces.len() > 0);
+        assert!(!ifaces.is_empty());
         assert!("IInterfaceOne" == &ifaces[0].get_name());
     }
     #[test]
     fn class_get_namespace(){
         use crate as wrapped_mono;
         use wrapped_mono::jit;
-        use wrapped_mono::object::*;
+
         use wrapped_mono::class::Class;
         let _main = jit::init("main",None);
         let class = Class::get_int_64();
@@ -40,7 +40,7 @@ rusty_fork_test! {
         let asm = domain.assembly_open("test/dlls/Test.dll").expect("Could not load assembly");
         let img = asm.get_image();
         let test_class = Class::from_name(&img,"","TestFunctions").expect("Could not find class");
-        assert!("" == &test_class.get_namespace());
+        assert!(test_class.get_namespace().is_empty());
     }
     #[test]
     fn class_get_array_element_class(){
@@ -68,13 +68,13 @@ rusty_fork_test! {
     }
     #[test]
     fn class_get_field(){
-        use crate::binds::MonoObject;
-        use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
+
+        use wrapped_mono::{jit,class::Class};
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
-        let filed = Class::get_field_from_name(&class,"someField").expect("Could not get filed!");
+        let _filed = Class::get_field_from_name(&class,"someField").expect("Could not get filed!");
     }
     // TODO:rethink removal of those functionalities, maybe re-add themin 0.3
     /*
@@ -112,9 +112,9 @@ rusty_fork_test! {
     }*/
     #[test]
     fn get_delegate(){
-        use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
-        let dom = jit::init("root",None);
-        let del = Class::get_delegate_class();
+        use wrapped_mono::{jit,class::Class};
+        let _dom = jit::init("root",None);
+        let _del = Class::get_delegate_class();
     }
     #[test]
     fn get_generic_class_string(){
@@ -124,7 +124,7 @@ rusty_fork_test! {
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
         let met:Method<()> = Method::get_from_name(&class,"CreateTypeString",0).unwrap();
-        let res = met.invoke(None,()).expect("Got an exception").unwrap();
+        let _res = met.invoke(None,()).expect("Got an exception").unwrap();
     }
 
 }

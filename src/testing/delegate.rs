@@ -1,6 +1,3 @@
-use crate as wrapped_mono;
-use rusty_fork::rusty_fork_test;
-use wrapped_mono::*;
 /*
 rusty_fork_test! {
     #[test]

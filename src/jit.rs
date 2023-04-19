@@ -12,6 +12,8 @@ static mut HAS_BEEN_INITIALIZED: bool = false;
 /// # use wrapped_mono::*;
 /// let main_domain_with_version = jit::init("domain_name",Some("v4.0.30319"));
 /// ```
+/// # Panics
+/// Panics if the runtime is initialised second time. `MonoRuntime` can be only initialised once.
 pub fn init(name: &str, version: Option<&str>) -> Domain {
     unsafe {
         assert!(
@@ -36,8 +38,8 @@ pub fn init(name: &str, version: Option<&str>) -> Domain {
     let _ = &n_cstr;
     res
 }
-/// This function shuts down MonoRuntime.
-/// **WARNING!** after it is called, MonoRuntime **will not be** able to be used again in the same process, since it can be only started up once.
+/// This function shuts down the `MonoRuntime`.
+/// **WARNING!** after it is called, `MonoRuntime` **will not be** able to be used again in the same process, since it can be only started up once.
 /// ```no_run
 /// # use wrapped_mono::*;
 /// let main_domain = jit::init("main",None);
@@ -64,29 +66,33 @@ use crate::assembly::Assembly;
 /// let args = vec!["arg1","arg2","arg3"];
 /// let res = jit::exec(&main_domain,&asm,args);
 /// ```
-pub fn exec(domain: &Domain, assembly: &Assembly, args: Vec<&str>) -> i32 {
-    let argc: i32 = args.len() as i32 + 1;
+/// # Errors
+/// Returns err if could not convert an arg to a `CString`. The `err` will contain the index of the invalid argument.
+pub fn exec(domain: &Domain, assembly: &Assembly, args: Vec<&str>) -> Result<i32, usize> {
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_possible_wrap)]
+    let argument_count: i32 = (args.len() + 1) as i32;
     let mut cstr_args: Vec<CString> = Vec::new();
-    let mut argv: Vec<*mut i8> = Vec::with_capacity(args.len() + 1);
+    let mut argument_vector: Vec<*mut i8> = Vec::with_capacity(args.len() + 1);
     // 1-st argument is expected to be assembly name
     unsafe {
-        argv.push(crate::binds::mono_stringify_assembly_name(
+        argument_vector.push(crate::binds::mono_stringify_assembly_name(
             crate::binds::mono_assembly_get_name(assembly.get_ptr()),
-        ))
-    };
-    for arg in args {
-        let cstr_arg = CString::new(arg).unwrap();
-        argv.push(cstr_arg.as_ptr() as *mut i8);
+        ));
+    }
+    for (index, arg) in args.into_iter().enumerate() {
+        let Ok(cstr_arg) = CString::new(arg) else { return Err(index) };
+        argument_vector.push(cstr_arg.as_ptr() as *mut i8);
         cstr_args.push(cstr_arg);
     }
     let res = unsafe {
         mono_jit_exec(
             domain.get_ptr(),
             assembly.get_ptr(),
-            argc,
-            argv.as_mut_ptr(),
+            argument_count,
+            argument_vector.as_mut_ptr(),
         )
     };
     let _ = &cstr_args;
-    res
+    Ok(res)
 }

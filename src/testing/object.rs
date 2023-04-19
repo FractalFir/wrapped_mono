@@ -51,8 +51,8 @@ rusty_fork_test! {
     }
     #[test]
     fn test_object_field_get_value(){
-        use crate::binds::MonoObject;
-        use wrapped_mono::{jit,class::Class,object::{Object,ObjectTrait}};
+
+        use wrapped_mono::{jit,class::Class,object::{Object}};
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();

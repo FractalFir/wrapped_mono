@@ -6,17 +6,14 @@ extern crate syn;
 mod arg_rep;
 mod fn_rep;
 mod tok_vec;
-//use arg_rep::*;
-//use tok_vec::*;
-use fn_rep::*;
-//use quote::*;
 use crate::tok_vec::{TokVec, TokVecTraits};
+use fn_rep::FnRep;
 use proc_macro::{TokenStream, TokenTree};
 use std::str::FromStr;
-///This function checks if function "path"(e.g. some_crate::some_module::some_function)
-///is valid (it contains only letters and  ':' signs), and returns the "path" in form of a string if it is.
-///NOTE: it will not check if given function exists! it only check if that function path is valid.
-///TODO: extend it to filter out such things as
+//This function checks if function "path"(e.g. `some_crate::some_module::some_function`)
+//is valid (it contains only letters and  ':' signs), and returns the "path" in form of a string if it is.
+//NOTE: it will not check if given function exists! it only check if that function path is valid.
+//TODO: extend it to filter out such things as
 fn get_fn_path_string(input: TokVec) -> Result<String, String> {
     let mut res: String = String::new();
     for tok in input {
@@ -35,20 +32,20 @@ fn get_fn_path_string(input: TokVec) -> Result<String, String> {
                     ))
                 }
             },
-            _ => return Err(format!("function path can't contain '{}' token!", tok)),
+            _ => return Err(format!("function path can't contain '{tok}' token!")),
         }
     }
     Ok(res)
 }
-/// Macro equivalent of mono_add_internal_call with automatic support for type conversion.
+/// Macro equivalent of `mono_add_internal_call` with automatic support for type conversion.
 /// Allows you to expose a function as an internal call
 /// # Parameters
 /// | Name | Type | Purpose|
 /// --- | --- | ---|
-/// | *function_path* | string literal("") | Path to managed function to replace with internal call. Example: "NAMESPCE.CLASS::Method". Managed method to replace must have `[MethodImpl(MehodImplOption.InternalCall)]` atribute|
-/// | *function* | rust function | Rust function with `invokable` macro. Must match signature of managed function, otherwise undefined beahviour may occcur.|
+/// | *`function_path`* | string literal("") | Path to managed function to replace with internal call. Example: "`NAMESPCE.CLASS::Method`". Managed method to replace must have `[MethodImpl(MehodImplOption.InternalCall)]` atribute|
+/// | *`function`* | rust function | Rust function with `invokable` macro. Must match signature of managed function, otherwise undefined beahviour may occcur.|
 /// # Example
-/// ## CSharp
+/// ## `CSharp`
 /// ```csharp
 /// using System.CompilerServices;
 /// namespace SomeNamespace{
@@ -82,7 +79,7 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
     let fnc_name = match get_fn_path_string(tokens.pop().unwrap()) {
         Result::Ok(name) => name,
         Result::Err(msg) => {
-            return TokenStream::from_str(&format!("compile_error!(\"{}\")", msg))
+            return TokenStream::from_str(&format!("compile_error!(\"{msg}\")"))
                 .expect("could not create token stream!")
         }
     };
@@ -99,8 +96,8 @@ pub fn add_internal_call(args: TokenStream) -> TokenStream {
 }
 /// Macro creating a wrapper around a function making it able to be exposed as internal call.
 /// # Restrictions
-/// Arguments of function with [`macro@invokable`] atribute must be of types that implement InteropRecive trait.
-/// Return type of the function must implement InvokeSend trait.
+/// Arguments of function with [`macro@invokable`] atribute must be of types that implement `InteropRecive` trait.
+/// Return type of the function must implement `InvokeSend` trait.
 /// # Example
 // Function:
 /// ```rust
@@ -202,8 +199,7 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
             let member_type = memeber[2].to_string();
             type_res.extend(
                 TokenStream::from_str(&format!(
-                    "<{} as wrapped_mono::InteropRecive>::SourceType,",
-                    member_type
+                    "<{member_type} as wrapped_mono::InteropRecive>::SourceType,",
                 ))
                 .expect(TS_CR_FAIL),
             );
@@ -227,14 +223,14 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
         //Check that enum is trivial and its values are set.
         let max_val = extract_enum_data(&inner).expect(ENUM_NOT_TRIVIAL);
         type_res.extend(TokenStream::from_str("u64").expect(TS_CR_FAIL));
-        fn_impl_res.extend(TokenStream::from_str(&format!("unsafe{{let ptr = &arg as *const u64; assert!(arg < {},\"Error:Recived enum out of range!\");
-         const _: [(); 0 - !{{ const ASSERT: bool = (std::mem::size_of::<{}>() <= std::mem::size_of::<u64>()); ASSERT }} as usize] = [];
-         let res = *(ptr as *mut {}); drop(arg); return res;}}",max_val,input_name,input_name)).expect(TS_CR_FAIL));
+        fn_impl_res.extend(TokenStream::from_str(&format!("unsafe{{let ptr = &arg as *const u64; assert!(arg < {max_val},\"Error:Recived enum out of range!\");
+         const _: [(); 0 - !{{ const ASSERT: bool = (std::mem::size_of::<{input_name}>() <= std::mem::size_of::<u64>()); ASSERT }} as usize] = [];
+         let res = *(ptr as *mut {input_name}); drop(arg); return res;}}")).expect(TS_CR_FAIL));
     } else {
-        panic!("{} is not a valid type!", input_type);
+        panic!("{input_type} is not a valid type!");
     }
     let mut res =
-        TokenStream::from_str(&format!("impl InteropRecive for {}", input_name)).expect(TS_CR_FAIL);
+        TokenStream::from_str(&format!("impl InteropRecive for {input_name}")).expect(TS_CR_FAIL);
     let mut inner_res = TokenStream::from_str("type SourceType = ").expect(TS_CR_FAIL);
     inner_res.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(
         proc_macro::Delimiter::Parenthesis,
@@ -283,7 +279,7 @@ pub fn derive_send(input: TokenStream) -> TokenStream {
     let inner = TokVec::from_stream(
         match input
             .pop()
-            .expect("Inpossible condition reached. Poping from vec of length 3 yelded nothing.")
+            .expect("Inpossible condition reached. Popping from vec of length 3 yielded nothing.")
         {
             TokenTree::Group(g) => match g.delimiter() {
                 proc_macro::Delimiter::Brace => g.stream(),

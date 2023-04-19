@@ -8,19 +8,20 @@ pub struct FnRep {
     ret: Option<TokenTree>,
     args: Vec<ArgRep>,
     name: String,
+    is_pub: bool,
 }
 impl fmt::Display for FnRep {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "FnRep{{name:{}", self.name)?;
         match &self.ret {
             Some(s) => {
-                write!(f, ",ret:{}", s)?;
+                write!(f, ",ret:{s}")?;
             }
             None => {}
         }
         write!(f, ",args:{{")?;
         for arg in &self.args {
-            write!(f, "{}", arg)?;
+            write!(f, "{arg}")?;
         }
         write!(f, "}}}}")?;
         fmt::Result::Ok(())
@@ -64,21 +65,26 @@ fn tok_vec_pop_return(tv: &mut TokVec) -> TokenTree {
             _ => res.push(tok.clone()),
         }
     }
-    println!("res:{}", res.to_string());
-    println!("ila:{}", is_last_arrow);
     panic!("Could not find return");
 }
 use std::str::FromStr;
 impl FnRep {
+    fn access(&self) -> &'static str {
+        if self.is_pub {
+            "pub"
+        } else {
+            ""
+        }
+    }
     pub fn fn_rep_from_stream(fn_ts: TokenStream) -> FnRep {
         let tok_backup = fn_ts.clone();
         let mut tokens = TokVec::from_stream(fn_ts);
         //check if public
-        let mut _is_pub = false;
+        let mut is_pub = false;
         if let TokenTree::Ident(i) = &tokens[0] {
             if i.to_string() == "pub" {
                 //println!("public function!");
-                _is_pub = true;
+                is_pub = true;
                 tokens.remove(0);
             }
         }
@@ -94,7 +100,7 @@ impl FnRep {
         let args_tok = tokens.pop().expect("not enough tokens to form a function");
         let args = TokVec::from_stream(match args_tok {
             TokenTree::Group(g) => g.stream(),
-            _ => panic!("unexpected token'{}' in place of function args!", args_tok),
+            _ => panic!("unexpected token'{args_tok}' in place of function args!"),
         });
         //name
         let name = tokens
@@ -106,6 +112,7 @@ impl FnRep {
             ret,
             name,
             args: ArgRep::from_arg_vec(args),
+            is_pub,
         }
     }
     pub fn create_in_arg_list(&self) -> TokenStream {
@@ -133,7 +140,8 @@ impl FnRep {
     pub fn create_function_type(&self) -> TokenStream {
         // create the begging of function signature
         let mut res = TokenStream::from_str(&format!(
-            "pub type {}_fn_type = extern \"C\" fn",
+            "{} type {}_fn_type = extern \"C\" fn",
+            self.access(),
             &self.name
         ))
         .expect("Could not create token stream!");
@@ -169,9 +177,12 @@ impl FnRep {
     pub fn create_wrapper(&self) -> TokenStream {
         //println!("{}",self);
         //function signature
-        let mut stream: TokenStream =
-            TokenStream::from_str(&format!("pub extern \"C\" fn {}_invokable", &self.name))
-                .expect("Could not create token stream!");
+        let mut stream: TokenStream = TokenStream::from_str(&format!(
+            "{} extern \"C\" fn {}_invokable",
+            self.access(),
+            &self.name
+        ))
+        .expect("Could not create token stream!");
         //function args
         stream.extend(self.create_in_arg_list());
         match &self.ret {
@@ -210,8 +221,7 @@ impl FnRep {
         inner.extend(TokenStream::from_str(";"));
         if let Some(ret) = &self.ret {
             inner.extend(TokenStream::from_str(&format!(
-                "return <{} as wrapped_mono::InteropSend>::get_mono_rep(fnc_call_res_val);",
-                ret
+                "return <{ret} as wrapped_mono::InteropSend>::get_mono_rep(fnc_call_res_val);"
             )));
         }
 

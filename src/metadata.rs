@@ -70,6 +70,7 @@ impl MetadataTableInfo {
     /// Creates [`MetadataTableInfo`] from a [`MonoTableInfo`] pointer.
     /// # Safety
     /// *table* must be a valid [`MonoTableInfo`] pointer, and must match kind.
+    #[must_use]
     pub unsafe fn from_ptr(
         table: *const MonoTableInfo,
         kind: MetadataTableKind,
@@ -77,10 +78,12 @@ impl MetadataTableInfo {
         Self { table, kind }
     }
     ///Get amount of rows in a table.
+    #[must_use]
     pub fn get_table_rows(&self) -> i32 {
         unsafe { crate::binds::mono_table_info_get_rows(self.table) }
     }
-    ///Gets the token at *column* in *row*
+    ///Gets the token at *`column`* in *`row`*
+    #[must_use]
     pub fn decode_row_col(&self, row: i32, column: u32) -> MetadataToken {
         unsafe { crate::binds::mono_metadata_decode_row_col(self.table, row, column) }
     }
@@ -98,7 +101,8 @@ pub struct AssemblyMetadata {
     culture: String,
 }
 impl AssemblyMetadata {
-    fn from_meta_table(table: &MetadataTableInfo, img: &Image) -> AssemblyMetadata {
+    #[must_use]
+    fn from_meta_table(table: &MetadataTableInfo, img: Image) -> AssemblyMetadata {
         assert!(table.kind == MetadataTableKind::Assembly);
         AssemblyMetadata {
             hash_alg: HashAlgorithm::from_u32(table.decode_row_col(0, 0)),
@@ -114,17 +118,20 @@ impl AssemblyMetadata {
             culture: img.metadata_string_heap(table.decode_row_col(0, 8)),
         }
     }
-    ///Gets [`AssemblyMetadata`]
-    pub fn from_image(img: &Image) -> AssemblyMetadata {
+    ///Gets [`AssemblyMetadata`] from an [`Image`]
+    #[must_use]
+    pub fn from_image(img: Image) -> AssemblyMetadata {
         Self::from_meta_table(&img.get_table_info(MetadataTableKind::Assembly), img)
     }
     //Returns name string.
+    #[must_use]
     pub fn get_name(&self) -> String {
-        self.name.to_owned()
+        self.name.clone()
     }
     ///Returns culture string.
+    #[must_use]
     pub fn get_culture(&self) -> String {
-        self.culture.to_owned()
+        self.culture.clone()
     }
 }
 ///Representation of assembly flags. More info <a href="https://docs.microsoft.com/en-us/dotnet/api/system.reflection.assemblyflags?view=net-6.0"> here </a>
@@ -134,26 +141,32 @@ pub struct AssemblyFlags {
 #[allow(non_snake_case)]
 impl AssemblyFlags {
     ///Checks is `WindowsRuntime` flag is set.
+    #[must_use]
     pub fn is_set_WindowsRuntime(&self) -> bool {
         (self.flags & 512) != 0
     }
     ///Checks is `Retargtable` flag is set.
+    #[must_use]
     pub fn is_set_Retargtable(&self) -> bool {
         (self.flags & 256) != 0
     }
     ///Checks if `PublicKey` flag is set.
+    #[must_use]
     pub fn is_set_PublicKey(&self) -> bool {
         (self.flags & 1) != 0
     }
     ///Checks if `DisableJitCompileOptimizer` flag is set.
+    #[must_use]
     pub fn is_set_DisableJitCompileOptimizer(&self) -> bool {
         (self.flags & 16384) != 0
     }
     ///Checks if `EnableJitCompileTracking` flag is set.
+    #[must_use]
     pub fn is_set_EnableJitCompileTracking(&self) -> bool {
         (self.flags & 32768) != 0
     }
     ///Returns the `ContentType` mask bits.
+    #[must_use]
     pub fn content_type_mask(&self) -> [bool; 2] {
         [(self.flags & 2048) != 0, (self.flags & 1024) != 0]
     }
@@ -199,7 +212,7 @@ impl HashAlgorithm {
             32772 => HashAlgorithm::SHA1,
             32780 => HashAlgorithm::SHA256,
             32781 => HashAlgorithm::SHA384,
-            32782 => HashAlgorithm::SHA256,
+            32782 => HashAlgorithm::SHA512,
             _ => panic!("{u} is not a valid HashAlgorithm"),
         }
     }
@@ -237,7 +250,8 @@ pub struct AssemblyOSMetadata {
     minor_version: u32,
 }
 impl AssemblyOSMetadata {
-    fn from_meta_table(table: &MetadataTableInfo, img: &Image) -> AssemblyOSMetadata {
+    #[must_use]
+    fn from_meta_table(table: &MetadataTableInfo, img: Image) -> AssemblyOSMetadata {
         assert!(table.kind == MetadataTableKind::AssemblyOS);
         AssemblyOSMetadata {
             platform: img.metadata_string_heap(table.decode_row_col(0, 0)),
@@ -246,7 +260,8 @@ impl AssemblyOSMetadata {
         }
     }
     ///Gets [`AssemblyMetadata`]
-    pub fn from_image(img: &Image) -> Option<AssemblyOSMetadata> {
+    #[must_use]
+    pub fn from_image(img: Image) -> Option<AssemblyOSMetadata> {
         let table = img.get_table_info(MetadataTableKind::AssemblyOS);
         if table.get_table_rows() > 0 {
             Some(Self::from_meta_table(&table, img))

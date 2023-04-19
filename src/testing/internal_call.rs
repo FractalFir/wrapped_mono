@@ -12,7 +12,7 @@ rusty_fork_test! {
         #[invokable]
         pub fn string_test(s:String) -> i32{
             assert!(s == "|one,two,three,four,");
-            return 5;
+            5
         }
         #[invokable]
         fn pass_arg_count(input:i32){
@@ -40,7 +40,7 @@ rusty_fork_test! {
         ///invokable macro does not work with <>
         #[invokable]
         fn get_object()->Option<Object>{
-            return None;
+            None
         }
 
         use wrapped_mono::*;

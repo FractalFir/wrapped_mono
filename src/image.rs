@@ -6,11 +6,11 @@ pub struct Image {
 }
 #[allow(unused_imports)]
 use crate::binds::MonoAssembly; // For documentation
-
 use crate::metadata::{MetadataTableInfo, MetadataTableKind, MetadataToken};
 use std::ffi::CString;
 impl Image {
     /// Gets metadata table from an image.
+    #[must_use]
     pub fn get_table_info(&self, kind: MetadataTableKind) -> MetadataTableInfo {
         unsafe {
             MetadataTableInfo::from_ptr(
@@ -20,6 +20,7 @@ impl Image {
         }
     }
     /// Gets string from metadata string heap. *index* must be within the string heap.
+    #[must_use]
     pub fn metadata_string_heap(&self, index: MetadataToken) -> String {
         let cstr = unsafe {
             CString::from_raw(
@@ -33,10 +34,12 @@ impl Image {
     /// Creates the value of [`Image`] type from a [`MonoImage`].
     /// # Safety
     /// *ptr* must be a pointer to a valid [`MonoImage`].
+    #[must_use]
     pub unsafe fn from_ptr(ptr: *mut crate::binds::MonoImage) -> Self {
         Self { img_ptr: ptr }
     }
     /// Returns internal pointer to [`MonoImage`] this [`Image`] represents.
+    #[must_use]
     pub fn get_ptr(&self) -> *mut MonoImage {
         self.img_ptr
     }
@@ -45,6 +48,7 @@ impl Image {
         unsafe { crate::binds::mono_image_init(self.img_ptr) };
     }
     /// Returns name of this image
+    #[must_use]
     pub fn get_name(&self) -> String {
         let ptr = unsafe { crate::binds::mono_image_get_name(self.img_ptr) };
         let cstr = unsafe { CString::from_raw(ptr as *mut i8) };

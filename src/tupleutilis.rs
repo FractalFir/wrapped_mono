@@ -1,3 +1,4 @@
+#![allow(clippy::many_single_char_names)]
 use core::ffi::c_void;
 //for argument procesing
 type VoidPtr = *mut c_void;
@@ -6,9 +7,10 @@ pub trait TupleToPtrs {
     type Res;
     fn get_ptrs(base_ptr: *mut Self) -> Self::Res;
 }
+#[allow(clippy::similar_names)]
 impl TupleToPtrs for () {
     type Res = [*mut c_void; 0];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
+    fn get_ptrs(_base_ptr: *mut Self) -> Self::Res {
         []
     }
 }

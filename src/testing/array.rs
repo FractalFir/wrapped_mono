@@ -1,25 +1,16 @@
 use crate as wrapped_mono;
 use rusty_fork::rusty_fork_test;
-use wrapped_mono::{
-    array::Array,
-    class::Class,
-    jit,
-    method::Method,
-    object::{Object, ObjectTrait},
-    *,
-};
+use wrapped_mono::{array::Array, class::Class, jit, method::Method, object::ObjectTrait, *};
 rusty_fork_test! {
     #[test]
     fn get_2D_array_from_method(){
-        use crate::binds::MonoObject;
+
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
         let class = Class::from_name(&img,"","TestFunctions").expect("Could not get class");
         let mthd:Method<()> = Method::get_from_name(&class,"Get2DIntArray",0).expect("Could not load function");
-        let arr:Array<Dim2D,i32> = unsafe{Array::from_ptr((
-            mthd.invoke(None,()).expect("Exception").expect("got null").get_ptr() as *mut crate::binds::MonoArray
-        ))}.expect("got null again");
+        let arr:Array<Dim2D,i32> = unsafe{Array::from_ptr(mthd.invoke(None,()).expect("Exception").expect("got null").get_ptr() as *mut crate::binds::MonoArray)}.expect("got null again");
         assert!(arr.len() == 8*16);
     }
     #[test]
@@ -27,7 +18,7 @@ rusty_fork_test! {
         let dom = jit::init("root",None);
         let arr:Array<Dim4D,i32> = Array::new(&dom,&[1,2,3,4]);
         assert!(arr.get_lenghts() == [1,2,3,4]);
-        assert!(arr.len() == 1*2*3*4);
+        assert!(arr.len() == 2*3*4);
         assert!(arr.get_class().get_rank() == 4);
     }
     #[test]

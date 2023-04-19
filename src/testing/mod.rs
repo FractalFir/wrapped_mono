@@ -55,7 +55,7 @@ rusty_fork_test! {
     //#[test]
     fn unload_domain(){
         use wrapped_mono::jit;
-        use crate::domain::Domain;
+
         let _dom = jit::init("root",None);
     }
     #[test]
@@ -71,7 +71,7 @@ rusty_fork_test! {
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
-        let _asm_meta = AssemblyMetadata::from_image(&img);
+        let _asm_meta = AssemblyMetadata::from_image(img);
     }
     #[should_panic]
     #[test]
@@ -81,7 +81,7 @@ rusty_fork_test! {
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         let img = asm.get_image();
-        let asm_meta = AssemblyOSMetadata::from_image(&img).expect("No OS metadata!");
+        let asm_meta = AssemblyOSMetadata::from_image(img).expect("No OS metadata!");
         panic!("{}",asm_meta);
     }
     #[should_panic]

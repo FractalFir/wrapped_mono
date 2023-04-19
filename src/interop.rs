@@ -1,17 +1,17 @@
-/// Tratit specifing how to convert a type when transfering it between managed and unmanaged code. It specifies how to convert
-/// SourceType used by MonoRuntime to type implementing this trait.
+/// Trait specifying how to convert a type when transferring it between managed and unmanaged code. It specifies how to convert
+/// `SourceType` used by `MonoRuntime` to type implementing this trait.
 pub trait InteropRecive {
-    ///Souce type used by MonoRuntime when calling functions exposed by add_internal_call, that can be converted to a rust type.
+    ///Souce type used by `MonoRuntime` when calling functions exposed by `add_internal_call`, or getting a value back from a method, that can be converted to a rust type.
     type SourceType: Copy;
-    ///Function converting SourceType to type implementing InteropRecive trait.
+    ///Function converting [`Self::SourceType`] to type implementing [`InteropRecive`] trait.
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self;
 }
-/// Tratit specifing how to convert a type when transfering it between managed and unmanaged code. It specifies how to convert type implementing this trait
-/// to TargetType used by MonoRuntime.
+/// Trait specifying how to convert a type when transferring it between managed and unmanaged code. It specifies how to convert type implementing this trait
+/// to `TargetType` used by `MonoRuntime`.
 pub trait InteropSend {
-    ///Type used by MonoRuntime, that type implementing InteropSend trait should be converted to when returnig it to MonoRuntime.
+    ///Type used by `MonoRuntime`, that type implementing [`InteropSend`] trait should be converted to when returning it to `MonoRuntime`.
     type TargetType: Copy;
-    ///Function converting type implementing InteropRecive trait to type that should be returned to MonoRuntime.
+    ///Function converting type implementing [`InteropRecive`] trait to type that should be returned to `MonoRuntime`.
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType;
 }
 impl InteropRecive for String {
@@ -25,7 +25,7 @@ impl InteropRecive for String {
             .to_str()
             .expect("Could not convert MonoString to String!")
             .to_owned();
-        unsafe { crate::binds::mono_free(cstr.into_raw() as *mut std::os::raw::c_void) };
+        unsafe { crate::binds::mono_free(cstr.into_raw().cast::<std::ffi::c_void>()) };
         res
     }
 }
@@ -224,9 +224,7 @@ impl InteropSend for bool {
 }
 impl InteropSend for () {
     type TargetType = ();
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
+    fn get_mono_rep(_: Self) -> Self::TargetType {}
 }
 impl InteropSend for String {
     type TargetType = *mut crate::binds::MonoString;
@@ -243,7 +241,7 @@ impl InteropSend for String {
 use crate::class::Class;
 /// Trait allowing for boxing and unboxing type from objects
 /// # Safety
-/// Managed type returned by `get_mono_class` of InteropClass **must** be boxable, otherwise a crash will occur.
+/// Managed type returned by `get_mono_class` of `InteropClass` **must** be boxable, otherwise a crash may occur.
 pub trait InteropBox
 where
     Self: InteropRecive + InteropSend + InteropClass,

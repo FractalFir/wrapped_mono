@@ -31,11 +31,12 @@ impl ReflectionType {
                 return None;
             }
             Some(Self {
-                handle: GCHandle::create_default(type_ptr as *mut _),
+                handle: GCHandle::create_default(type_ptr.cast()),
             })
         }
     }
     /// Gets the internal pointer to [`MonoReflectionType`]
+    #[must_use]
     pub fn get_ptr(&self) -> *mut MonoReflectionType {
         #[cfg(not(feature = "referneced_objects"))]
         {
@@ -43,10 +44,12 @@ impl ReflectionType {
         }
         #[cfg(feature = "referneced_objects")]
         {
-            self.handle.get_target() as *mut _
+            self.handle.get_target().cast()
         }
     }
     /// Converts a class to a [`MonoReflectionType`]
+    #[allow(clippy::missing_panics_doc)]
+    #[must_use]
     pub fn from_class(class: &Class) -> Self {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
@@ -57,6 +60,7 @@ impl ReflectionType {
         res
     }
     /// Returns a pointer to unmanaged representation of `System.Type`
+    #[must_use]
     pub fn get_type_ptr(&self) -> *mut MonoType {
         unsafe { crate::binds::mono_reflection_type_get_type(self.get_ptr()) }
     }
@@ -75,11 +79,13 @@ impl ReflectionType {
         )
     }
     /// Gets type with *name* inside image *img*
-    pub fn from_name(name: &str, img: &Image) -> Option<Self> {
+    #[must_use]
+    pub fn from_name(name: &str, img: Image) -> Option<Self> {
         let cstr = CString::new(name).expect("Could not convert string to CString");
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let ptr = unsafe {
+            #[allow(clippy::cast_possible_truncation)]
             crate::binds::mono_reflection_type_from_name(cstr.as_ptr() as *mut i8, img.get_ptr())
         };
         if ptr.is_null() {
@@ -90,27 +96,22 @@ impl ReflectionType {
         gc_unsafe_exit(marker);
         res
     }
-    #[doc(hidden)] // Unfinished
-    pub fn create_generic(gtype_img: &Image, gtype: &str, gargs: &[Self]) -> Option<Self> {
+    // Unfinished
+    #[allow(dead_code)]
+    fn create_generic(gtype_img: Image, gtype: &str, gargs: &[Self]) -> Option<Self> {
         let garg_count = gargs.len();
-        let gtype_str = format!("{}`{}", gtype, garg_count);
-        println!("{}", gtype_str);
-        let res = match ReflectionType::from_name(&gtype_str, gtype_img) {
-            Some(res) => res,
-            None => return None,
-        };
+        let gtype_str = format!("{gtype}`{garg_count}");
+        println!("{gtype_str}");
+        let Some(res) = ReflectionType::from_name(&gtype_str, gtype_img) else { return None };
         let arr: Array<Dim1D, ReflectionType> = gargs.into();
         let res = MAKE_GENERIC_TYPE_MET.invoke(Some(res.cast_to_object()), (arr,));
         // handle exceptions
         let res = match res {
             Ok(res) => res,
-            Err(err) => panic!("EXCEPTION:'{}'", err), //return None,
+            Err(except_msg) => panic!("EXCEPTION:'{except_msg}'"), //return None,
         };
         // handle null
-        let res = match res {
-            Some(res) => res,
-            None => return None,
-        };
+        let Some(res) = res else { return None };
         Self::cast_from_object(&res)
     }
 }
@@ -142,7 +143,7 @@ impl ObjectTrait for ReflectionType {
     fn hash(&self) -> i32 {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let hsh = unsafe { crate::binds::mono_object_hash(self.get_ptr() as *mut _) };
+        let hsh = unsafe { crate::binds::mono_object_hash(self.get_ptr().cast()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         hsh
@@ -151,9 +152,7 @@ impl ObjectTrait for ReflectionType {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let dom = unsafe {
-            Domain::from_ptr(crate::binds::mono_object_get_domain(
-                self.get_ptr() as *mut _
-            ))
+            Domain::from_ptr(crate::binds::mono_object_get_domain(self.get_ptr().cast()))
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -162,7 +161,7 @@ impl ObjectTrait for ReflectionType {
     fn get_size(&self) -> u32 {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let size = unsafe { crate::binds::mono_object_get_size(self.get_ptr() as *mut _) };
+        let size = unsafe { crate::binds::mono_object_get_size(self.get_ptr().cast()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         size
@@ -170,7 +169,7 @@ impl ObjectTrait for ReflectionType {
     fn reflection_get_token(&self) -> u32 {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let tok = unsafe { crate::binds::mono_reflection_get_token(self.get_ptr() as *mut _) };
+        let tok = unsafe { crate::binds::mono_reflection_get_token(self.get_ptr().cast()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         tok
@@ -179,7 +178,7 @@ impl ObjectTrait for ReflectionType {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let class = unsafe {
-            Class::from_ptr(crate::binds::mono_object_get_class(self.get_ptr() as *mut _))
+            Class::from_ptr(crate::binds::mono_object_get_class(self.get_ptr().cast()))
                 .expect("Could not get class of an object")
         };
         #[cfg(feature = "referneced_objects")]
@@ -192,9 +191,8 @@ impl ObjectTrait for ReflectionType {
         let mut exc: *mut crate::binds::MonoException = core::ptr::null_mut();
         let res = unsafe {
             MString::from_ptr(crate::binds::mono_object_to_string(
-                self.get_ptr() as *mut _,
-                &mut exc as *mut *mut crate::binds::MonoException
-                    as *mut *mut crate::binds::MonoObject,
+                self.get_ptr().cast(),
+                std::ptr::addr_of_mut!(exc).cast::<*mut crate::binds::MonoObject>(),
             ))
         };
         let exc = unsafe { Exception::from_ptr(exc) };
@@ -208,20 +206,17 @@ impl ObjectTrait for ReflectionType {
     fn cast_to_object(&self) -> Object {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let obj = unsafe { Object::from_ptr(self.get_ptr() as *mut _) }.unwrap(); //Faliure impossible, object is always an object.
+        let obj = unsafe { Object::from_ptr(self.get_ptr().cast()) }.unwrap(); //Faliure impossible, object is always an object.
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         obj
     }
     fn cast_from_object(obj: &Object) -> Option<Self> {
         //TODO: adjust this after including GCHandles to speed things up.
-        let cast = match obj.is_inst(&<Self as InteropClass>::get_mono_class()) {
-            Some(cast) => cast,
-            None => return None,
-        };
+        let Some(cast) = obj.is_inst(&<Self as InteropClass>::get_mono_class()) else { return None };
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let cast = unsafe { Self::from_ptr(cast.get_ptr() as *mut _) };
+        let cast = unsafe { Self::from_ptr(cast.get_ptr().cast()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         cast

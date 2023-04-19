@@ -39,7 +39,7 @@ impl TokVecTraits for TokVec {
                         res.push(tmp);
                         tmp = Vec::new();
                     } else {
-                        tmp.push(tok)
+                        tmp.push(tok);
                     };
                 }
                 _ => {

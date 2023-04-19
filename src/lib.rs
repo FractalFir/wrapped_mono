@@ -1,13 +1,4 @@
-// Some experimental features simply need to be enabled to make wrapped_mono work. They are used rarely and with special caution.
-#![allow(incomplete_features)]
-// Necessary for proper work of Method, usage rather simple, but bugs possible when changes to compiler are made.
-// #![feature(specialization)]
-// used only for array sizes, in a very simple, limited manner. Should not cause troubles when updating.
-// #![feature(generic_const_exprs)]
-// used for benchmarking
-// #![feature(test)]
-// doctests are disabled, because they do not work with rusty_fork! which is required for testing mono runtime
-// #![cfg(not(doctest))]
+#![allow(clippy::module_name_repetitions)]
 //! `wrapped_mono` is a safe, lightweight wrapper around the mono library. It allows embedding of the mono runtime inside a rust project. Inside this embedded runtime code written in languages supporting the .NET framework, such as C\# and F\#, can be run. This allows usage of libraries written in those languages, and using them as a scripting language. The mono runtime is used by many game engines, and this wrapper allows using it with projects written in Rust too.
 //! # Safety
 //! Most functions are safe and when invalid data is passed will fail in a controlled way with an error message. There are still some pitfalls, because not all errors can be caught without substantial overhead. Those errors are hard to come by, and should be always clearly
@@ -78,7 +69,7 @@ pub mod dimensions;
 pub use dimensions::*;
 /// Utilities related to managed arrays.
 pub mod array;
-/// Functions and types related to MonoAssembly type.
+/// Functions and types related to `MonoAssembly` type.
 pub mod assembly;
 /// Autognerated, unsafe binds to mono library
 #[doc(hidden)]
@@ -87,7 +78,7 @@ pub mod binds;
 pub mod class;
 /// Safe representation of a delegate.
 // pub mod delegate;
-/// Functions and types related to MonoDomain type.
+/// Functions and types related to `MonoDomain` type.
 pub mod domain;
 ///Utilities related to Exceptions.
 pub mod exception;
