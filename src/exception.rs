@@ -16,7 +16,9 @@ pub struct Exception {
     handle: GCHandle,
 }
 impl Exception {
-    /// Raise exception (it can be then catched by catch clause in managed code)
+    /// Raise exception (it can be then cached by catch clause in managed code)
+    /// # Safety
+    /// This function is extremely unsafe, because when it is called, drop functions of local variables **are not** automatically  called. 
     /// # Example
     /// ## C#
     ///```csharp
@@ -39,11 +41,14 @@ impl Exception {
     /// # use wrapped_mono::{invokable,Exception};
     /// #[invokable]
     /// fn exception_thrower(){
+    ///     let some_local_data = vec![12,2,35,32];
     ///     let exception = Exception::not_implemented("This function will just throw exceptions!");
-    ///     exception.raise();
+    ///     // Everything needs to be dropped before exception is thrown!
+    ///     drop(some_local_data);
+    ///     unsafe{exception.raise()};
     /// }
     #[allow(clippy::missing_panics_doc)] // This may never panic, because it is impossible to return from `raise`
-    pub fn raise(&self) -> ! {
+    pub unsafe fn raise(&self) -> ! {
         unsafe { crate::binds::mono_raise_exception(self.get_ptr()) };
         panic!("After an exception is thrown, nothing should happen.");
     }
@@ -658,7 +663,7 @@ impl Exception {
     }
 }
 /// Variant of except which instead of panicking will raise a managed exception.
-pub fn except_managed<T: Sized>(option: Option<T>, msg: &str) -> T {
+pub(crate) fn except_managed<T: Sized>(option: Option<T>, msg: &str) -> T {
     if let Some(t) = option {
         t
     } else {
@@ -667,11 +672,11 @@ pub fn except_managed<T: Sized>(option: Option<T>, msg: &str) -> T {
             std::any::type_name::<T>(),
             &msg
         ));
-        exc.raise();
+        unsafe{exc.raise();}
     }
 }
 /// Variant of except which instead of panicking will raise a managed exception.
-pub fn unwrap_managed<T: Sized>(option: Option<T>) -> T {
+pub(crate) fn unwrap_managed<T: Sized>(option: Option<T>) -> T {
     if let Some(t) = option {
         t
     } else {
@@ -679,7 +684,7 @@ pub fn unwrap_managed<T: Sized>(option: Option<T>) -> T {
             "Value of type: \"{}\" was null!",
             std::any::type_name::<T>()
         ));
-        exc.raise();
+        unsafe{exc.raise();}
     }
 }
 use core::fmt::Formatter;

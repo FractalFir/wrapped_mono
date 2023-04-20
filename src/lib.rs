@@ -43,8 +43,8 @@
 //!     #[invokable]
 //!     fn sqrt(input:f32)->f32{
 //!         if input < 0.0{
-//!             // can't get sqrt of a negative number, so create a managed exception and throw it
-//!             Exception::arithmetic().raise();
+//!             // can't get sqrt of a negative number, so create a managed exception and throw it.
+//!             unsafe{Exception::arithmetic().raise()};
 //!         }
 //!         input.sqrt()
 //!     }
@@ -121,7 +121,7 @@ pub use class::{Class, ClassField, ClassProperity};
 #[doc(inline)]
 pub use domain::Domain;
 #[doc(inline)]
-pub use exception::{except_managed, Exception};
+pub use exception::{Exception};
 #[doc(inline)]
 pub use image::Image;
 #[doc(inline)]
