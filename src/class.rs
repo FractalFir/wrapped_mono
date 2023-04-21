@@ -1,12 +1,20 @@
 use crate::binds::MonoClass;
 use crate::tupleutilis::CompareClasses;
-use crate::{Image, InteropSend, Method};
+use crate::{Image, InteropSend, Method, ObjectTrait};
 use core::ffi::c_void;
 use std::ffi::CString;
+use std::fmt::{Debug, Formatter};
 ///  Safe representation of a managed class.(eg. System.Int64, System.Object, etc.);
 #[derive(Eq, Copy, Clone)]
 pub struct Class {
     class_ptr: *mut MonoClass,
+}
+impl Debug for Class {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let name = self.get_name();
+        let namespace = self.get_namespace();
+        write!(f, "Class{{namespace:\"{namespace}\",name:\"{name}\"}}")
+    }
 }
 impl Class {
     /// Returns copy of internal pointer representing [`MonoClass`].
@@ -603,7 +611,6 @@ impl ClassField {
     /// ```
     #[must_use]
     pub fn get_value_object(&self, obj: &Object) -> Option<Object> {
-        use crate::object::ObjectTrait;
         let dom = obj.get_domain();
         unsafe {
             Object::from_ptr(crate::binds::mono_field_get_value_object(
@@ -644,7 +651,6 @@ impl ClassField {
     pub fn set_value<T: InteropBox>(&self, obj: &Object, mut val: T) -> Result<(), String> {
         #[cfg(not(feature = "unsafe_boxing"))]
         {
-            use crate::object::ObjectTrait;
             let object_class = obj.get_class();
             let target_class = <T as InteropClass>::get_mono_class();
             if object_class != target_class {
@@ -672,7 +678,6 @@ impl ClassField {
         &self,
         obj: &Object,
     ) -> Result<T, String> {
-        use crate::object::ObjectTrait;
         let dom = obj.get_domain();
         let obj = unsafe {
             Object::from_ptr(crate::binds::mono_field_get_value_object(
@@ -757,7 +762,7 @@ impl ClassProperity {
         if exec.is_null() {
             Ok(Object::from_ptr(res))
         } else {
-            let e = Exception::from_ptr(exec).expect(
+            let e = Exception::from_ptr(exec.cast()).expect(
                 "Impossible condition reached. Pointer null and not null at the same time!",
             );
             Err(e)
@@ -789,7 +794,7 @@ impl ClassProperity {
         if exec.is_null() {
             Ok(())
         } else {
-            let e = Exception::from_ptr(exec).expect(
+            let e = Exception::from_ptr(exec.cast()).expect(
                 "Impossible condition reached. Pointer null and not null at the same time!",
             );
             Err(e)

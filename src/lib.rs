@@ -121,7 +121,7 @@ pub use class::{Class, ClassField, ClassProperity};
 #[doc(inline)]
 pub use domain::Domain;
 #[doc(inline)]
-pub use exception::{Exception};
+pub use exception::Exception;
 #[doc(inline)]
 pub use image::Image;
 #[doc(inline)]

@@ -1,6 +1,6 @@
 use crate::binds::{MonoException, MonoMethod, MonoObject};
 use crate::tupleutilis::{CompareClasses, TupleToPtrs};
-use crate::{Class, Exception, InteropSend, Object};
+use crate::{Class, Exception, InteropSend, Object, ObjectTrait};
 use core::{ffi::c_void, marker::PhantomData};
 use std::ffi::CString;
 use std::ptr::null_mut;
@@ -233,7 +233,7 @@ where
             Ok(res)
         } else {
             let except = unsafe {
-                Exception::from_ptr(expect)
+                Exception::from_ptr(expect.cast())
                     .expect("Imposible: pointer is null and not null at the same time.")
             };
             Err(except)

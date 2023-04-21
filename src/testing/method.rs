@@ -333,6 +333,7 @@ use crate::InteropBox;
 use crate::{InteropClass, InteropRecive, InteropSend};
 #[derive(InteropRecive, InteropSend, Copy, Clone, PartialEq)]
 #[repr(u64)]
+#[allow(dead_code)]
 enum CLikeEnum {
     Val = 1,
     Val2 = 2,

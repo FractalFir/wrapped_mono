@@ -1,4 +1,4 @@
-use crate::Object;
+use crate::{Object, ObjectTrait};
 /// Preform collection on *generation* and any generation lower than that.
 /// WARNING: If raw object pointers are used, collection may collect objects pointed to by those pointers.
 pub fn collect_generation(generation: i32) {

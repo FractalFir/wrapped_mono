@@ -25,13 +25,24 @@ rusty_fork_test! {
         assert!("System" == &class.get_namespace());
     }
     #[test]
+    fn fmt(){
+        use wrapped_mono::*;
+        let domain = jit::init("main",None);
+        let asm = domain.assembly_open("test/dlls/Test.dll").expect("Could not load assembly");
+        let img = asm.get_image();
+        let test_class = Class::from_name(&img,"","TestFunctions").expect("Could not find class");
+        let dbg_fmt = format!("{test_class:?}");
+        assert_eq!(dbg_fmt,"Class{namespace:\"\",name:\"TestFunctions\"}");
+    }
+    #[test]
     fn get_parrent(){
         use wrapped_mono::*;
         let domain = jit::init("main",None);
         let asm = domain.assembly_open("test/dlls/Test.dll").expect("Could not load assembly");
         let img = asm.get_image();
         let test_class = Class::from_name(&img,"","TestFunctions").expect("Could not find class");
-        test_class.get_parent();
+        let parrent = test_class.get_parent().unwrap();
+        assert_eq!(parrent,Class::get_object());
     }
     #[test]
     fn class_get_namespace_no_namespace(){

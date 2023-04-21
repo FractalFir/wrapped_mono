@@ -1,8 +1,8 @@
-use crate::binds::{MonoArray, MonoObject};
+use crate::binds::MonoObject;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
 use crate::interop::{InteropClass, InteropRecive, InteropSend};
 use crate::{
-    dimensions::DimensionTrait, domain::Domain, mstring::MString, Class, Exception, Object,
+    dimensions::DimensionTrait, domain::Domain, Class, Object,
     ObjectTrait,
 };
 use core::marker::PhantomData;
@@ -89,7 +89,7 @@ where
         #[allow(clippy::cast_possible_wrap)]
         let src: T::SourceType = unsafe {
             *(crate::binds::mono_array_addr_with_size(
-                self.get_ptr(),
+                self.get_ptr().cast(),
                 std::mem::size_of::<T::SourceType>() as i32,
                 index,
             ) as *const T::SourceType)
@@ -131,7 +131,7 @@ where
             #[allow(clippy::cast_possible_truncation)]
             #[allow(clippy::cast_possible_wrap)]
             crate::binds::mono_array_addr_with_size(
-                self.get_ptr(),
+                self.get_ptr().cast(),
                 std::mem::size_of::<T::TargetType>() as i32,
                 index,
             )
@@ -161,7 +161,7 @@ where
     pub fn len(&self) -> usize {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let len = unsafe { crate::binds::mono_array_length(self.get_ptr()) };
+        let len = unsafe { crate::binds::mono_array_length(self.get_ptr().cast()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         len
@@ -175,21 +175,158 @@ where
     pub fn is_empty(&self) -> bool {
         0 == self.len()
     }
-    /// Function creating [`Array<T>`] from a pointer to [`MonoArray`]
-    /// # Safety
-    /// Pointer must be either a pointer to valid [`MonoArray`] of the same type, or a null pointer. Invalid values may lead to undefined behaviour and crashes.
+
+    /// Converts [`Array`] to [`Object`]
     /// # Arguments
     /// |Name   |Type   |Description|
     /// |-------|-------|------|
-    /// |ptr| *mut [`MonoArray`] | pointer to array to create representation for|
-    /// # Panics
-    /// Will panic if the array dimension count or element type mismatch.
+    /// |self| &Array | array to cast to object|
     #[must_use]
-    pub unsafe fn from_ptr(ptr: *mut MonoArray) -> Option<Self> {
-        use crate::Method;
-        if ptr.is_null() {
-            return None;
+    pub fn to_object(&self) -> Object {
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let res = unsafe { Object::from_ptr(self.get_ptr().cast()) }
+            .expect("Could not create object from array!");
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        res
+    }
+    /// Allocate new array in *domain* with size *DIMENSIONS* with elements of type *class*.
+    /// # Example
+    /// ```no_run
+    /// # use wrapped_mono::*;
+    /// # let domain = Domain::get_current().unwrap();
+    /// # let int_managed_class = Class::get_int_32();
+    /// let arr_len = 8;
+    /// let arr = Array::<Dim1D,i32>::new(&domain,&[arr_len]);
+    /// assert!(arr.len() == arr_len);
+    /// ```
+    ///
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |domain| &[`Domain`] | domain to create array in|
+    /// |size|`&[usize;DIMENSIONS as usize]`| size of the array to create|
+    #[must_use]
+    pub fn new(domain: &Domain, size: &Dim::Lengths) -> Self {
+        #[allow(clippy::cast_possible_truncation)]
+        let class = <T as InteropClass>::get_mono_class().get_array_class(Dim::DIMENSIONS as u32);
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let arr = unsafe {
+            Self::from_ptr(
+                crate::binds::mono_array_new_full(
+                    domain.get_ptr(),
+                    class.get_ptr(),
+                    size as *const _ as *mut usize,
+                    null_mut(),
+                )
+                .cast(),
+            )
         }
+        .expect("could not create a new array!");
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        arr
+    }
+    /// Clones managed array, **not** the reference to it.
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self|&Array|Array to clone|
+    #[must_use]
+    pub fn clone_managed_array(&self) -> Self {
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let res =
+            unsafe { Self::from_ptr(crate::binds::mono_array_clone(self.get_ptr().cast()).cast()) }
+                .expect("coud not create copy of an array!");
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        res
+    }
+    ///Returns class of this array
+    #[must_use]
+    pub fn get_class() -> Class {
+        #[allow(clippy::cast_possible_truncation)]
+        Class::get_array_class(
+            &<T as InteropClass>::get_mono_class(),
+            Dim::DIMENSIONS as u32,
+        )
+    }
+    /// Returns n-dimensional length of this array.
+    /// # Arguments
+    /// |Name   |Type   |Description|
+    /// |-------|-------|------|
+    /// |self|&Array|Array to get size of|
+    pub fn get_lenghts(&self) -> Dim::Lengths {
+        self.lengths
+    }
+}
+impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropRecive
+    for Array<Dim, T>
+where
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
+{
+    type SourceType = *mut crate::binds::MonoArray;
+    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
+    fn get_rust_rep(arg: Self::SourceType) -> Self {
+        use crate::exception::except_managed;
+        #[cfg(feature = "referneced_objects")]
+        let marker = gc_unsafe_enter();
+        let opt = unsafe { Self::from_ptr(arg.cast()) };
+        let res = except_managed(
+            opt,
+            "Got null in an not nullable type. For nullable support use Option<Array>",
+        );
+        #[cfg(feature = "referneced_objects")]
+        gc_unsafe_exit(marker);
+        res
+    }
+}
+impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropSend
+    for Array<Dim, T>
+where
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
+{
+    type TargetType = *mut crate::binds::MonoArray;
+    fn get_mono_rep(arg: Self) -> Self::TargetType {
+        arg.get_ptr().cast()
+    }
+}
+impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropClass
+    for Array<Dim, T>
+where
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
+{
+    fn get_mono_class() -> Class {
+        Self::get_class()
+    }
+}
+impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> ObjectTrait
+    for Array<Dim, T>
+where
+    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
+    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
+    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
+{
+    #[must_use]
+    fn get_ptr(&self) -> *mut crate::binds::MonoObject {
+        #[cfg(not(feature = "referneced_objects"))]
+        return self.arr_ptr;
+        #[cfg(feature = "referneced_objects")]
+        return self.handle.get_target().cast();
+    }
+    #[must_use]
+    unsafe fn from_ptr_unchecked(ptr: *mut MonoObject) -> Self {
+        use crate::Method;
         #[cfg(not(feature = "referneced_objects"))]
         let mut res = Array {
             arr_ptr: ptr,
@@ -235,245 +372,7 @@ where
                 len_ref[i] = dim_obj.unbox::<i32>() as usize;
             }
         }
-        Some(res)
-    }
-    /// Converts [`Array`] to [`Object`]
-    /// # Arguments
-    /// |Name   |Type   |Description|
-    /// |-------|-------|------|
-    /// |self| &Array | array to cast to object|
-    #[must_use]
-    pub fn to_object(&self) -> Object {
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let res = unsafe { Object::from_ptr(self.get_ptr().cast()) }
-            .expect("Could not create object from array!");
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
         res
-    }
-    /// Allocate new array in *domain* with size *DIMENSIONS* with elements of type *class*.
-    /// # Example
-    /// ```no_run
-    /// # use wrapped_mono::*;
-    /// # let domain = Domain::get_current().unwrap();
-    /// # let int_managed_class = Class::get_int_32();
-    /// let arr_len = 8;
-    /// let arr = Array::<Dim1D,i32>::new(&domain,&[arr_len]);
-    /// assert!(arr.len() == arr_len);
-    /// ```
-    ///
-    /// # Arguments
-    /// |Name   |Type   |Description|
-    /// |-------|-------|------|
-    /// |domain| &[`Domain`] | domain to create array in|
-    /// |size|`&[usize;DIMENSIONS as usize]`| size of the array to create|
-    #[must_use]
-    pub fn new(domain: &Domain, size: &Dim::Lengths) -> Self {
-        #[allow(clippy::cast_possible_truncation)]
-        let class = <T as InteropClass>::get_mono_class().get_array_class(Dim::DIMENSIONS as u32);
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let arr = unsafe {
-            Self::from_ptr(crate::binds::mono_array_new_full(
-                domain.get_ptr(),
-                class.get_ptr(),
-                size as *const _ as *mut usize,
-                null_mut(),
-            ))
-        }
-        .expect("could not create a new array!");
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        arr
-    }
-    /// Function returning a copy of internal pointer to [`MonoArray`]
-    /// # Arguments
-    /// |Name   |Type   |Description|
-    /// |-------|-------|------|
-    /// |self| &Array | Rust representation of Array to get internal pointer to|
-    #[must_use]
-    pub fn get_ptr(&self) -> *mut crate::binds::MonoArray {
-        #[cfg(not(feature = "referneced_objects"))]
-        return self.arr_ptr;
-        #[cfg(feature = "referneced_objects")]
-        return self.handle.get_target().cast();
-    }
-    /// Clones managed array, **not** the reference to it.
-    /// # Arguments
-    /// |Name   |Type   |Description|
-    /// |-------|-------|------|
-    /// |self|&Array|Array to clone|
-    #[must_use]
-    pub fn clone_managed_array(&self) -> Self {
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let res = unsafe { Self::from_ptr(crate::binds::mono_array_clone(self.get_ptr())) }
-            .expect("coud not create copy of an array!");
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        res
-    }
-    ///Returns class of this array
-    #[must_use]
-    pub fn get_class() -> Class {
-        #[allow(clippy::cast_possible_truncation)]
-        Class::get_array_class(
-            &<T as InteropClass>::get_mono_class(),
-            Dim::DIMENSIONS as u32,
-        )
-    }
-    /// Returns n-dimensional length of this array.
-    /// # Arguments
-    /// |Name   |Type   |Description|
-    /// |-------|-------|------|
-    /// |self|&Array|Array to get size of|
-    pub fn get_lenghts(&self) -> Dim::Lengths {
-        self.lengths
-    }
-}
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropRecive
-    for Array<Dim, T>
-where
-    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy + Copy,
-    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
-    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
-{
-    type SourceType = *mut crate::binds::MonoArray;
-    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    fn get_rust_rep(arg: Self::SourceType) -> Self {
-        use crate::exception::except_managed;
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let opt = unsafe { Self::from_ptr(arg) };
-        let res = except_managed(
-            opt,
-            "Got null in an not nullable type. For nullable support use Option<Array>",
-        );
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        res
-    }
-}
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropSend
-    for Array<Dim, T>
-where
-    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
-    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
-    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
-{
-    type TargetType = *mut crate::binds::MonoArray;
-    fn get_mono_rep(arg: Self) -> Self::TargetType {
-        arg.get_ptr()
-    }
-}
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropClass
-    for Array<Dim, T>
-where
-    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
-    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
-    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
-{
-    fn get_mono_class() -> Class {
-        Self::get_class()
-    }
-}
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> ObjectTrait
-    for Array<Dim, T>
-where
-    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
-    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
-    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
-{
-    fn hash(&self) -> i32 {
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let hash = unsafe { crate::binds::mono_object_hash(self.get_ptr().cast()) };
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        hash
-    }
-    fn get_domain(&self) -> crate::domain::Domain {
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let dom = unsafe {
-            crate::domain::Domain::from_ptr(crate::binds::mono_object_get_domain(
-                self.get_ptr().cast(),
-            ))
-        };
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        dom
-    }
-    fn get_size(&self) -> u32 {
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let size = unsafe { crate::binds::mono_object_get_size(self.get_ptr().cast()) };
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        size
-    }
-    fn reflection_get_token(&self) -> u32 {
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let token = unsafe { crate::binds::mono_reflection_get_token(self.get_ptr().cast()) };
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        token
-    }
-    fn get_class(&self) -> crate::class::Class {
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let class = unsafe {
-            crate::class::Class::from_ptr(crate::binds::mono_object_get_class(
-                self.get_ptr().cast(),
-            ))
-            .expect("Could not get class of an object")
-        };
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        class
-    }
-    fn to_mstring(&self) -> Result<Option<MString>, Exception> {
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let mut exc: *mut crate::binds::MonoException = core::ptr::null_mut();
-        let res = unsafe {
-            MString::from_ptr(crate::binds::mono_object_to_string(
-                self.get_ptr().cast(),
-                std::ptr::addr_of_mut!(exc).cast::<*mut MonoObject>(),
-            ))
-        };
-        let exc = unsafe { Exception::from_ptr(exc) };
-        let res = match exc {
-            Some(e) => Err(e),
-            None => Ok(res),
-        };
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        res
-    }
-    fn cast_to_object(&self) -> Object {
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let obj = unsafe { Object::from_ptr(self.get_ptr().cast()) }.unwrap(); //impossible. If array exists, then object exists too.
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        obj
-    }
-    /// Cast [`Object`] to [`Array`]. Returns [`None`] if cast failed.
-    /// # Arguments
-    /// |Name   |Type   |Description|
-    /// |-------|-------|------|
-    /// |object| &Object | object to cast from |
-    fn cast_from_object(object: &Object) -> Option<Array<Dim, T>> {
-        let source_class = object.get_class();
-        let target_class = <Self as InteropClass>::get_mono_class();
-        if source_class.get_element_class() != target_class.get_element_class() {
-            return None;
-        }
-        unsafe { Self::from_ptr(object.get_ptr().cast()) }
     }
 }
 impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropRecive
@@ -487,7 +386,7 @@ where
     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(arg: Self::SourceType) -> Self {
-        unsafe { Array::<Dim, T>::from_ptr(arg) }
+        unsafe { Array::<Dim, T>::from_ptr(arg.cast()) }
     }
 }
 impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropSend
@@ -500,7 +399,7 @@ where
     type TargetType = *mut crate::binds::MonoArray;
     fn get_mono_rep(arg: Self) -> Self::TargetType {
         match arg {
-            Some(arg) => arg.get_ptr(),
+            Some(arg) => arg.get_ptr().cast(),
             None => null_mut(),
         }
     }
@@ -512,7 +411,7 @@ where
     <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
     fn clone(&self) -> Self {
-        unsafe { Self::from_ptr(self.get_ptr()).unwrap() } //If object exists then it can't be null
+        unsafe { Self::from_ptr(self.get_ptr().cast()).unwrap() } //If object exists then it can't be null
     }
 }
 impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass, O: ObjectTrait>
@@ -523,7 +422,7 @@ where
     <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
     fn eq(&self, other: &O) -> bool {
-        self.get_ptr().cast() == other.cast_to_object().get_ptr()
+        self.get_ptr() == other.get_ptr().cast()
     }
 }
 use crate::dimensions::Dim1D;

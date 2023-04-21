@@ -1,3 +1,4 @@
+use crate::object::ObjectTrait;
 /// Trait specifying how to convert a type when transferring it between managed and unmanaged code. It specifies how to convert
 /// `SourceType` used by `MonoRuntime` to type implementing this trait.
 pub trait InteropRecive {
@@ -236,6 +237,7 @@ impl InteropSend for String {
             &rust_arg,
         )
         .get_ptr()
+        .cast()
     }
 }
 use crate::class::Class;
