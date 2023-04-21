@@ -8,8 +8,6 @@ This API tries to follow rusts rules about safety and error handling as much as 
 # Supported platforms
 `wrapped_mono` supports Linux(tested on Fedora 37, Debian Bullseye and Arch), and Windows(tested on Windows 10). Other platforms, such as MacOS are not officially supported, but can be easily added by changing the `build.rs` to include platform-specific link flags.
 Cross-compilation is not supported yet, but support for it is planned in the future.
-# Why `wrapped_mono` requires rust nightly?
-Rust nightly allows use of unfinished features of the rust language that are used by `wrapped_mono` to either increase safety(specialization used to preform method signature checks) or simplify usage of the APIs provided by `wrapped_mono`(Arrays using constant generics to represent their number of dimensions). Those features are necessary for `wrapped_mono` to work properly, but are used sparingly in as simple as possible cases. Each use of unfinished feature was made with a lot of caution, and should not be affected by any changes to the rust compiler.
 # Dependencies
 ## External
 * Mono library - the library this crate wraps around. Can be downloaded <a href="https://www.mono-project.com/download/stable/">here</a>. When installing, use default instructions from the website. Only needed on the system crate is compiled on (linked statically).
@@ -79,7 +77,7 @@ fn main(){
     fn sqrt(input:f32)->f32{
         if input < 0.0{
             // can't get sqrt of a negative number, so create a managed exception and throw it
-            Exception::arithmetic().raise();
+            unsafe{Exception::arithmetic().raise()};
         }
         input.sqrt()
     }
