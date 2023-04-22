@@ -32,7 +32,7 @@ impl Domain {
     /// let domain2 = Domain::create();
     /// ```
     #[must_use]
-    pub fn create() -> Domain {
+    pub fn create() -> Self {
         unsafe { Self::from_ptr(mono_domain_create()) }
     }
     /// Sets domain confing to one loaded from file *filename* in directory *`base_directory`*.
@@ -48,7 +48,7 @@ impl Domain {
     /// Function creating [`Domain`] type from a pointer to [`MonoDomain`].
     /// # Safety
     /// Pointer must be a valid pointer to [`MonoDomain`].
-    pub unsafe fn from_ptr(ptr: *mut MonoDomain) -> Domain {
+    pub unsafe fn from_ptr(ptr: *mut MonoDomain) -> Self {
         Self { ptr }
     }
     /// Function returning internal pointer to [`MonoDomain`]
@@ -82,7 +82,7 @@ impl Domain {
     */
     /// Returns current domain or `None` if mono runtime is not initialized yet.
     #[must_use]
-    pub fn get_current() -> Option<Domain> {
+    pub fn get_current() -> Option<Self> {
         let ptr = unsafe { crate::binds::mono_domain_get() };
         if ptr.is_null() {
             None

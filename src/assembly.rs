@@ -11,8 +11,8 @@ impl Assembly {
     /// # Safety
     /// *ptr* must be a valid [`MonoAssembly`] pointer.
     #[must_use]
-    pub unsafe fn from_ptr(ptr: *mut MonoAssembly) -> Assembly {
-        Assembly { ptr }
+    pub unsafe fn from_ptr(ptr: *mut MonoAssembly) -> Self {
+        Self { ptr }
     }
     /// Returns the internal pointer to [`MonoAssembly`] this object represents.
     #[must_use]
@@ -26,7 +26,7 @@ impl Assembly {
     }
     /// Returns main assembly(first loaded assembly)
     #[must_use]
-    pub fn get_main() -> Option<Assembly> {
+    pub fn get_main() -> Option<Self> {
         let ptr = unsafe { crate::binds::mono_assembly_get_main() };
         if ptr.is_null() {
             None
@@ -53,7 +53,7 @@ impl Assembly {
     }
     /// Checks if assembly *name* is loaded, and if it is returns that assembly.
     #[must_use]
-    pub fn assembly_loaded(name: &str) -> Option<Assembly> {
+    pub fn assembly_loaded(name: &str) -> Option<Self> {
         let cstr = CString::new(name).expect(crate::STR2CSTR_ERR);
         let assembly_name = unsafe { crate::binds::mono_assembly_name_new(cstr.as_ptr()) };
         let ptr = unsafe { crate::binds::mono_assembly_loaded(assembly_name) };

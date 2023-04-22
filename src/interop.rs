@@ -31,200 +31,203 @@ impl InteropRecive for String {
     }
 }
 impl InteropRecive for usize {
-    type SourceType = usize;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl InteropRecive for isize {
-    type SourceType = isize;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl InteropRecive for i8 {
-    type SourceType = i8;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl InteropRecive for i16 {
-    type SourceType = i16;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl InteropRecive for i32 {
-    type SourceType = i32;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl InteropRecive for i64 {
-    type SourceType = i64;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl InteropRecive for u8 {
-    type SourceType = u8;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl InteropRecive for u16 {
-    type SourceType = u16;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl InteropRecive for u32 {
-    type SourceType = u32;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl InteropRecive for u64 {
-    type SourceType = u64;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl InteropRecive for f32 {
-    type SourceType = f32;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl InteropRecive for f64 {
-    type SourceType = f64;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl<T> InteropRecive for *mut T {
-    type SourceType = *mut T;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl<T> InteropRecive for *const T {
-    type SourceType = *const T;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl InteropRecive for bool {
-    type SourceType = bool;
+    type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
 impl InteropRecive for char {
-    type SourceType = char;
+    type SourceType = u16;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
-        mono_arg
+        let src = [mono_arg];
+        Self::decode_utf16(src).next().unwrap().unwrap()
     }
 }
 //return section
 impl InteropSend for i8 {
-    type TargetType = i8;
+    type TargetType = Self;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
         rust_arg
     }
 }
 impl InteropSend for i16 {
-    type TargetType = i16;
+    type TargetType = Self;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
         rust_arg
     }
 }
 impl InteropSend for i32 {
-    type TargetType = i32;
+    type TargetType = Self;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
         rust_arg
     }
 }
 impl InteropSend for i64 {
-    type TargetType = i64;
+    type TargetType = Self;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
         rust_arg
     }
 }
 impl InteropSend for u8 {
-    type TargetType = u8;
+    type TargetType = Self;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
         rust_arg
     }
 }
 impl InteropSend for u16 {
-    type TargetType = u16;
+    type TargetType = Self;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
         rust_arg
     }
 }
 impl InteropSend for u32 {
-    type TargetType = u32;
+    type TargetType = Self;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
         rust_arg
     }
 }
 impl InteropSend for u64 {
-    type TargetType = u64;
+    type TargetType = Self;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
         rust_arg
     }
 }
 impl InteropSend for f32 {
-    type TargetType = f32;
+    type TargetType = Self;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
         rust_arg
     }
 }
 impl InteropSend for f64 {
-    type TargetType = f64;
+    type TargetType = Self;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
         rust_arg
     }
 }
 impl InteropSend for usize {
-    type TargetType = usize;
+    type TargetType = Self;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
         rust_arg
     }
 }
 impl InteropSend for isize {
-    type TargetType = isize;
+    type TargetType = Self;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
         rust_arg
     }
 }
 impl<T> InteropSend for *mut T {
-    type TargetType = *mut T;
+    type TargetType = Self;
     fn get_mono_rep(mono_arg: Self::TargetType) -> Self {
         mono_arg
     }
 }
 impl<T> InteropSend for *const T {
-    type TargetType = *const T;
+    type TargetType = Self;
     fn get_mono_rep(mono_arg: Self::TargetType) -> Self {
         mono_arg
     }
 }
 impl InteropSend for char {
-    type TargetType = char;
+    type TargetType = u16;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
+        let mut tmp = [0; 2];
+        rust_arg.encode_utf16(&mut tmp);
+        tmp[0]
     }
 }
 impl InteropSend for bool {
-    type TargetType = bool;
+    type TargetType = Self;
     fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
         rust_arg
     }
 }
 impl InteropSend for () {
-    type TargetType = ();
+    type TargetType = Self;
     fn get_mono_rep(_: Self) -> Self::TargetType {}
 }
 impl InteropSend for String {

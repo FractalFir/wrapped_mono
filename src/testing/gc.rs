@@ -1,7 +1,7 @@
 use crate::*;
 use rusty_fork::rusty_fork_test;
 rusty_fork_test! {
-    #[test]
+    #[test]#[cfg(feature = "referneced_objects")]
     fn test_gc_object(){
         use crate::gc::count_objects;
         let dom = jit::init("dom",None);
@@ -34,7 +34,7 @@ rusty_fork_test! {
             let _sec_ref = obj.clone();
         }
     }
-    #[test]
+    #[test]#[cfg(feature = "referneced_objects")]
     fn test_gc_mstring(){
         use crate::gc::count_objects;
         let dom = jit::init("dom",None);
@@ -59,7 +59,7 @@ rusty_fork_test! {
             assert!(val == sec,"{} != {}",val,sec);
         }
     }
-    #[test]
+    #[test]#[cfg(feature = "referneced_objects")]
     fn test_gc_array(){
         use crate::gc::count_objects;
         let dom = jit::init("dom",None);
@@ -90,7 +90,7 @@ rusty_fork_test! {
             assert!(obj.len() == i/50);
         }
     }
-    #[test]
+    #[test]#[cfg(feature = "referneced_objects")]
     fn test_gc_exception(){
         use crate::gc::count_objects;
         let _dom = jit::init("dom",None);

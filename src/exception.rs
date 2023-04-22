@@ -1,6 +1,6 @@
 use crate::binds::MonoObject;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
-use crate::{Class, Domain, Image, InteropClass, Object, ObjectTrait};
+use crate::{Class, Domain, Image, InteropClass, ObjectTrait};
 use std::ffi::CString;
 /// Safe representation of `MonoException`.
 pub struct Exception {
@@ -59,12 +59,15 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr(crate::binds::mono_exception_from_name_domain(
-                domain.get_ptr(),
-                image.get_ptr(),
-                namespace_cstr.as_ptr(),
-                name_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr(
+                crate::binds::mono_exception_from_name_domain(
+                    domain.get_ptr(),
+                    image.get_ptr(),
+                    namespace_cstr.as_ptr(),
+                    name_cstr.as_ptr(),
+                )
+                .cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -80,16 +83,19 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr(crate::binds::mono_exception_from_name(
-                image.get_ptr(),
-                namespace_cstr.as_ptr(),
-                name_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr(
+                crate::binds::mono_exception_from_name(
+                    image.get_ptr(),
+                    namespace_cstr.as_ptr(),
+                    name_cstr.as_ptr(),
+                )
+                .cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         let _ = namespace_cstr;
-       let _ = name_cstr;
+        let _ = name_cstr;
         res
     }
     /// Creates [`Exception`] of type *name* in *namespace* from *image* with message *msg*.
@@ -101,18 +107,21 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr(crate::binds::mono_exception_from_name_msg(
-                image.get_ptr(),
-                namespace_cstr.as_ptr(),
-                name_cstr.as_ptr(),
-                msg_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr(
+                crate::binds::mono_exception_from_name_msg(
+                    image.get_ptr(),
+                    namespace_cstr.as_ptr(),
+                    name_cstr.as_ptr(),
+                    msg_cstr.as_ptr(),
+                )
+                .cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         let _ = msg_cstr;
         let _ = namespace_cstr;
-       let _ = name_cstr;
+        let _ = name_cstr;
         res
     }
     /// Returns [`Exception`] that is instance of **`System.ArgumentException`**
@@ -123,10 +132,10 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_argument(
-                arg_cstr.as_ptr(),
-                msg_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_argument(arg_cstr.as_ptr(), msg_cstr.as_ptr())
+                    .cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -141,9 +150,9 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_not_implemented(
-                msg_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_not_implemented(msg_cstr.as_ptr()).cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -157,9 +166,9 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_argument_null(
-                msg_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_argument_null(msg_cstr.as_ptr()).cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -173,9 +182,9 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_argument_out_of_range(
-                msg_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_argument_out_of_range(msg_cstr.as_ptr()).cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -213,9 +222,9 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_bad_image_format(
-                msg_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_bad_image_format(msg_cstr.as_ptr()).cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -229,9 +238,9 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_cannot_unload_appdomain(
-                msg_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_cannot_unload_appdomain(msg_cstr.as_ptr()).cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -269,9 +278,9 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_execution_engine(
-                msg_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_execution_engine(msg_cstr.as_ptr()).cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -286,7 +295,9 @@ impl Exception {
         let _ = fname_cstr;
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let res = unsafe { Self::from_ptr_unchecked(crate::binds::mono_get_exception_file_not_found(ms).cast()) };
+        let res = unsafe {
+            Self::from_ptr_unchecked(crate::binds::mono_get_exception_file_not_found(ms).cast())
+        };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         res
@@ -296,7 +307,9 @@ impl Exception {
     pub fn index_out_of_range() -> Self {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let res = unsafe { Self::from_ptr_unchecked(crate::binds::mono_get_exception_index_out_of_range().cast()) };
+        let res = unsafe {
+            Self::from_ptr_unchecked(crate::binds::mono_get_exception_index_out_of_range().cast())
+        };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         res
@@ -319,7 +332,9 @@ impl Exception {
         let msg_cstr = CString::new(msg).expect(crate::STR2CSTR_ERR);
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let res = unsafe { Self::from_ptr_unchecked(crate::binds::mono_get_exception_io(msg_cstr.as_ptr()).cast())};
+        let res = unsafe {
+            Self::from_ptr_unchecked(crate::binds::mono_get_exception_io(msg_cstr.as_ptr()).cast())
+        };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         let _ = msg_cstr;
@@ -333,10 +348,13 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_missing_method(
-                class_name_cstr.as_ptr(),
-                member_name_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_missing_method(
+                    class_name_cstr.as_ptr(),
+                    member_name_cstr.as_ptr(),
+                )
+                .cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -361,9 +379,8 @@ impl Exception {
     pub fn overflow() -> Self {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_overflow().cast())
-        };
+        let res =
+            unsafe { Self::from_ptr_unchecked(crate::binds::mono_get_exception_overflow().cast()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         res
@@ -373,9 +390,8 @@ impl Exception {
     pub fn security() -> Self {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_security().cast())
-        };
+        let res =
+            unsafe { Self::from_ptr_unchecked(crate::binds::mono_get_exception_security().cast()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         res
@@ -387,9 +403,9 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_serialization(
-                msg_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_serialization(msg_cstr.as_ptr()).cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -415,9 +431,9 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_synchronization_lock(
-                msg_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_synchronization_lock(msg_cstr.as_ptr()).cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -443,9 +459,9 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_thread_state(
-                msg_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_thread_state(msg_cstr.as_ptr()).cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -454,15 +470,18 @@ impl Exception {
     }
     /// Returns [`Exception`] that is instance of **`System.TypeInitializationException`** with *`type_name`* and inner exception *`inner`*.
     #[must_use]
-    pub fn type_initialization(type_name: &str, inner: &Exception) -> Self {
+    pub fn type_initialization(type_name: &str, inner: &Self) -> Self {
         let type_name_cstr = CString::new(type_name).expect(crate::STR2CSTR_ERR);
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_type_initialization(
-                type_name_cstr.as_ptr(),
-                inner.get_ptr().cast(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_type_initialization(
+                    type_name_cstr.as_ptr(),
+                    inner.get_ptr().cast(),
+                )
+                .cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -480,10 +499,13 @@ impl Exception {
         let _ = class_name_cstr;
         let member_name_cstr = CString::new(member_name).expect(crate::STR2CSTR_ERR);
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_type_load(
-                cn_mono_string,
-                member_name_cstr.as_ptr() as *mut i8,
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_type_load(
+                    cn_mono_string,
+                    member_name_cstr.as_ptr() as *mut i8,
+                )
+                .cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -497,9 +519,9 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_invalid_operation(
-                msg_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_invalid_operation(msg_cstr.as_ptr()).cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -514,10 +536,13 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_missing_field(
-                class_name_cstr.as_ptr(),
-                member_name_cstr.as_ptr() as *mut i8,
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_missing_field(
+                    class_name_cstr.as_ptr(),
+                    member_name_cstr.as_ptr() as *mut i8,
+                )
+                .cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -532,9 +557,9 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_not_supported(
-                msg_cstr.as_ptr(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_not_supported(msg_cstr.as_ptr()).cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -583,9 +608,9 @@ impl Exception {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
-            Self::from_ptr_unchecked(crate::binds::mono_get_exception_runtime_wrapped(
-                inner.get_ptr().cast(),
-            ).cast())
+            Self::from_ptr_unchecked(
+                crate::binds::mono_get_exception_runtime_wrapped(inner.get_ptr().cast()).cast(),
+            )
         };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
@@ -594,18 +619,19 @@ impl Exception {
 }
 /// Variant of except which instead of panicking will raise a managed exception.
 pub(crate) fn except_managed<T: Sized>(option: Option<T>, msg: &str) -> T {
-    if let Some(t) = option {
-        t
-    } else {
-        let exc = Exception::argument_null(&format!(
-            "Value of type: \"{}\" was null!\"{}\"",
-            std::any::type_name::<T>(),
-            &msg
-        ));
-        unsafe {
-            exc.raise();
-        }
-    }
+    option.map_or_else(
+        || {
+            let exc = Exception::argument_null(&format!(
+                "Value of type: \"{}\" was null!\"{}\"",
+                std::any::type_name::<T>(),
+                &msg
+            ));
+            unsafe {
+                exc.raise();
+            }
+        },
+        |t| t,
+    )
 }
 /*
 /// Variant of except which instead of panicking will raise a managed exception.
@@ -633,13 +659,14 @@ impl core::fmt::Debug for Exception {
         write!(f, "Exception:\"{mstr}\"")
     }
 }
-use crate::MString;
 impl crate::object::ObjectTrait for Exception {
     #[must_use]
     unsafe fn from_ptr_unchecked(exc_ptr: *mut MonoObject) -> Self {
         #[cfg(not(feature = "referneced_objects"))]
         {
-            Self { exc_ptr }
+            Self {
+                exc_ptr: exc_ptr.cast(),
+            }
         }
         #[cfg(feature = "referneced_objects")]
         {
@@ -652,7 +679,7 @@ impl crate::object::ObjectTrait for Exception {
     fn get_ptr(&self) -> *mut MonoObject {
         #[cfg(not(feature = "referneced_objects"))]
         {
-            self.exc_ptr
+            self.exc_ptr.cast()
         }
         #[cfg(feature = "referneced_objects")]
         {

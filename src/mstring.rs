@@ -86,10 +86,7 @@ impl InteropSend for MString {
 impl InteropSend for Option<MString> {
     type TargetType = *mut MonoString;
     fn get_mono_rep(src: Self) -> Self::TargetType {
-        match src {
-            Some(src) => MString::get_mono_rep(src),
-            None => null_mut(),
-        }
+        src.map_or(null_mut(), MString::get_mono_rep)
     }
 }
 impl InteropClass for MString {
@@ -121,7 +118,7 @@ impl ObjectTrait for MString {
     fn get_ptr(&self) -> *mut MonoObject {
         #[cfg(not(feature = "referneced_objects"))]
         {
-            self.s_ptr
+            self.s_ptr.cast()
         }
         #[cfg(feature = "referneced_objects")]
         {
@@ -134,7 +131,7 @@ impl ObjectTrait for MString {
     unsafe fn from_ptr_unchecked(ptr: *mut MonoObject) -> Self {
         #[cfg(not(feature = "referneced_objects"))]
         {
-            Self { s_ptr: ptr }
+            Self { s_ptr: ptr.cast() }
         }
         #[cfg(feature = "referneced_objects")]
         {

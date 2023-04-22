@@ -206,10 +206,7 @@ where
     /// Returns an exception if it was thrown by managed code.
     pub fn invoke(&self, object: Option<Object>, args: Args) -> Result<Option<Object>, Exception> {
         //convert object to invoke on to a pointer.
-        let obj_ptr = match object {
-            Some(obj) => obj.get_ptr(),
-            None => core::ptr::null_mut(),
-        };
+        let obj_ptr = object.map_or(core::ptr::null_mut(), |obj| obj.get_ptr());
         let mut expect: *mut MonoException = null_mut();
         //convert argument types
         let mut args = <Args as InteropSend>::get_mono_rep(args);

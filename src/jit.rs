@@ -24,15 +24,15 @@ pub fn init(name: &str, version: Option<&str>) -> Domain {
     }
     let n_cstr = CString::new(name).expect(crate::STR2CSTR_ERR);
     let res = unsafe {
-        Domain::from_ptr(match version {
-            Some(s) => {
+        Domain::from_ptr(version.map_or_else(
+            || mono_jit_init(n_cstr.as_ptr()),
+            |s| {
                 let v_cstr = CString::new(s).expect(crate::STR2CSTR_ERR);
                 let ptr = mono_jit_init_version(n_cstr.as_ptr(), v_cstr.as_ptr());
                 let _ = &v_cstr;
                 ptr
-            }
-            None => mono_jit_init(n_cstr.as_ptr()),
-        })
+            },
+        ))
     };
     unsafe { crate::binds::mono_jit_thread_attach(res.get_ptr()) };
     let _ = &n_cstr;

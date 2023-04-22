@@ -71,10 +71,7 @@ impl MetadataTableInfo {
     /// # Safety
     /// *table* must be a valid [`MonoTableInfo`] pointer, and must match kind.
     #[must_use]
-    pub unsafe fn from_ptr(
-        table: *const MonoTableInfo,
-        kind: MetadataTableKind,
-    ) -> MetadataTableInfo {
+    pub unsafe fn from_ptr(table: *const MonoTableInfo, kind: MetadataTableKind) -> Self {
         Self { table, kind }
     }
     ///Get amount of rows in a table.
@@ -102,9 +99,9 @@ pub struct AssemblyMetadata {
 }
 impl AssemblyMetadata {
     #[must_use]
-    fn from_meta_table(table: &MetadataTableInfo, img: Image) -> AssemblyMetadata {
+    fn from_meta_table(table: &MetadataTableInfo, img: Image) -> Self {
         assert!(table.kind == MetadataTableKind::Assembly);
-        AssemblyMetadata {
+        Self {
             hash_alg: HashAlgorithm::from_u32(table.decode_row_col(0, 0)),
             major_version: table.decode_row_col(0, 1),
             minor_version: table.decode_row_col(0, 2),
@@ -120,7 +117,7 @@ impl AssemblyMetadata {
     }
     ///Gets [`AssemblyMetadata`] from an [`Image`]
     #[must_use]
-    pub fn from_image(img: Image) -> AssemblyMetadata {
+    pub fn from_image(img: Image) -> Self {
         Self::from_meta_table(&img.get_table_info(MetadataTableKind::Assembly), img)
     }
     //Returns name string.
@@ -205,14 +202,14 @@ pub enum HashAlgorithm {
     SHA512 = 32782,
 }
 impl HashAlgorithm {
-    fn from_u32(u: u32) -> HashAlgorithm {
+    fn from_u32(u: u32) -> Self {
         match u {
-            32771 => HashAlgorithm::MD5,
-            0 => HashAlgorithm::None,
-            32772 => HashAlgorithm::SHA1,
-            32780 => HashAlgorithm::SHA256,
-            32781 => HashAlgorithm::SHA384,
-            32782 => HashAlgorithm::SHA512,
+            32771 => Self::MD5,
+            0 => Self::None,
+            32772 => Self::SHA1,
+            32780 => Self::SHA256,
+            32781 => Self::SHA384,
+            32782 => Self::SHA512,
             _ => panic!("{u} is not a valid HashAlgorithm"),
         }
     }
@@ -220,12 +217,12 @@ impl HashAlgorithm {
 impl std::fmt::Display for HashAlgorithm {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            HashAlgorithm::MD5 => "MD5",
-            HashAlgorithm::None => "None",
-            HashAlgorithm::SHA1 => "SHA1",
-            HashAlgorithm::SHA256 => "SHA256",
-            HashAlgorithm::SHA384 => "SHA386",
-            HashAlgorithm::SHA512 => "SHA512",
+            Self::MD5 => "MD5",
+            Self::None => "None",
+            Self::SHA1 => "SHA1",
+            Self::SHA256 => "SHA256",
+            Self::SHA384 => "SHA386",
+            Self::SHA512 => "SHA512",
         };
         write!(f, "{s}")
     }
@@ -251,9 +248,9 @@ pub struct AssemblyOSMetadata {
 }
 impl AssemblyOSMetadata {
     #[must_use]
-    fn from_meta_table(table: &MetadataTableInfo, img: Image) -> AssemblyOSMetadata {
+    fn from_meta_table(table: &MetadataTableInfo, img: Image) -> Self {
         assert!(table.kind == MetadataTableKind::AssemblyOS);
-        AssemblyOSMetadata {
+        Self {
             platform: img.metadata_string_heap(table.decode_row_col(0, 0)),
             major_version: table.decode_row_col(0, 1),
             minor_version: table.decode_row_col(0, 2),
@@ -261,7 +258,7 @@ impl AssemblyOSMetadata {
     }
     ///Gets [`AssemblyMetadata`]
     #[must_use]
-    pub fn from_image(img: Image) -> Option<AssemblyOSMetadata> {
+    pub fn from_image(img: Image) -> Option<Self> {
         let table = img.get_table_info(MetadataTableKind::AssemblyOS);
         if table.get_table_rows() > 0 {
             Some(Self::from_meta_table(&table, img))

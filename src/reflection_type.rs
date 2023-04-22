@@ -1,8 +1,7 @@
-use crate::binds::{MonoReflectionType, MonoType,MonoObject};
+use crate::binds::{MonoObject, MonoReflectionType, MonoType};
 use crate::dimensions::Dim1D;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
 use crate::{Array, Class, Domain, Image, Method};
-use crate::{Exception, MString};
 use crate::{InteropClass, InteropRecive, InteropSend};
 use crate::{Object, ObjectTrait};
 use std::ffi::CString;
@@ -41,8 +40,10 @@ impl ReflectionType {
         let dom = Domain::get_current()
             .expect("Can't convert *MonoType to ReflecionType before JIT started.");
         Some(
-            unsafe { Self::from_ptr(crate::binds::mono_type_get_object(dom.get_ptr(), type_ptr).cast()) }
-                .expect("Could not convert MonoType pointer to a ReflectionType!"),
+            unsafe {
+                Self::from_ptr(crate::binds::mono_type_get_object(dom.get_ptr(), type_ptr).cast())
+            }
+            .expect("Could not convert MonoType pointer to a ReflectionType!"),
         )
     }
     /// Gets type with *name* inside image *img*
@@ -69,8 +70,8 @@ impl ReflectionType {
         let garg_count = gargs.len();
         let gtype_str = format!("{gtype}`{garg_count}");
         println!("{gtype_str}");
-        let Some(res) = ReflectionType::from_name(&gtype_str, gtype_img) else { return None };
-        let arr: Array<Dim1D, ReflectionType> = gargs.into();
+        let Some(res) = Self::from_name(&gtype_str, gtype_img) else { return None };
+        let arr: Array<Dim1D, Self> = gargs.into();
         let obj = res.cast::<Object>().unwrap();
         let res = MAKE_GENERIC_TYPE_MET.invoke(Some(obj), (arr,));
         // handle exceptions
@@ -111,7 +112,7 @@ impl ObjectTrait for ReflectionType {
     fn get_ptr(&self) -> *mut MonoObject {
         #[cfg(not(feature = "referneced_objects"))]
         {
-            self.type_ptr
+            self.type_ptr.cast()
         }
         #[cfg(feature = "referneced_objects")]
         {
@@ -121,7 +122,9 @@ impl ObjectTrait for ReflectionType {
     unsafe fn from_ptr_unchecked(type_ptr: *mut MonoObject) -> Self {
         #[cfg(not(feature = "referneced_objects"))]
         {
-           Self { type_ptr }
+            Self {
+                type_ptr: type_ptr.cast(),
+            }
         }
         #[cfg(feature = "referneced_objects")]
         {

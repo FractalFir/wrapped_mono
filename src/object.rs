@@ -20,10 +20,10 @@ pub struct Object {
 use crate::mstring::MString;
 ///Trait contining functions common for all types of manged objects.
 pub trait ObjectTrait: Sized + InteropClass {
-    fn cast<Target:ObjectTrait>(&self)->Option<Target>{
+    fn cast<Target: ObjectTrait>(&self) -> Option<Target> {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let res = unsafe{Target::from_ptr(self.get_ptr())};
+        let res = unsafe { Target::from_ptr(self.get_ptr()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
         res
@@ -31,7 +31,9 @@ pub trait ObjectTrait: Sized + InteropClass {
     /// Gets the internal [`MonoObject`] pointer.
     #[must_use]
     fn get_ptr(&self) -> *mut MonoObject;
-    /// Creates new instance of [`Self`] from *mut [`MonoObject`]. Returns `None` if either obj_ptr is null OR object obj_ptr points to is of a type which does not derive from the managed type [`Self`] represents.
+    /// Creates new instance of [`Self`] from *mut [`MonoObject`]. Returns `None` if either `obj_ptr` is null OR object `obj_ptr` points to is of a type which does not derive from the managed type [`Self`] represents.
+    /// # Safety
+    /// Pointer must either be null, or point to a managed object.
     #[must_use]
     unsafe fn from_ptr(obj_ptr: *mut MonoObject) -> Option<Self> {
         let class = Self::get_mono_class();
@@ -43,6 +45,8 @@ pub trait ObjectTrait: Sized + InteropClass {
         }
     }
     /// Creates new instance of [`Self`] from *mut [`MonoObject`]. Pointer is guaranteed to be not null, and of type which can be assigned to managed type represented by [`Self`].
+    /// # Safety
+    /// The pointer must not be null, and point to a managed Object of either type represented by [`Self`] or a type derived from it.
     #[must_use]
     unsafe fn from_ptr_unchecked(obj: *mut MonoObject) -> Self;
     /// get hash of this object: This hash is **not** based on values of objects fields, and differs from result of calling object.GetHash()
@@ -147,7 +151,6 @@ pub trait ObjectTrait: Sized + InteropClass {
     /// Returns result of calling `ToString` on this [`Object`].
     /// # Errors
     /// Returns [`Exception`] if raised, and [`Option<MString>`] if not. Function returns [`Option<MString>`] to allow for null value to be returned.
-    #[must_use]
     fn to_mstring(&self) -> Result<Option<MString>, Exception> {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
@@ -164,10 +167,7 @@ pub trait ObjectTrait: Sized + InteropClass {
         let exc = unsafe { Exception::from_ptr(exc.cast()) };
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
-        match exc {
-            Some(e) => Err(e),
-            None => Ok(res),
-        }
+        exc.map_or_else(|| Ok(res), Err)
     }
 }
 use crate::exception::Exception;
@@ -295,10 +295,10 @@ impl Object {
         domain: &crate::domain::Domain,
         class: &Class,
         val: *mut std::ffi::c_void,
-    ) -> crate::object::Object {
+    ) -> Self {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
-        let res = crate::object::Object::from_ptr(crate::binds::mono_value_box(
+        let res = Self::from_ptr(crate::binds::mono_value_box(
             domain.get_ptr(),
             class.get_ptr(),
             val,
@@ -316,7 +316,7 @@ impl Object {
     /// let mut val:i32 = 0;
     /// let obj = Object::box_val::<i32>(&domain,val); //New object of type `Int32?`
     ///```
-    pub fn box_val<T: InteropBox>(domain: &Domain, data: T) -> crate::object::Object {
+    pub fn box_val<T: InteropBox>(domain: &Domain, data: T) -> Self {
         let mut data = <T as InteropSend>::get_mono_rep(data);
         let class = T::get_mono_class();
         unsafe {
@@ -346,7 +346,7 @@ impl Object {
     /// and method **`ParrentClass::SomeMethod`** you will get return value of **`ChildClass::SomeMethod`**.
     #[must_use]
     pub fn get_virtual_method<T: TupleToPtrs + CompareClasses + InteropSend>(
-        obj: &Object,
+        obj: &Self,
         method: &Method<T>,
     ) -> Option<Method<T>>
     where
@@ -391,10 +391,7 @@ impl InteropRecive for Option<Object> {
 impl InteropSend for Option<Object> {
     type TargetType = *mut MonoObject;
     fn get_mono_rep(arg: Self) -> Self::TargetType {
-        match arg {
-            Some(arg) => arg.get_ptr(),
-            None => core::ptr::null_mut(),
-        }
+        arg.map_or(core::ptr::null_mut(), |arg| arg.get_ptr())
     }
 }
 impl Object {

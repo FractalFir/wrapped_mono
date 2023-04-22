@@ -1,10 +1,7 @@
 use crate::binds::MonoObject;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
 use crate::interop::{InteropClass, InteropRecive, InteropSend};
-use crate::{
-    dimensions::DimensionTrait, domain::Domain, Class, Object,
-    ObjectTrait,
-};
+use crate::{dimensions::DimensionTrait, domain::Domain, Class, Object, ObjectTrait};
 use core::marker::PhantomData;
 use core::ptr::null_mut;
 use std::borrow::{Borrow, BorrowMut};
@@ -25,7 +22,7 @@ where
     <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
     #[cfg(not(feature = "referneced_objects"))]
-    arr_ptr: *mut MonoArray,
+    arr_ptr: *mut crate::binds::MonoArray,
     #[cfg(feature = "referneced_objects")]
     handle: GCHandle,
     pd: PhantomData<T>,
@@ -320,21 +317,21 @@ where
     #[must_use]
     fn get_ptr(&self) -> *mut crate::binds::MonoObject {
         #[cfg(not(feature = "referneced_objects"))]
-        return self.arr_ptr;
+        return self.arr_ptr.cast();
         #[cfg(feature = "referneced_objects")]
-        return self.handle.get_target().cast();
+        return self.handle.get_target();
     }
     #[must_use]
     unsafe fn from_ptr_unchecked(ptr: *mut MonoObject) -> Self {
         use crate::Method;
         #[cfg(not(feature = "referneced_objects"))]
-        let mut res = Array {
-            arr_ptr: ptr,
+        let mut res = Self {
+            arr_ptr: ptr.cast(),
             pd: PhantomData,
-            lengths: [0; DIMENSIONS as usize],
+            lengths: Dim::zeroed(),
         };
         #[cfg(feature = "referneced_objects")]
-        let mut res = Array {
+        let mut res = Self {
             handle: GCHandle::create_default(ptr.cast()),
             pd: PhantomData,
             lengths: Dim::zeroed(),
@@ -398,10 +395,7 @@ where
 {
     type TargetType = *mut crate::binds::MonoArray;
     fn get_mono_rep(arg: Self) -> Self::TargetType {
-        match arg {
-            Some(arg) => arg.get_ptr().cast(),
-            None => null_mut(),
-        }
+        arg.map_or(null_mut(), |arg| arg.get_ptr().cast())
     }
 }
 impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> Clone for Array<Dim, T>
@@ -430,7 +424,7 @@ impl<T: InteropSend + InteropRecive + InteropClass + Clone> From<&[T]> for Array
     fn from(src: &[T]) -> Self {
         let size = src.len();
         let dom = Domain::get_current().expect("Can't create arrays before JIT starts!");
-        let mut res: Array<Dim1D, T> = Array::new(&dom, &[size]);
+        let mut res = Self::new(&dom, &[size]);
         for (i, src) in src.iter().enumerate() {
             res.set([i], src.clone());
         }

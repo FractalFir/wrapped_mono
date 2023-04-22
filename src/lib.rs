@@ -1,4 +1,8 @@
-#![allow(clippy::module_name_repetitions)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::missing_const_for_fn,
+    clippy::as_ptr_cast_mut
+)]
 //! `wrapped_mono` is a safe, lightweight wrapper around the mono library. It allows embedding of the mono runtime inside a rust project. Inside this embedded runtime code written in languages supporting the .NET framework, such as C\# and F\#, can be run. This allows usage of libraries written in those languages, and using them as a scripting language. The mono runtime is used by many game engines, and this wrapper allows using it with projects written in Rust too.
 //! # Safety
 //! Most functions are safe and when invalid data is passed will fail in a controlled way with an error message. There are still some pitfalls, because not all errors can be caught without substantial overhead. Those errors are hard to come by, and should be always clearly

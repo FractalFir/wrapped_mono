@@ -48,15 +48,15 @@ impl GCHandle {
     /// Creates a new Garbage Collector handle.
     /// # Safety
     /// *ptr* must be a pointer to a valid object.
-    pub unsafe fn create(ptr: *mut MonoObject, pinned: bool) -> GCHandle {
-        GCHandle {
+    pub unsafe fn create(ptr: *mut MonoObject, pinned: bool) -> Self {
+        Self {
             handle: unsafe { crate::binds::mono_gchandle_new(ptr, i32::from(pinned)) },
         }
     }
     /// Creates a new Garbage Collector handle with default pin settings(unpinned).
     /// # Safety
     /// *ptr* must be a pointer to a valid object.
-    pub unsafe fn create_default(ptr: *mut MonoObject) -> GCHandle {
+    pub unsafe fn create_default(ptr: *mut MonoObject) -> Self {
         Self::create(ptr, false)
     }
     /// Frees this handle, deleting the reference to object it targets.

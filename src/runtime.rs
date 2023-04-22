@@ -7,44 +7,46 @@ use crate::jit;
 ///Sets paths to directories containing manged assemblies and config files. If [`None`] passed for *`assembly_dir`*,
 ///default system location for assemblies will be used. If [`None`] passed for *`config_dir`* default system configs will be used.
 pub fn set_dirs(assembly_dir: Option<&str>, config_dir: Option<&str>) {
-    match assembly_dir {
-        Some(assembly_dir) => {
+    assembly_dir.map_or_else(
+        || {
+            config_dir.map_or_else(
+                || {
+                    unsafe { crate::binds::mono_set_dirs(null_mut(), null_mut()) };
+                },
+                |config_dir| {
+                    let cfg_cstr = CString::new(config_dir).expect(crate::STR2CSTR_ERR);
+                    unsafe { crate::binds::mono_set_dirs(null_mut(), cfg_cstr.as_ptr()) };
+                    let _ = cfg_cstr;
+                },
+            )
+        },
+        |assembly_dir| {
             let asm_cstr = CString::new(assembly_dir).expect(crate::STR2CSTR_ERR);
-            match config_dir {
-                Some(config_dir) => {
+            config_dir.map_or_else(
+                || {
+                    unsafe { crate::binds::mono_set_dirs(asm_cstr.as_ptr(), null_mut()) };
+                },
+                |config_dir| {
                     let cfg_cstr = CString::new(config_dir).expect(crate::STR2CSTR_ERR);
                     unsafe { crate::binds::mono_set_dirs(asm_cstr.as_ptr(), cfg_cstr.as_ptr()) };
                     let _ = cfg_cstr;
-                }
-                None => {
-                    unsafe { crate::binds::mono_set_dirs(asm_cstr.as_ptr(), null_mut()) };
-                }
-            }
+                },
+            );
             let _ = asm_cstr;
-        }
-        None => match config_dir {
-            Some(config_dir) => {
-                let cfg_cstr = CString::new(config_dir).expect(crate::STR2CSTR_ERR);
-                unsafe { crate::binds::mono_set_dirs(null_mut(), cfg_cstr.as_ptr()) };
-                let _ = cfg_cstr;
-            }
-            None => {
-                unsafe { crate::binds::mono_set_dirs(null_mut(), null_mut()) };
-            }
         },
-    }
+    )
 }
 ///Load config from file *`fname`*, or defalut config if *`fname`* is none. Default config will be either the default system config or
 ///file in directory *`config_dir`* if set using [`set_dirs`] function.
 pub fn config_parse(fname: Option<&str>) {
-    match fname {
-        Some(fname) => {
+    fname.map_or_else(
+        || unsafe { crate::binds::mono_config_parse(null_mut()) },
+        |fname| {
             let cstr = CString::new(fname).expect(crate::STR2CSTR_ERR);
             unsafe { crate::binds::mono_config_parse(cstr.as_ptr()) };
             let _ = cstr;
-        }
-        None => unsafe { crate::binds::mono_config_parse(null_mut()) },
-    }
+        },
+    )
 }
 ///Load config from string in memory. *`config`* must be an string representing XML configuration.
 pub fn config_parse_memory(config: &str) {

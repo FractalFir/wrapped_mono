@@ -174,7 +174,7 @@ impl Class {
     }
     /// Gets a [`Vec`] containing all interfaces this class implements.
     #[must_use]
-    pub fn get_interfaces(&self) -> Vec<Class> {
+    pub fn get_interfaces(&self) -> Vec<Self> {
         let mut gptr = std::ptr::null_mut::<i32>();
         let mut res = Vec::new();
         while let Some(class) = unsafe {
@@ -200,7 +200,7 @@ impl Class {
     }
     ///Gets class this class is nested in, or [`None`] if it is not nested in any type.
     #[must_use]
-    pub fn get_nesting_type(&self) -> Option<Class> {
+    pub fn get_nesting_type(&self) -> Option<Self> {
         unsafe { Self::from_ptr(crate::binds::mono_class_get_nesting_type(self.class_ptr)) }
     }
     /// Gets type this class derives from or [`None`] if it does not derive any type.
@@ -215,7 +215,7 @@ impl Class {
     ///
     /// Function will return `SomeParentClass`
     #[must_use]
-    pub fn get_parent(&self) -> Option<Class> {
+    pub fn get_parent(&self) -> Option<Self> {
         unsafe { Self::from_ptr(crate::binds::mono_class_get_parent(self.class_ptr)) }
     }
     /// Gets number of dimensions of array.
@@ -232,7 +232,7 @@ impl Class {
     }
     /// Get element class of an array. *self* **must** be an array type, otherwise returns *self*.
     #[must_use]
-    pub fn get_element_class(&self) -> Class {
+    pub fn get_element_class(&self) -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_class_get_element_class(self.class_ptr)) }
             .expect("Colud not get array element class!")
     }
@@ -290,139 +290,139 @@ impl Class {
     */
     /// Returns [`Class`] representing `System.Object` type.
     #[must_use]
-    pub fn get_object() -> Class {
+    pub fn get_object() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_object_class()) }
             .expect("Could not get calls representing System.Object!")
     }
     /// Returns [`Class`] representing `System.Int16` type ([i16]).
     #[must_use]
-    pub fn get_int_16() -> Class {
+    pub fn get_int_16() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_int16_class()) }
             .expect("Could not get calls representing System.Int16!")
     }
     /// Returns [`Class`] representing `System.Int32` type ([i32]).
     #[must_use]
-    pub fn get_int_32() -> Class {
+    pub fn get_int_32() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_int32_class()) }
             .expect("Could not get calls representing System.Int32!")
     }
     /// Returns [`Class`] representing `System.Int64` type ([i64]).
     #[must_use]
-    pub fn get_int_64() -> Class {
+    pub fn get_int_64() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_int64_class()) }
             .expect("Could not get calls representing System.Int64!")
     }
     /// Returns [`Class`] representing `System.Double` type ([f64]).
     #[must_use]
-    pub fn get_double() -> Class {
+    pub fn get_double() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_double_class()) }
             .expect("Could not get calls representing System.Double!")
     }
     /// Returns [`Class`] representing `System.Enum` type.
     #[must_use]
-    pub fn get_enum() -> Class {
+    pub fn get_enum() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_enum_class()) }
             .expect("Could not get calls representing System.Enum!")
     }
     /// Returns [`Class`] representing `System.IntPtr` type ([isize]).
     #[must_use]
-    pub fn get_int_ptr() -> Class {
+    pub fn get_int_ptr() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_intptr_class()) }
             .expect("Could not get calls representing System.IntPtr!")
     }
     /// Returns [`Class`] representing `System.SByte` type ([i8]).
     #[must_use]
-    pub fn get_sbyte() -> Class {
+    pub fn get_sbyte() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_sbyte_class()) }
             .expect("Could not get calls representing System.IntPtr!")
     }
     /// Returns [`Class`] representing `System.Single` type ([f32]).
     #[must_use]
-    pub fn get_single() -> Class {
+    pub fn get_single() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_single_class()) }
             .expect("Could not get calls representing System.Single!")
     }
     /// Returns [`Class`] representing `System.String` type.
     #[must_use]
-    pub fn get_string() -> Class {
+    pub fn get_string() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_string_class()) }
             .expect("Could not get calls representing System.String!")
     }
     /// Returns [`Class`] representing `System.Threading.Thread` type.
     #[must_use]
-    pub fn get_thread() -> Class {
+    pub fn get_thread() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_thread_class()) }
             .expect("Could not get calls representing System.Threading.Thread!")
     }
     /// Returns [`Class`] representing `System.UInt16` type([u16]).
     #[must_use]
-    pub fn get_uint_16() -> Class {
+    pub fn get_uint_16() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_uint16_class()) }
             .expect("Could not get calls representing System.UInt16!")
     }
     /// Returns [`Class`] representing `System.UInt32` type([u32]).
     #[must_use]
-    pub fn get_uint_32() -> Class {
+    pub fn get_uint_32() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_uint32_class()) }
             .expect("Could not get calls representing System.UInt32!")
     }
     /// Returns [`Class`] representing `System.UInt64` type([u64]).
     #[must_use]
-    pub fn get_uint_64() -> Class {
+    pub fn get_uint_64() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_uint64_class()) }
             .expect("Could not get calls representing System.UInt64!")
     }
     /// Returns [`Class`] representing `System.UIntPtr` type ([usize]).
     #[must_use]
-    pub fn get_uint_ptr() -> Class {
+    pub fn get_uint_ptr() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_uintptr_class()) }
             .expect("Could not get calls representing System.IntPtr!")
     }
     /// Returns [`Class`] representing `System.Void` type.
     #[must_use]
-    pub fn get_void() -> Class {
+    pub fn get_void() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_void_class()) }
             .expect("Could not get calls representing System.Void!")
     }
     /// Returns [`Class`] representing `System.Array` type.
     #[must_use]
-    pub fn get_array() -> Class {
+    pub fn get_array() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_array_class()) }
             .expect("Could not get calls representing System.Array!")
     }
     /// Returns [`Class`] representing `System.Boolean` type ([bool]).
     #[must_use]
-    pub fn get_boolean() -> Class {
+    pub fn get_boolean() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_boolean_class()) }
             .expect("Could not get calls representing System.Boolean!")
     }
     /// Returns [`Class`] representing `System.Byte` type ([u8]).
     #[must_use]
-    pub fn get_byte() -> Class {
+    pub fn get_byte() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_byte_class()) }
             .expect("Could not get calls representing System.Byte!")
     }
     /// Returns [`Class`] representing `System.Char` type ([char]).
     #[must_use]
-    pub fn get_char() -> Class {
+    pub fn get_char() -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_get_char_class()) }
             .expect("Could not get calls representing System.Char!")
     }
     /// Gets class of an array of class *self* with rank (for int and rank 1, returns int[], for byte and rank 3 returns byte[][][],etc.)
     #[must_use]
-    pub fn get_array_class(&self, rank: u32) -> Class {
+    pub fn get_array_class(&self, rank: u32) -> Self {
         unsafe { Self::from_ptr(crate::binds::mono_array_class_get(self.class_ptr, rank)) }
             .expect("Impossible condition reached")
     }
     /// Returns [`Class`] representing the type **System.Exception**.
     #[must_use]
-    pub fn get_exception_class() -> Class {
-        unsafe { Class::from_ptr(crate::binds::mono_get_exception_class()) }
+    pub fn get_exception_class() -> Self {
+        unsafe { Self::from_ptr(crate::binds::mono_get_exception_class()) }
             .expect("Could not get ExceptionClass!")
     }
     /// Returns [`Class`] representing the type **System.Delegate**.
     #[must_use]
-    pub fn get_delegate_class() -> Class {
+    pub fn get_delegate_class() -> Self {
         *DELEGATE
     }
     /// Returns all fields of a class
@@ -471,11 +471,11 @@ impl Class {
     */
     /// Gets all types nested inside this class.
     #[must_use]
-    pub fn get_nested_types(&self) -> Vec<Class> {
+    pub fn get_nested_types(&self) -> Vec<Self> {
         let mut gptr = std::ptr::null_mut::<std::os::raw::c_void>();
         let mut res = Vec::new();
         while let Some(cf) = unsafe {
-            Class::from_ptr(crate::binds::mono_class_get_nested_types(
+            Self::from_ptr(crate::binds::mono_class_get_nested_types(
                 self.class_ptr,
                 std::ptr::addr_of_mut!(gptr),
             ))
@@ -723,7 +723,7 @@ impl ClassProperity {
     /// Creates new [`ClassProperity`] from a *mut [`MonoProperty`].
     /// # Safety
     /// The *ptr* must be either null or a valid pointer to *mut [`MonoProperty`]  or null.
-    pub unsafe fn from_ptr(ptr: *mut MonoProperty) -> Option<ClassProperity> {
+    pub unsafe fn from_ptr(ptr: *mut MonoProperty) -> Option<Self> {
         if ptr.is_null() {
             None
         } else {
@@ -746,11 +746,9 @@ impl ClassProperity {
     ) -> Result<Option<Object>, Exception> {
         use crate::binds::{MonoException, MonoObject};
         let param_ptr = params.as_ptr() as *mut *mut c_void;
-        let obj_ptr = match obj {
-            Some(obj) => obj.get_ptr(),
-            None => null_mut(),
-        }
-        .cast::<std::ffi::c_void>();
+        let obj_ptr = obj
+            .map_or(null_mut(), |obj| obj.get_ptr())
+            .cast::<std::ffi::c_void>();
         let mut exec: *mut MonoException = null_mut();
         let exec_ptr = std::ptr::addr_of_mut!(exec);
         let res = crate::binds::mono_property_get_value(
@@ -778,11 +776,9 @@ impl ClassProperity {
     pub unsafe fn set(&self, obj: Option<Object>, params: &[*mut c_void]) -> Result<(), Exception> {
         use crate::binds::{MonoException, MonoObject};
         let param_ptr = params.as_ptr() as *mut *mut c_void;
-        let obj_ptr = match obj {
-            Some(obj) => obj.get_ptr(),
-            None => null_mut(),
-        }
-        .cast::<std::ffi::c_void>();
+        let obj_ptr = obj
+            .map_or(null_mut(), |obj| obj.get_ptr())
+            .cast::<std::ffi::c_void>();
         let mut exec: *mut MonoException = null_mut();
         let exec_ptr = std::ptr::addr_of_mut!(exec);
         crate::binds::mono_property_set_value(

@@ -142,6 +142,7 @@ mod os_specific {
         println!("cargo:rustc-link-lib=stdc++");
         println!("cargo:rustc-link-lib=z");
     }
+    #[allow(clippy::missing_const_for_fn)]
     pub fn copy_dlls() {}
 }
 #[cfg(target_os = "windows")]
