@@ -7,8 +7,7 @@ use core::ptr::null_mut;
 use std::borrow::{Borrow, BorrowMut};
 use std::ops::Index;
 // Documentation finished.
-/// Safe representation of [`MonoArray`] (a reference to a managed array). Requires it's generic argument to implement [`InvokePass`] in order to automatically convert value from managed type to rust type.
-/// Will panic on creating an array with type mismatch between runtime and rust.
+/// Safe, rust representation of `MonoArray` (a reference to a managed array).
 /// # Nullable support
 /// [`Array<T>`] is non-nullable on default and will panic when null passed as argument form managed code. For nullable support use [`Option<Array<T>>`].
 /*

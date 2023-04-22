@@ -125,8 +125,7 @@ pub trait ObjectTrait: Sized + InteropClass {
         gc_unsafe_exit(marker);
         tok
     }
-    /// Returns [`Class`] of this object. NOTE: This is the managed class of this object, and may not be equal to [`Self::get_mono_class`]. [`Self::get_mono_class`] returns the class type [`Self`] represents. [`get_class`] retunrs
-    /// the class this type is instance of. This means that `self.get_class` may return a class which is derived from base class returned by [`Self::get_mono_class`].
+    /// Returns [`Class`] of this object. NOTE: This is function returns the class of the underlying object, not class represented by [`Self`]. This means that class returned from `get_class` may be a class derived from class [`Self`] represents.
     /// # Example
     /// ```no_run
     /// # use wrapped_mono::*;
@@ -408,7 +407,7 @@ impl Object {
         res
     }
 }
-//for 0.2 TODO:extend functionalities relating to properites.
+//for 0.2 TODO:extend functionalities relating to properties.
 use crate::interop::InteropClass;
 impl InteropClass for Object {
     fn get_mono_class() -> Class {
