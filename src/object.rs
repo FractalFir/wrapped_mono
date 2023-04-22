@@ -364,35 +364,6 @@ impl Object {
         res
     }
 }
-impl InteropRecive for Object {
-    type SourceType = *mut MonoObject;
-    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    fn get_rust_rep(arg: Self::SourceType) -> Self {
-        let opt = unsafe { Self::from_ptr(arg) };
-        except_managed(opt,"Rust function argument type is not nullable, but got null!For nullable types use Option<Object>!")
-    }
-}
-impl InteropSend for Object {
-    type TargetType = *mut MonoObject;
-    fn get_mono_rep(arg: Self) -> Self::TargetType {
-        arg.get_ptr()
-    }
-}
-impl InteropRecive for Option<Object> {
-    type SourceType = *mut MonoObject;
-    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    fn get_rust_rep(arg: Self::SourceType) -> Self {
-        unsafe { Object::from_ptr(arg) }
-    }
-}
-impl InteropSend for Option<Object> {
-    type TargetType = *mut MonoObject;
-    fn get_mono_rep(arg: Self) -> Self::TargetType {
-        arg.map_or(core::ptr::null_mut(), |arg| arg.get_ptr())
-    }
-}
 impl Object {
     ///Clones the underlying [`MonoObject`] *not* the reference to this object. (e.g when called on a reference to a managed object A will create second object B, not another reference to object A).
     #[must_use]

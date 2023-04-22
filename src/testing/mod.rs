@@ -176,3 +176,25 @@ struct Vec3 {
     y: f32,
     z: f32,
 }
+use crate::binds::MonoObject;
+struct CustomClass{
+   object:Object,
+}
+impl InteropClass for CustomClass {
+    fn get_mono_class() -> Class {
+        let img = Assembly::assembly_loaded("MyAssembly")
+            .expect("Assembly MyAssembly is not loaded, could not get CustomClass class!")
+            .get_image();
+        Class::from_name_case(&img, "Namespace", "CustomClass")
+            .expect("Could not get Namespace.CustomClass class form MyAssembly !")
+    }
+}
+impl ObjectTrait for CustomClass{
+	fn get_ptr(&self)->*mut MonoObject{
+		self.object.get_ptr()
+	}
+	unsafe fn from_ptr_unchecked(ptr:*mut MonoObject)->Self{
+		let object = Object::from_ptr_unchecked(ptr);
+		Self{object}
+	}
+}

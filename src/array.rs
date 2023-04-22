@@ -259,42 +259,6 @@ where
         self.lengths
     }
 }
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropRecive
-    for Array<Dim, T>
-where
-    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy + Copy,
-    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
-    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
-{
-    type SourceType = *mut crate::binds::MonoArray;
-    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    fn get_rust_rep(arg: Self::SourceType) -> Self {
-        use crate::exception::except_managed;
-        #[cfg(feature = "referneced_objects")]
-        let marker = gc_unsafe_enter();
-        let opt = unsafe { Self::from_ptr(arg.cast()) };
-        let res = except_managed(
-            opt,
-            "Got null in an not nullable type. For nullable support use Option<Array>",
-        );
-        #[cfg(feature = "referneced_objects")]
-        gc_unsafe_exit(marker);
-        res
-    }
-}
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropSend
-    for Array<Dim, T>
-where
-    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
-    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
-    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
-{
-    type TargetType = *mut crate::binds::MonoArray;
-    fn get_mono_rep(arg: Self) -> Self::TargetType {
-        arg.get_ptr().cast()
-    }
-}
 impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropClass
     for Array<Dim, T>
 where
@@ -369,32 +333,6 @@ where
             }
         }
         res
-    }
-}
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropRecive
-    for Option<Array<Dim, T>>
-where
-    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
-    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
-    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
-{
-    type SourceType = *mut crate::binds::MonoArray;
-    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    fn get_rust_rep(arg: Self::SourceType) -> Self {
-        unsafe { Array::<Dim, T>::from_ptr(arg.cast()) }
-    }
-}
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropSend
-    for Option<Array<Dim, T>>
-where
-    Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
-    <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
-    <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
-{
-    type TargetType = *mut crate::binds::MonoArray;
-    fn get_mono_rep(arg: Self) -> Self::TargetType {
-        arg.map_or(null_mut(), |arg| arg.get_ptr().cast())
     }
 }
 impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> Clone for Array<Dim, T>

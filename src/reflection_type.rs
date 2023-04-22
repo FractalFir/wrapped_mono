@@ -84,12 +84,7 @@ impl ReflectionType {
         Object::cast::<Self>(&res)
     }
 }
-impl InteropSend for ReflectionType {
-    type TargetType = *mut MonoReflectionType;
-    fn get_mono_rep(rarg: Self) -> Self::TargetType {
-        rarg.get_ptr().cast()
-    }
-}
+/*
 impl InteropRecive for ReflectionType {
     type SourceType = *mut MonoReflectionType;
     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
@@ -97,7 +92,7 @@ impl InteropRecive for ReflectionType {
     fn get_rust_rep(rarg: Self::SourceType) -> Self {
         unsafe { Self::from_ptr(rarg.cast()).expect("Recived null on a not nullable type") }
     }
-}
+}*/
 impl InteropClass for ReflectionType {
     fn get_mono_class() -> Class {
         *TYPE_CLASS

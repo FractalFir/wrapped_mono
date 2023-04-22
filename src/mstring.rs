@@ -56,39 +56,6 @@ impl MString {
         hsh
     }
 }
-impl InteropRecive for MString {
-    type SourceType = *mut MonoString;
-    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    fn get_rust_rep(src: Self::SourceType) -> Self {
-        use crate::exception::except_managed;
-        let opt = unsafe { Self::from_ptr(src.cast()) };
-        except_managed(
-            opt,
-            "got null in a non-nullable string. For nullabe support use Option<MString>",
-        )
-    }
-}
-impl InteropRecive for Option<MString> {
-    type SourceType = *mut MonoString;
-    // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    fn get_rust_rep(src: Self::SourceType) -> Self {
-        unsafe { MString::from_ptr(src.cast()) }
-    }
-}
-impl InteropSend for MString {
-    type TargetType = *mut MonoString;
-    fn get_mono_rep(src: Self) -> Self::TargetType {
-        src.get_ptr().cast::<MonoString>()
-    }
-}
-impl InteropSend for Option<MString> {
-    type TargetType = *mut MonoString;
-    fn get_mono_rep(src: Self) -> Self::TargetType {
-        src.map_or(null_mut(), MString::get_mono_rep)
-    }
-}
 impl InteropClass for MString {
     fn get_mono_class() -> Class {
         Class::get_string()
