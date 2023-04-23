@@ -8,7 +8,7 @@ pub struct MetadataTableInfo {
 pub type MetadataToken = u32;
 ///Enum representing all possible kinds of metadata tables.
 #[repr(u32)]
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy,Debug)]
 pub enum MetadataTableKind {
     Module = crate::binds::MonoMetaTableEnum_MONO_TABLE_MODULE,
     TypeRef = crate::binds::MonoMetaTableEnum_MONO_TABLE_TYPEREF,
@@ -278,5 +278,69 @@ impl std::fmt::Display for AssemblyOSMetadata {
         write!(f, "Platform:{}, ", &self.platform)?;
         write!(f, "MajorVersion:{}, ", self.major_version)?;
         write!(f, "MinorVersion:{}}}", self.minor_version)
+    }
+}
+#[derive(Debug)]
+struct TypeFlags{
+    flags:u32,
+}
+impl TypeFlags{
+    fn new(flags:u32)->Self{TypeFlags{flags}}
+}
+#[derive(Debug)]
+pub struct TypeDefinition{
+    flags:TypeFlags,
+    name:String,
+    namespace:String,
+    extends:u32,
+    field_list:u32,
+    method_list:u32,
+}
+impl TypeDefinition{
+    pub fn namespace(&self)->&str{
+        &self.namespace
+    }
+    pub fn name(&self)->&str{
+        &self.name
+    }
+}
+#[derive(Debug)]
+pub struct TypeDefinitionTable{
+    defs: Box<[TypeDefinition]>,
+}
+impl TypeDefinitionTable{
+    #[must_use]
+    fn from_meta_table(table: &MetadataTableInfo, img: Image) -> Self {
+        assert_eq!(table.kind,MetadataTableKind::TypeDef);
+        let type_count = table.get_table_rows(); 
+        let mut defs = Vec::with_capacity(type_count as usize);
+        for index in 0..type_count{
+            let flags = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_FLAGS);
+            let name = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_NAME);
+            let namespace = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_NAMESPACE);
+            let extends = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_EXTENDS);
+            let field_list = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_FIELD_LIST);
+            let method_list = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_METHOD_LIST);
+            let name = img.metadata_string_heap(name);
+            let namespace = img.metadata_string_heap(namespace);
+            let flags = TypeFlags::new(flags);
+            let definition = TypeDefinition{flags,name,namespace,extends,field_list,method_list};
+            defs.push(definition);
+        }
+        let defs = defs.into();
+        Self{defs}
+    }
+    pub fn defs(&self)->&[TypeDefinition]{
+        &self.defs
+    }
+    ///Gets [`TypeDefinitionTable`]
+    #[must_use]
+    pub fn from_image(img: Image) -> Option<Self> {
+        let table = img.get_table_info(MetadataTableKind::TypeDef);
+        if table.get_table_rows() > 0 {
+            Some(Self::from_meta_table(&table, img))
+        } else {
+            None
+        }
     }
 }

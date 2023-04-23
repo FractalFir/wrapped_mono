@@ -69,7 +69,7 @@
 //!}
 //! ```
 pub mod dimensions;
-
+pub mod bindgen;
 pub use dimensions::*;
 /// Utilities related to managed arrays.
 pub mod array;

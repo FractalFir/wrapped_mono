@@ -161,6 +161,14 @@ rusty_fork_test! {
         let img = asm.get_image();
         let _class = Class::from_name(&img,"","TestFunctions");
     }
+    #[test]
+    fn bindgen(){
+        use wrapped_mono::*;
+        let dom = jit::init("root",None);
+        let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
+        let path:String = "target/test_bind".to_owned();
+        bindgen::generate_binds(path,asm).unwrap();
+    }
     /*
     #[test]
     fn get_tuple_class(){
@@ -198,3 +206,5 @@ impl ObjectTrait for CustomClass{
 		Self{object}
 	}
 }
+//bindgen test
+include!("../../target/test_bind/mod.rs");
