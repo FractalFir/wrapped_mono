@@ -166,8 +166,10 @@ rusty_fork_test! {
         use wrapped_mono::*;
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
-        let path:String = "target/test_bind".to_owned();
-        bindgen::generate_binds(path,asm).unwrap();
+        bindgen::BindingGenerator::create("target/test_bind.rs").unwrap().add_assembly(asm)
+        //.add_assembly(Assembly::assembly_loaded("mscorlib").unwrap())
+        .generate().unwrap();
+        panic!();
     }
     /*
     #[test]
@@ -207,4 +209,4 @@ impl ObjectTrait for CustomClass{
 	}
 }
 //bindgen test
-include!("../../target/test_bind/mod.rs");
+//include!("../../target/test_bind/mod.rs");

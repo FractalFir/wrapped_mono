@@ -143,17 +143,5 @@ pub use reflection_type::ReflectionType;
 pub use wrapped_mono_macros; // Custom macros
 #[doc(inline)]
 pub use wrapped_mono_macros::{add_internal_call, invokable, InteropRecive, InteropSend};
-//for 0.2 TODO:create event object functionalities
-//for 0.2 TODO:create delegate related functionalities
-//for 0.2 TODO:create wrapper around MonoType. It is not necessary for basic functionalities, but is nice to have.
-/*
-    TODO: Memory leak prevention.
-    Memory leaks are serious issues which would seriously reduce usability of wrapped-mono.
-    Some issues may arise from wrong interpretation of documentation of mono runtime. Certain assumptions were made, which may not be true.
-    (for example const char* pointer being pointers to internal memory buffers within runtime which should not be freed).
-    While running tests using valgrind shows no memory leaks, this info may be wrong for 2 reasons
-    1: tests are run using rusty-fork - they are separate processes an thus may or may not be supervised by valgrind(depending on how spawning another process is handled - is it checked to or not?)
-    2: memory may be freed by mono when runtime stops? But that depends on mono runtime "sensing" that application is closing and automatically cleaning-up
-*/
 static STR2CSTR_ERR: &str = "Cold not create CString!";
 static CSTR2STR_ERR: &str = "Could not convert CString to String";
