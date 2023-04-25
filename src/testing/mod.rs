@@ -187,8 +187,8 @@ struct Vec3 {
     z: f32,
 }
 use crate::binds::MonoObject;
-struct CustomClass{
-   object:Object,
+struct CustomClass {
+    object: Object,
 }
 impl InteropClass for CustomClass {
     fn get_mono_class() -> Class {
@@ -199,14 +199,14 @@ impl InteropClass for CustomClass {
             .expect("Could not get Namespace.CustomClass class form MyAssembly !")
     }
 }
-impl ObjectTrait for CustomClass{
-	fn get_ptr(&self)->*mut MonoObject{
-		self.object.get_ptr()
-	}
-	unsafe fn from_ptr_unchecked(ptr:*mut MonoObject)->Self{
-		let object = Object::from_ptr_unchecked(ptr);
-		Self{object}
-	}
+impl ObjectTrait for CustomClass {
+    fn get_ptr(&self) -> *mut MonoObject {
+        self.object.get_ptr()
+    }
+    unsafe fn from_ptr_unchecked(ptr: *mut MonoObject) -> Self {
+        let object = Object::from_ptr_unchecked(ptr);
+        Self { object }
+    }
 }
 //bindgen test
 //include!("../../target/test_bind/mod.rs");

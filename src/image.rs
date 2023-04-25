@@ -32,12 +32,14 @@ impl Image {
         res
     }
     /// Gets a binary blob from metadata blob heap. Index must be within range of the blob heap.
-    pub fn blob_heap(&self,index:u32)->&[u8]{
-        unsafe{
-        let ptr = crate::binds::mono_metadata_blob_heap(self.get_ptr(),index);
-        let mut blob_ptr:*const i8 = std::ptr::null();
-        let blob_size = crate::binds::mono_metadata_decode_blob_size(ptr,&mut blob_ptr as *mut _);
-        std::slice::from_raw_parts(blob_ptr.cast(),blob_size as usize)}
+    pub fn blob_heap(&self, index: u32) -> &[u8] {
+        unsafe {
+            let ptr = crate::binds::mono_metadata_blob_heap(self.get_ptr(), index);
+            let mut blob_ptr: *const i8 = std::ptr::null();
+            let blob_size =
+                crate::binds::mono_metadata_decode_blob_size(ptr, &mut blob_ptr as *mut _);
+            std::slice::from_raw_parts(blob_ptr.cast(), blob_size as usize)
+        }
     }
     /// Creates the value of [`Image`] type from a [`MonoImage`].
     /// # Safety

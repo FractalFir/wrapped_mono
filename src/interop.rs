@@ -252,51 +252,55 @@ where
     Self: InteropRecive + InteropSend + InteropClass,
 {
 }
-impl<T:ObjectTrait> InteropRecive for T{
+impl<T: ObjectTrait> InteropRecive for T {
     type SourceType = *mut crate::binds::MonoObject;
-    fn get_rust_rep(src:Self::SourceType)->T{
-        if src.is_null(){
+    fn get_rust_rep(src: Self::SourceType) -> T {
+        if src.is_null() {
             panic!("Received null on non-nullable");
         }
-        unsafe{match T::from_ptr(src){
-            Some(res)=>res,
-            None => {
-                let src_type = crate::Object::from_ptr_unchecked(src).get_class();
-                let target_type = Self::get_mono_class();
-                panic!("Can't assign from type {src_type:?} to target type {target_type:?}");
+        unsafe {
+            match T::from_ptr(src) {
+                Some(res) => res,
+                None => {
+                    let src_type = crate::Object::from_ptr_unchecked(src).get_class();
+                    let target_type = Self::get_mono_class();
+                    panic!("Can't assign from type {src_type:?} to target type {target_type:?}");
+                }
             }
-        }}
+        }
     }
 }
-impl<T:ObjectTrait> InteropSend for T{
+impl<T: ObjectTrait> InteropSend for T {
     type TargetType = *mut crate::binds::MonoObject;
-    fn get_mono_rep(src:Self)->Self::TargetType{
+    fn get_mono_rep(src: Self) -> Self::TargetType {
         src.get_ptr()
     }
 }
-impl<T:ObjectTrait> InteropSend for Option<T>{
+impl<T: ObjectTrait> InteropSend for Option<T> {
     type TargetType = *mut crate::binds::MonoObject;
-    fn get_mono_rep(src:Self)->Self::TargetType{
-        match src{
-            Some(src)=> src.get_ptr(),
-            None=>std::ptr::null_mut(),
+    fn get_mono_rep(src: Self) -> Self::TargetType {
+        match src {
+            Some(src) => src.get_ptr(),
+            None => std::ptr::null_mut(),
         }
     }
 }
-impl<T:ObjectTrait> InteropRecive for Option<T>{
+impl<T: ObjectTrait> InteropRecive for Option<T> {
     type SourceType = *mut crate::binds::MonoObject;
-    fn get_rust_rep(src:Self::SourceType)->Option<T>{
-        if src.is_null(){
+    fn get_rust_rep(src: Self::SourceType) -> Option<T> {
+        if src.is_null() {
             return None;
         }
-        unsafe{match T::from_ptr(src){
-            Some(res)=>Some(res),
-            None => {
-                let src_type = crate::Object::from_ptr_unchecked(src).get_class();
-                let target_type = T::get_mono_class();
-                panic!("Can't assign from type {src_type:?} to target type {target_type:?}");
+        unsafe {
+            match T::from_ptr(src) {
+                Some(res) => Some(res),
+                None => {
+                    let src_type = crate::Object::from_ptr_unchecked(src).get_class();
+                    let target_type = T::get_mono_class();
+                    panic!("Can't assign from type {src_type:?} to target type {target_type:?}");
+                }
             }
-        }}
+        }
     }
 }
 /// Trait allowing managed class representing this type to be got.

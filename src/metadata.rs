@@ -8,7 +8,7 @@ pub struct MetadataTableInfo {
 pub type MetadataToken = u32;
 ///Enum representing all possible kinds of metadata tables.
 #[repr(u32)]
-#[derive(PartialEq, Eq, Clone, Copy,Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum MetadataTableKind {
     Module = crate::binds::MonoMetaTableEnum_MONO_TABLE_MODULE,
     TypeRef = crate::binds::MonoMetaTableEnum_MONO_TABLE_TYPEREF,
@@ -280,36 +280,34 @@ impl std::fmt::Display for AssemblyOSMetadata {
         write!(f, "MinorVersion:{}}}", self.minor_version)
     }
 }
-#[derive(Copy,Clone,Debug,PartialEq)]
-pub enum CallingConventionType{
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum CallingConventionType {
     Default,
     Generic,
     VArg,
 }
-#[derive(Copy,Clone)]
-pub struct SignatureFlags{
-    flags:u8,
+#[derive(Copy, Clone)]
+pub struct SignatureFlags {
+    flags: u8,
 }
-impl SignatureFlags{
-    fn new(flags:u8)->Self{
-        Self{flags}
+impl SignatureFlags {
+    fn new(flags: u8) -> Self {
+        Self { flags }
     }
-    pub fn has_this(&self)->bool{
+    pub fn has_this(&self) -> bool {
         (self.flags & 0x20) != 0
     }
-    pub fn explicit_this(&self)->bool{
-         (self.flags & 0x40) != 0
+    pub fn explicit_this(&self) -> bool {
+        (self.flags & 0x40) != 0
     }
-    pub fn callconv_type(&self)->CallingConventionType{
-        if self.flags & 0x10 != 0{
+    pub fn callconv_type(&self) -> CallingConventionType {
+        if self.flags & 0x10 != 0 {
             CallingConventionType::Generic
-        } 
-        else if self.flags & 0x5 != 0{
+        } else if self.flags & 0x5 != 0 {
             CallingConventionType::VArg
-        } 
-        else {
+        } else {
             CallingConventionType::Default
-        } 
+        }
     }
 }
 /*Ecma International 2012, C# spec
@@ -345,128 +343,173 @@ value in bits 28 through 0, giving 0xC0000001 (-228) to
 0xDFFFFFFE (228-1)
 */
 #[test]
-fn test_decode(){
-    assert_eq!(0x03,blob_decode_u32(&mut &[0x03][..]));
+fn test_decode() {
+    assert_eq!(0x03, blob_decode_u32(&mut &[0x03][..]));
     println!("0x03");
-    assert_eq!(0x7F,blob_decode_u32(&mut &[0x7F][..]));
+    assert_eq!(0x7F, blob_decode_u32(&mut &[0x7F][..]));
     println!("0x7F");
-    assert_eq!(0x80,blob_decode_u32(&mut &[0x80,0x80][..]));
+    assert_eq!(0x80, blob_decode_u32(&mut &[0x80, 0x80][..]));
     println!("0x80");
-    assert_eq!(0x2E57,blob_decode_u32(&mut &[0xAE,0x57][..]));
+    assert_eq!(0x2E57, blob_decode_u32(&mut &[0xAE, 0x57][..]));
     println!("0x2E57");
-    assert_eq!(0x3FFF,blob_decode_u32(&mut &[0xBF,0xFF][..]));  
+    assert_eq!(0x3FFF, blob_decode_u32(&mut &[0xBF, 0xFF][..]));
 }
-fn blob_decode_u32(src:&mut &[u8])->u32{
-    if (*src)[0] & 0x80 == 0{
+fn blob_decode_u32(src: &mut &[u8]) -> u32 {
+    if (*src)[0] & 0x80 == 0 {
         let res = (*src)[0];
         (*src) = &(*src)[1..];
         res as u32
-    }
-    else if (*src)[0] & 0x80 != 0 && (*src)[0] & 0x40 == 0{
-        let res = ((((*src)[0] & 0x7F) as u32)<<8) + (*src)[1] as u32;
+    } else if (*src)[0] & 0x80 != 0 && (*src)[0] & 0x40 == 0 {
+        let res = ((((*src)[0] & 0x7F) as u32) << 8) + (*src)[1] as u32;
         (*src) = &(*src)[2..];
         res as u32
-    }
-    else{
-        panic!("Can't decode integers bigger than 16383 from blob heap yet, {}!",src[0]);
-    }
-}
-impl std::fmt::Debug for SignatureFlags{
-    fn fmt(&self,f:&mut std::fmt::Formatter<'_>)->std::fmt::Result{
-        write!(f,"SignatureFlags{{")?;
-        write!(f,"has_this:{has_this},",has_this = self.has_this())?;
-        write!(f,"explicit_this:{explicit_this},",explicit_this = self.explicit_this())?;
-        write!(f,"callconv_type:{callconv_type:?}",callconv_type = self.callconv_type())?;
-        write!(f,"}}")
+    } else {
+        panic!(
+            "Can't decode integers bigger than 16383 from blob heap yet, {}!",
+            src[0]
+        );
     }
 }
-#[derive(Debug,Copy,Clone)]
-enum SigType{
+impl std::fmt::Debug for SignatureFlags {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "SignatureFlags{{")?;
+        write!(f, "has_this:{has_this},", has_this = self.has_this())?;
+        write!(
+            f,
+            "explicit_this:{explicit_this},",
+            explicit_this = self.explicit_this()
+        )?;
+        write!(
+            f,
+            "callconv_type:{callconv_type:?}",
+            callconv_type = self.callconv_type()
+        )?;
+        write!(f, "}}")
+    }
+}
+#[derive(Debug, Copy, Clone)]
+pub enum TypeDefOrRef {
     TypeDef(u32),
     TypeRef(u32),
     TypeSpec(u32),
 }
-impl SigType{
-    fn new(src:&mut &[u8])-> SigType{
+impl TypeDefOrRef {
+    pub fn is_null(&self) -> bool {
+        match self {
+            Self::TypeDef(index) => *index == 0,
+            //TODO: check how null is represented for TypeRef and TypeSpec, if it is represented at all.
+            Self::TypeRef(index) => *index == 0,
+            Self::TypeSpec(_) => false,
+        }
+    }
+    fn decode(src: &mut &[u8]) -> Self {
         let decoded = blob_decode_u32(src);
-        let type_kind = decoded & 0b11;
-        let type_index = (decoded & !(0b11));
-        match type_kind{
-            0=>Self::TypeDef(type_kind),
-            1=>Self::TypeRef(type_kind),
-            2=>Self::TypeSpec(type_kind),
-            _=>panic!("Decode error: type kind must be either 0,1 or 2 but got {type_kind}.")
+        Self::new(decoded)
+    }
+    fn new(src: u32) -> Self {
+        let type_kind = src & 0b11;
+        let type_index = src & !(0b11);
+        match type_kind {
+            0 => Self::TypeDef(type_kind),
+            1 => Self::TypeRef(type_kind),
+            2 => Self::TypeSpec(type_kind),
+            _ => panic!("Decode error: type kind must be either 0,1 or 2 but got {type_kind}."),
         }
     }
 }
-#[derive(Debug,Clone)]
-pub struct Signature{
-    flags:SignatureFlags,
-    signature:Box<[u8]>,
-    params:Box<[SigType]>,
-    ret:SigType,
+#[derive(Debug, Clone)]
+pub struct Signature {
+    flags: SignatureFlags,
+    signature: Box<[u8]>,
+    params: Box<[TypeDefOrRef]>,
+    ret: TypeDefOrRef,
 }
-impl Signature{
-    fn new(mut signature:&[u8])->Self{
+impl Signature {
+    pub fn params(&self) -> &[TypeDefOrRef] {
+        &self.params
+    }
+    pub fn flags(&self) -> SignatureFlags {
+        self.flags
+    }
+    pub fn ret(&self) -> TypeDefOrRef {
+        self.ret
+    }
+    fn new(mut signature: &[u8]) -> Self {
         let flags = SignatureFlags::new(signature[0]);
         signature = &signature[1..];
-        if flags.callconv_type() == CallingConventionType::Generic{
+        if flags.callconv_type() == CallingConventionType::Generic {
             //TODO:support generic paramters
-            let _generics = i32::from_le_bytes(signature[0..std::mem::size_of::<i32>()].try_into().unwrap());
+            let _generics =
+                i32::from_le_bytes(signature[0..std::mem::size_of::<i32>()].try_into().unwrap());
             signature = &signature[std::mem::size_of::<i32>()..];
         }
         let param_count = blob_decode_u32(&mut signature);
         let mut params = Vec::with_capacity(param_count as usize);
-        for _ in 0..param_count{
-            let stype = SigType::new(&mut signature);
+        for _ in 0..param_count {
+            let stype = TypeDefOrRef::decode(&mut signature);
             //println!("stype:{stype:?}");
             params.push(stype);
         }
-        let ret = SigType::new(&mut signature);
+        let ret = TypeDefOrRef::decode(&mut signature);
         let signature = signature.into();
         let params = params.into();
-        Self{signature,flags,params,ret}
+        Self {
+            signature,
+            flags,
+            params,
+            ret,
+        }
     }
 }
-#[derive(Debug,Clone)]
-pub struct Method{
-    rva:u32,
-    impl_flags:u32,
-    flags:u32,
-    name:String,
-    signature:Signature,
-    paramlist:u32,
+#[derive(Debug, Clone)]
+pub struct Method {
+    rva: u32,
+    impl_flags: u32,
+    flags: u32,
+    name: String,
+    signature: Signature,
+    paramlist: u32,
 }
-impl Method{
-    pub fn name(&self)->&str{
+impl Method {
+    pub fn name(&self) -> &str {
         &self.name
+    }
+    pub fn signature(&self) -> &Signature {
+        &self.signature
     }
 }
 #[derive(Debug)]
-pub struct MethodTable{
-    methods:Box<[Method]>,
+pub struct MethodTable {
+    methods: Box<[Method]>,
 }
-impl MethodTable{
+impl MethodTable {
     #[must_use]
     fn from_meta_table(table: &MetadataTableInfo, img: Image) -> Self {
-        assert_eq!(table.kind,MetadataTableKind::Method);
-        let method_count = table.get_table_rows(); 
+        assert_eq!(table.kind, MetadataTableKind::Method);
+        let method_count = table.get_table_rows();
         let mut methods = Vec::with_capacity(method_count as usize);
-        for index in 0..method_count{
+        for index in 0..method_count {
             let rva = table.decode_row_col(index, crate::binds::MONO_METHOD_RVA);
             let impl_flags = table.decode_row_col(index, crate::binds::MONO_METHOD_IMPLFLAGS);
             let flags = table.decode_row_col(index, crate::binds::MONO_METHOD_FLAGS);
             let name = table.decode_row_col(index, crate::binds::MONO_METHOD_NAME);
             let name = img.metadata_string_heap(name);
-            let signature = table.decode_row_col(index, crate::binds::MONO_METHOD_SIGNATURE); 
+            let signature = table.decode_row_col(index, crate::binds::MONO_METHOD_SIGNATURE);
             let signature = Signature::new(img.blob_heap(signature));
             let paramlist = table.decode_row_col(index, crate::binds::MONO_METHOD_PARAMLIST);
-            methods.push(Method{rva,impl_flags,flags,name,signature,paramlist});
+            methods.push(Method {
+                rva,
+                impl_flags,
+                flags,
+                name,
+                signature,
+                paramlist,
+            });
         }
         let methods = methods.into();
-        MethodTable{methods}
+        MethodTable { methods }
     }
-    pub fn methods(&self)->&[Method]{
+    pub fn methods(&self) -> &[Method] {
         &self.methods
     }
     ///Gets [`MethodTable`]
@@ -481,60 +524,77 @@ impl MethodTable{
     }
 }
 #[derive(Debug)]
-struct TypeFlags{
-    flags:u32,
+struct TypeFlags {
+    flags: u32,
 }
-impl TypeFlags{
-    fn new(flags:u32)->Self{TypeFlags{flags}}
+impl TypeFlags {
+    fn new(flags: u32) -> Self {
+        TypeFlags { flags }
+    }
 }
 #[derive(Debug)]
-pub struct TypeDefinition{
-    flags:TypeFlags,
-    name:String,
-    namespace:String,
-    extends:u32,
-    field_list:u32,
-    methods:Box<[Method]>
+pub struct TypeDefinition {
+    flags: TypeFlags,
+    name: String,
+    namespace: String,
+    extends: TypeDefOrRef,
+    field_list: u32,
+    methods: Box<[Method]>,
 }
-impl TypeDefinition{
-    pub fn namespace(&self)->&str{
+impl TypeDefinition {
+    pub fn namespace(&self) -> &str {
         &self.namespace
     }
-    pub fn name(&self)->&str{
+    pub fn name(&self) -> &str {
         &self.name
     }
-    pub fn methods(&self)->&[Method]{
+    pub fn methods(&self) -> &[Method] {
         &self.methods
+    }
+    pub fn extends(&self) -> TypeDefOrRef {
+        self.extends
     }
 }
 #[derive(Debug)]
-pub struct TypeReference{
-    scope:u32,
-    name:String,
-    namespace:String,
+pub struct TypeReference {
+    scope: u32,
+    name: String,
+    namespace: String,
+}
+impl TypeReference {
+    pub fn namespace(&self) -> &str {
+        &self.namespace
+    }
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 }
 #[derive(Debug)]
-pub struct TypeReferenceTable{
+pub struct TypeReferenceTable {
     refs: Box<[TypeReference]>,
 }
-impl TypeReferenceTable{
+impl TypeReferenceTable {
     #[must_use]
     fn from_meta_table(table: &MetadataTableInfo, img: Image) -> Self {
-        let ref_count = table.get_table_rows(); 
+        let ref_count = table.get_table_rows();
         let mut refs = Vec::with_capacity(ref_count as usize);
-        for index in 0..ref_count{
+        for index in 0..ref_count {
             let scope = table.decode_row_col(index, crate::binds::MONO_TYPEREF_SCOPE);
             let name = table.decode_row_col(index, crate::binds::MONO_TYPEREF_NAME);
             let name = img.metadata_string_heap(name);
             let namespace = table.decode_row_col(index, crate::binds::MONO_TYPEREF_NAMESPACE);
             let namespace = img.metadata_string_heap(namespace);
-            let reference = TypeReference{scope,name,namespace}; 
+            let reference = TypeReference {
+                scope,
+                name,
+                namespace,
+            };
             refs.push(reference);
         }
         let refs = refs.into();
-        Self{refs}
+        Self { refs }
     }
-    pub fn refs(&self)->&[TypeReference]{
+    pub fn refs(&self) -> &[TypeReference] {
         &self.refs
     }
     ///Gets [`TypeReferenceTable`]
@@ -549,39 +609,84 @@ impl TypeReferenceTable{
     }
 }
 #[derive(Debug)]
-pub struct TypeDefinitionTable{
-    defs: Box<[TypeDefinition]>,
+pub struct TypeSpec{
 }
-impl TypeDefinitionTable{
+#[derive(Debug)]
+pub struct TypeSpecTable {
+    specs: Box<[TypeSpec]>,
+}
+impl TypeSpecTable {
     #[must_use]
     fn from_meta_table(table: &MetadataTableInfo, img: Image) -> Self {
-        assert_eq!(table.kind,MetadataTableKind::TypeDef);
+        let ref_count = table.get_table_rows();
+        let mut specs= Vec::with_capacity(ref_count as usize);
+        for index in 0..ref_count {
+            let spec = TypeSpec {
+            };
+            specs.push(spec);
+        }
+        let specs = specs.into();
+        Self { specs }
+    }
+    pub fn specs(&self) -> &[TypeSpec] {
+        &self.specs
+    }
+    ///Gets [`TypeReferenceTable`]
+    #[must_use]
+    pub fn from_image(img: Image) -> Option<Self> {
+        let table = img.get_table_info(MetadataTableKind::TypeSpec);
+        if table.get_table_rows() > 0 {
+            Some(Self::from_meta_table(&table, img))
+        } else {
+            None
+        }
+    }
+}
+#[derive(Debug)]
+pub struct TypeDefinitionTable {
+    defs: Box<[TypeDefinition]>,
+}
+impl TypeDefinitionTable {
+    #[must_use]
+    fn from_meta_table(table: &MetadataTableInfo, img: Image) -> Self {
+        assert_eq!(table.kind, MetadataTableKind::TypeDef);
         let methods = MethodTable::from_image(img).unwrap();
-        let type_count = table.get_table_rows(); 
+        let type_count = table.get_table_rows();
         let mut defs = Vec::with_capacity(type_count as usize);
-        for index in 0..type_count{
+        for index in 0..type_count {
             let flags = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_FLAGS);
             let name = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_NAME);
             let namespace = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_NAMESPACE);
             let extends = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_EXTENDS);
+            let extends = TypeDefOrRef::new(extends);
             let field_list = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_FIELD_LIST);
-            let method_list = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_METHOD_LIST) as usize - 1;
-            let method_list_end = if index < type_count - 1{
+            let method_list =
+                table.decode_row_col(index, crate::binds::MONO_TYPEDEF_METHOD_LIST) as usize - 1;
+            let method_list_end = if index < type_count - 1 {
                 table.decode_row_col(index + 1, crate::binds::MONO_TYPEDEF_METHOD_LIST) as usize - 1
-            }else{
-                methods.methods().len() 
+            } else {
+                methods.methods().len()
             };
-            let methods = methods.methods()[method_list..method_list_end].to_vec().into_boxed_slice();
+            let methods = methods.methods()[method_list..method_list_end]
+                .to_vec()
+                .into_boxed_slice();
             let name = img.metadata_string_heap(name);
             let namespace = img.metadata_string_heap(namespace);
             let flags = TypeFlags::new(flags);
-            let definition = TypeDefinition{flags,name,namespace,extends,field_list,methods};
+            let definition = TypeDefinition {
+                flags,
+                name,
+                namespace,
+                extends,
+                field_list,
+                methods,
+            };
             defs.push(definition);
         }
         let defs = defs.into();
-        Self{defs}
+        Self { defs }
     }
-    pub fn defs(&self)->&[TypeDefinition]{
+    pub fn defs(&self) -> &[TypeDefinition] {
         &self.defs
     }
     ///Gets [`TypeDefinitionTable`]

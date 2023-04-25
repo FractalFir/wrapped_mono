@@ -1,7 +1,7 @@
 use crate::binds::MonoString;
 use crate::domain::Domain;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
-use crate::interop::{InteropClass};
+use crate::interop::InteropClass;
 ///needed for docs
 #[allow(unused_imports)]
 use crate::object::Object;

@@ -68,8 +68,8 @@
 //!     add_internal_call!("SomeClass::AvgInternalCall",sqrt);
 //!}
 //! ```
-pub mod dimensions;
 pub mod bindgen;
+pub mod dimensions;
 pub use dimensions::*;
 /// Utilities related to managed arrays.
 pub mod array;
