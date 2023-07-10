@@ -619,7 +619,7 @@ impl TypeSpecTable {
     #[must_use]
     fn from_meta_table(table: &MetadataTableInfo, img: Image) -> Self {
         let ref_count = table.get_table_rows();
-        let mut specs= Vec::with_capacity(ref_count as usize);
+        let mut specs = Vec::with_capacity(ref_count as usize);
         for index in 0..ref_count {
             let spec = TypeSpec {
             };
