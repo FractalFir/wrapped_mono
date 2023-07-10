@@ -12,10 +12,7 @@ pub enum BindgenError {
     MissingTypeData,
 }
 fn escape_method(s: &str) -> String {
-    match s {
-        ".ctor" => "new".to_owned(),
-        _ => s.to_owned(),
-    }
+    s.replace(".ctor","new").replace(".","_")
 }
 fn escape_namespace(s: &str) -> String {
     s.replace(".", "_")
@@ -57,21 +54,34 @@ impl BindingGenerator {
         if !self.has_corelib() {
             self.target.write_all(include_bytes!("corelib_binds.rs"))?;
         }
+        println!("asmc:{}",self.assemblies.len());
         for assembly_index in 0..self.assemblies.len() {
             let asm = self.assemblies[assembly_index];
             let img = asm.get_image();
-            let tdt = TypeDefinitionTable::from_image(img).ok_or(BindgenError::MissingTypeData)?;
-            let refs = TypeReferenceTable::from_image(img).ok_or(BindgenError::MissingTypeData)?;
-            println!("refs:{refs:?}");
+            let tdt = match TypeDefinitionTable::from_image(img){
+                Some(tdt)=>tdt,
+                None=>continue,
+            };
+            let refs = match TypeReferenceTable::from_image(img){
+                Some(refs)=>refs,
+                None=>TypeReferenceTable::empty(),
+            };
+            //println!("refs:{refs:?}");
             let asm_name = asm.get_name();
+            println!("Generating types for assembly {asm_name}");
             self.generate_types(tdt, refs, &asm_name)?;
         }
         for assembly_index in 0..self.assemblies.len() {
             let asm = self.assemblies[assembly_index];
             let img = asm.get_image();
-            let tdt = TypeDefinitionTable::from_image(img).ok_or(BindgenError::MissingTypeData)?;
-            let refs = TypeReferenceTable::from_image(img).ok_or(BindgenError::MissingTypeData)?;
-            println!("refs:{refs:?}");
+            let tdt = match TypeDefinitionTable::from_image(img){
+                Some(tdt)=>tdt,
+                None=>continue,
+            };
+            let refs = match TypeReferenceTable::from_image(img){
+                Some(refs)=>refs,
+                None=>TypeReferenceTable::empty(),
+            };
             let asm_name = asm.get_name();
             self.generate_methods(tdt, refs, &asm_name)?;
         }
@@ -95,6 +105,88 @@ impl BindingGenerator {
         }
         false
     }
+    fn generate_method(&mut self, tdt: &TypeDefinitionTable,
+        refs: &TypeReferenceTable,method:&crate::metadata::Method,namespace:&str,type_name:&str) -> Result<(), BindgenError> {
+        let mut out = self.namespaces_out.get_mut(namespace).unwrap();
+        let name = method.name();
+        let escaped_name = escape_method(method.name());
+        let mut param_names = Vec::with_capacity(method.signature().params().len());
+        for param in method.signature().params() {
+            let (namespace, name) = if let TypeDefOrRef::TypeDef(index) = param {
+                let index = *index;
+                let param = &tdt.defs()[index as usize];
+                (escape_namespace(param.namespace()), param.name())
+            } else if let TypeDefOrRef::TypeRef(index) = param {
+                let index = *index;
+                let r = match refs.refs().get(index as usize){Some(r)=>r,None=>return Ok(()),};
+                (escape_namespace(r.namespace()), r.name())
+            } else {
+                break;
+            };
+            if name.contains('<') || name.contains('`')  || name.contains('.'){
+                return Ok(());
+            }
+            //println!("param:{param:?},name:{name}");
+            if namespace.is_empty() {
+                param_names.push(name.into());
+            } else {
+                param_names.push(format!("{namespace}::{name}"));
+            }
+        } 
+        write!(out,"impl {type_name}_{escaped_name}_DISPATCH_ARGS for (")?;
+        if method.signature().flags().has_this() {
+            if namespace.is_empty() {
+                param_names.push(name.into());
+            } else {
+                param_names.push(format!("{namespace}::{name}"));
+            }
+        }
+        for param_name in &param_names{
+            write!(out,"{param_name},")?;
+        }
+        write!(out,"){{")?;
+        write!(out,"\n\ttype ReturnType = System::Object;\n\ttype Args = (");
+        for param_name in &param_names{
+            write!(out,"{param_name},")?;
+        }
+        write!(out,");\n\tfn call(args:Args){{todo!()}}\n}}\n//END\n")?;
+        //write!(out,"//Method dispatcher\npub struct {escaped_name}_DISPATCHER;\n pub const {escaped_name}:{mname}_DISPATCHER = {mname}_DISPATCHER;\n trait {mname}_DISPATCHER_TRAIT{{type Return; fn invoke(&self)->Return;}}\nimpl {mname}_DISPATCHER {{ fn invoke<Args:{mname}_DISPATCHER_TRAIT>(args:Args)->Args::Return{{args.invoke()}} }}\n")?;
+        /* 
+        write!(out, "// Wrapper around method {mname}\n")?;
+        write!(out, "impl {mname}_DISPATCHER_TRAIT for (")?;
+        if meth.signature().flags().has_this() {
+            println!("{mname} - has this!");
+            if namespace.is_empty() {
+                write!(out, "{name}")?;
+            } else {
+                write!(out, "{namespace}::{name}")?;
+            }
+        }
+        for param in meth.signature().params() {
+            let (namespace, name) = if let TypeDefOrRef::TypeDef(index) = param {
+                let index = index;
+                let param = &tdt.defs()[index as usize];
+                (escape_namespace(param.namespace()), param.name())
+            } else if let TypeDefOrRef::TypeRef(index) = param {
+                let index = *index;
+                let r = &refs.refs()[index as usize];
+                (escape_namespace(r.namespace()), r.name())
+            } else {
+                break;
+            };
+            println!("param:{param:?},name:{name}");
+            if namespace.is_empty() {
+                write!(out, "{name}")?;
+            } else {
+                write!(out, "{namespace}::{name}")?;
+            }
+        } 
+        write!(out, "){{")?;
+        write!(out, "todo!();");
+        write!(out, "}}")?;
+        */
+        Ok(())
+    }
     fn generate_methods(
         &mut self,
         tdt: TypeDefinitionTable,
@@ -104,53 +196,38 @@ impl BindingGenerator {
         for td in tdt.defs() {
             let namespace = escape_namespace(td.namespace());
             self.create_namespace(&namespace);
-            let mut out = self.namespaces_out.get_mut(&namespace).unwrap();
-            let name = td.name();
-            write!(
-                out,
-                "//Implementations of methods for {name}\nimpl {name} {{\n"
-            )?;
-            let mut meth_hash = HashSet::new();
-            for meth in td.methods() {
-                println!("meth:{meth:?}\n");
-                let mname = escape_method(meth.name());
-                if !meth_hash.insert(mname.to_owned()) {
-                    write!(out,"//Method dispatcher\npub struct {mname}_DISPATCHER;\n pub const {mname}:{mname}_DISPATCHER = {mname}_DISPATCHER;\n trait {mname}_DISPATCHER_TRAIT{{type Return; fn invoke(&self)->Return;}}\nimpl {mname}_DISPATCHER {{ fn invoke<Args:{mname}_DISPATCHER_TRAIT>(args:Args)->Args::Return{{args.invoke()}} }}\n")?;
-                }
-                write!(out, "// Wrapper around method {mname}\n")?;
-                write!(out, "impl {mname}_DISPATCHER_TRAIT for (")?;
-                if meth.signature().flags().has_this() {
-                    println!("{mname} - has this!");
-                    if namespace.is_empty() {
-                        write!(out, "{name}")?;
-                    } else {
-                        write!(out, "{namespace}::{name}")?;
-                    }
-                }
-                for param in meth.signature().params() {
-                    let (namespace, name) = if let TypeDefOrRef::TypeDef(index) = param {
-                        let index = *index;
-                        let param = &tdt.defs()[index as usize];
-                        (escape_namespace(param.namespace()), param.name())
-                    } else if let TypeDefOrRef::TypeRef(index) = param {
-                        let index = *index;
-                        let r = &refs.refs()[index as usize];
-                        (escape_namespace(r.namespace()), r.name())
-                    } else {
-                        break;
-                    };
-                    println!("param:{param:?},name:{name}");
-                    if namespace.is_empty() {
-                        write!(out, "{name}")?;
-                    } else {
-                        write!(out, "{namespace}::{name}")?;
-                    }
-                }
-                write!(out, "){{")?;
-                write!(out, "todo!();");
-                write!(out, "}}")?;
+            let type_name = td.name();
+            if type_name.contains('<') || type_name.contains('`'){
+                continue;
             }
-            write!(out, "}}\n")?;
+            //let type_name = escaped_name(type_name);
+            {
+                let mut out = self.namespaces_out.get_mut(&namespace).unwrap();
+                write!(
+                    out,
+                    "//Implementations of methods for {type_name}\n"
+                )?;
+            }
+            let mut methods:std::collections::HashSet<String> = HashSet::new();
+            for method in td.methods() {
+                let name = method.name();
+                if name.contains('<') || name.contains('>')|| name.contains('`') || name.contains('.'){
+                    continue;
+                }
+                self.generate_method(&tdt,&refs,method,&namespace,&type_name)?;
+                let mut out = self.namespaces_out.get_mut(&namespace).unwrap();
+                let escaped_name = escape_method(method.name());
+                assert!(!escaped_name.contains('.'));
+                if !methods.contains(&escaped_name){
+                    write!(out, "trait {type_name}_{escaped_name}_DISPATCH_ARGS{{\n\ttype ReturnType;\n\ttype Args;\n\tfn call(args:Args)->Result<ReturnType,Exception>;\n\t//END\n}}\n");
+                    methods.insert(escaped_name.clone());
+                }
+               
+            }
+            {
+                let mut out = self.namespaces_out.get_mut(&namespace).unwrap();
+                write!(out, "//End of Implementations of methods for {type_name}\n")?;
+            }
         }
         Ok(())
     }
@@ -163,12 +240,13 @@ impl BindingGenerator {
         for td in tdt.defs() {
             use crate::metadata::TypeDefOrRef::TypeDef;
             let name = td.name();
-            if name.contains('<') {
+            if name.contains('<') || name.contains('`') {
                 continue;
             }
-            let namespace = escape_namespace(td.namespace());
-            self.create_namespace(&namespace);
-            let mut out = self.namespaces_out.get_mut(&namespace).unwrap();
+            let namespace = td.namespace();
+            let escaped_namespace = escape_namespace(namespace);
+            self.create_namespace(&escaped_namespace);
+            let mut out = self.namespaces_out.get_mut(&escaped_namespace).unwrap();
             write!(
                 out,
                 "// Bindings to object \"{name}\" in namespace \"{namespace}\".\n"
@@ -177,8 +255,7 @@ impl BindingGenerator {
             write!(out,"impl wrapped_mono::InteropClass for {name}{{
 fn get_mono_class()->wrapped_mono::Class{{
     extern crate lazy_static;
-    use lazy_static::*;
-    lazy_static!{{
+    lazy_static::lazy_static!{{
         static ref {name}_CLASS:wrapped_mono::Class = {{
             let img = Assembly::assembly_loaded(\"{asm_name}\")
                 .expect(\"Assembly \\\"{asm_name}\\\" is not loaded, could not get \\\"{name}\\\" class!\")

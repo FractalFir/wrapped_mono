@@ -167,7 +167,7 @@ rusty_fork_test! {
         let dom = jit::init("root",None);
         let asm = dom.assembly_open("test/dlls/Test.dll").unwrap();
         bindgen::BindingGenerator::create("target/test_bind.rs").unwrap().add_assembly(asm)
-        //.add_assembly(Assembly::assembly_loaded("mscorlib").unwrap())
+        .add_assembly(Assembly::assembly_loaded("mscorlib").unwrap())
         .generate().unwrap();
         panic!();
     }

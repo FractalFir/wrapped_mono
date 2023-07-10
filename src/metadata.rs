@@ -402,17 +402,19 @@ impl TypeDefOrRef {
             Self::TypeSpec(_) => false,
         }
     }
-    fn decode(src: &mut &[u8]) -> Self {
+    fn decode(src: &mut &[u8]) -> Option<Self> {
+        assert!(src.len() > 0);
         let decoded = blob_decode_u32(src);
         Self::new(decoded)
     }
-    fn new(src: u32) -> Self {
+    fn new(src: u32) -> Option<Self>{
         let type_kind = src & 0b11;
         let type_index = src & !(0b11);
         match type_kind {
-            0 => Self::TypeDef(type_kind),
-            1 => Self::TypeRef(type_kind),
-            2 => Self::TypeSpec(type_kind),
+            0 => Some(Self::TypeDef(type_kind)),
+            1 => Some(Self::TypeRef(type_kind)),
+            2 => Some(Self::TypeSpec(type_kind)),
+            3 => None,
             _ => panic!("Decode error: type kind must be either 0,1 or 2 but got {type_kind}."),
         }
     }
@@ -424,6 +426,11 @@ pub struct Signature {
     params: Box<[TypeDefOrRef]>,
     ret: TypeDefOrRef,
 }
+#[derive(Debug)]
+enum SignatureDecodeError{
+    UnsuportedGeneric,
+    InvalidTypedef,
+}
 impl Signature {
     pub fn params(&self) -> &[TypeDefOrRef] {
         &self.params
@@ -434,31 +441,37 @@ impl Signature {
     pub fn ret(&self) -> TypeDefOrRef {
         self.ret
     }
-    fn new(mut signature: &[u8]) -> Self {
+    fn new(mut signature: &[u8]) -> Result<Self,SignatureDecodeError> {
         let flags = SignatureFlags::new(signature[0]);
         signature = &signature[1..];
         if flags.callconv_type() == CallingConventionType::Generic {
             //TODO:support generic paramters
+            /* 
             let _generics =
                 i32::from_le_bytes(signature[0..std::mem::size_of::<i32>()].try_into().unwrap());
-            signature = &signature[std::mem::size_of::<i32>()..];
+            signature = &signature[std::mem::size_of::<i32>()..];*/
+            return Err(SignatureDecodeError::UnsuportedGeneric);
         }
+        
         let param_count = blob_decode_u32(&mut signature);
         let mut params = Vec::with_capacity(param_count as usize);
+        //println!("param_count:{param_count}");
+        assert!(signature.len() > 1 || param_count == 0);
         for _ in 0..param_count {
-            let stype = TypeDefOrRef::decode(&mut signature);
+            let stype = TypeDefOrRef::decode(&mut signature).ok_or(SignatureDecodeError::InvalidTypedef)?;
             //println!("stype:{stype:?}");
             params.push(stype);
         }
-        let ret = TypeDefOrRef::decode(&mut signature);
+        
+        let ret = TypeDefOrRef::decode(&mut signature).ok_or(SignatureDecodeError::InvalidTypedef)?;
         let signature = signature.into();
         let params = params.into();
-        Self {
+        Ok(Self {
             signature,
             flags,
             params,
             ret,
-        }
+        })
     }
 }
 #[derive(Debug, Clone)]
@@ -496,6 +509,7 @@ impl MethodTable {
             let name = img.metadata_string_heap(name);
             let signature = table.decode_row_col(index, crate::binds::MONO_METHOD_SIGNATURE);
             let signature = Signature::new(img.blob_heap(signature));
+            let signature = match signature{Ok(signature)=>signature,Err(err)=>continue};
             let paramlist = table.decode_row_col(index, crate::binds::MONO_METHOD_PARAMLIST);
             methods.push(Method {
                 rva,
@@ -574,6 +588,7 @@ pub struct TypeReferenceTable {
     refs: Box<[TypeReference]>,
 }
 impl TypeReferenceTable {
+    pub fn empty()->Self{Self{refs:Box::new([])}}
     #[must_use]
     fn from_meta_table(table: &MetadataTableInfo, img: Image) -> Self {
         let ref_count = table.get_table_rows();
@@ -658,7 +673,7 @@ impl TypeDefinitionTable {
             let name = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_NAME);
             let namespace = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_NAMESPACE);
             let extends = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_EXTENDS);
-            let extends = TypeDefOrRef::new(extends);
+            let extends = TypeDefOrRef::new(extends).unwrap();
             let field_list = table.decode_row_col(index, crate::binds::MONO_TYPEDEF_FIELD_LIST);
             let method_list =
                 table.decode_row_col(index, crate::binds::MONO_TYPEDEF_METHOD_LIST) as usize - 1;
@@ -667,6 +682,10 @@ impl TypeDefinitionTable {
             } else {
                 methods.methods().len()
             };
+            //BUGFIX: should never normaly happen.
+            if method_list > method_list_end || method_list_end > methods.methods().len(){
+                continue;
+            }
             let methods = methods.methods()[method_list..method_list_end]
                 .to_vec()
                 .into_boxed_slice();
