@@ -138,10 +138,12 @@ pub use mstring::MString;
 pub use object::{Object, ObjectTrait};
 #[doc(inline)]
 pub use reflection_type::ReflectionType;
+
 #[doc(inline)]
 /// Custom macros used by `wrapped_mono`
 pub use wrapped_mono_macros; // Custom macros
 #[doc(inline)]
-pub use wrapped_mono_macros::{add_internal_call, invokable, InteropRecive, InteropSend};
+pub use wrapped_mono_macros::{add_internal_call, invokable, InteropRecive};
+
 static STR2CSTR_ERR: &str = "Cold not create CString!";
 static CSTR2STR_ERR: &str = "Could not convert CString to String";

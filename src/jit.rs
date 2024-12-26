@@ -81,7 +81,9 @@ pub fn exec(domain: &Domain, assembly: &Assembly, args: Vec<&str>) -> Result<i32
         ));
     }
     for (index, arg) in args.into_iter().enumerate() {
-        let Ok(cstr_arg) = CString::new(arg) else { return Err(index) };
+        let Ok(cstr_arg) = CString::new(arg) else {
+            return Err(index);
+        };
         argument_vector.push(cstr_arg.as_ptr() as *mut i8);
         cstr_args.push(cstr_arg);
     }

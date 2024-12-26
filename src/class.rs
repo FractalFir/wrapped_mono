@@ -803,10 +803,9 @@ impl ClassProperity {
     }
     /// Gets setter method of this property.
     #[must_use]
-    pub fn get_set_method<T: InteropSend + CompareClasses>(&self) -> Option<Method<T>>
-    where
-        <T as InteropSend>::TargetType: crate::tupleutilis::TupleToPtrs,
-    {
+    pub fn get_set_method<T: InteropSend + CompareClasses + InteropClass>(
+        &self,
+    ) -> Option<Method<(T,)>> {
         unsafe { Method::from_ptr(crate::binds::mono_property_get_get_method(self.prop_ptr)) }
     }
     /// Gets class this property is attached to.
@@ -830,3 +829,4 @@ lazy_static! {
 }
 // Sharing Classes between thread is safe
 unsafe impl Sync for Class {}
+unsafe impl Send for Class {}

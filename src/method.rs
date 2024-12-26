@@ -1,5 +1,5 @@
 use crate::binds::{MonoException, MonoMethod, MonoObject};
-use crate::tupleutilis::{CompareClasses, TupleToPtrs};
+use crate::tupleutilis::{CompareClasses, TupleToFFIPtrs};
 use crate::{Class, Exception, InteropSend, Object, ObjectTrait};
 use core::{ffi::c_void, marker::PhantomData};
 use std::ffi::CString;
@@ -7,10 +7,7 @@ use std::ptr::null_mut;
 //Depends on: #![feature(specialization)]
 /// Rust representation of a managed method(function of code loaded into mono runtime).
 /// Args - Tuple type of types of all arguments accepted by this particular method.
-pub struct Method<Args: InteropSend + CompareClasses>
-where
-    <Args as InteropSend>::TargetType: TupleToPtrs,
-{
+pub struct Method<Args: TupleToFFIPtrs + CompareClasses> {
     method: *mut MonoMethod,
     args_type: PhantomData<Args>,
 }
@@ -52,10 +49,7 @@ where
     unsafe fn from_ptr_checked(met_ptr: *mut MonoMethod) -> Option<Self>;
 }
 */
-impl<Args: InteropSend + CompareClasses> Method<Args>
-where
-    <Args as InteropSend>::TargetType: TupleToPtrs,
-{
+impl<Args: TupleToFFIPtrs + CompareClasses> Method<Args> {
     /// Gets the internal pointer to [`MonoMethod`].
     /// # Arguments
     /// |Name   |Type   |Description|
@@ -72,10 +66,7 @@ where
     /// |`self`   |&[`Method`]|   Rust representation of the method preforming the call.|
     /// |`called` |&[`Method`]|   Rust representation of the method being called.|
     #[must_use]
-    pub fn can_acces_method<T: InteropSend + CompareClasses>(&self, called: &Method<T>) -> bool
-    where
-        <T as InteropSend>::TargetType: TupleToPtrs,
-    {
+    pub fn can_acces_method<T: TupleToFFIPtrs + CompareClasses>(&self, called: &Method<T>) -> bool {
         (unsafe { crate::binds::mono_method_can_access_method(self.method, called.method) } != 0)
     }
     ///Metadata token. Not working without MetadataAPI
@@ -191,10 +182,7 @@ where
         }
     }
 }
-impl<Args: InteropSend + CompareClasses> Method<Args>
-where
-    <Args as InteropSend>::TargetType: TupleToPtrs,
-{
+impl<Args: CompareClasses + TupleToFFIPtrs> Method<Args> {
     /// Invoke this method on object *`object`* with arguments *`args`*
     /// # Arguments
     /// | Name   | Type   | Description|
@@ -204,15 +192,17 @@ where
     /// |`args`   | `Args`|Arguments to pass to method |
     /// # Errors
     /// Returns an exception if it was thrown by managed code.
-    pub fn invoke(&self, object: Option<Object>, args: Args) -> Result<Option<Object>, Exception> {
+    pub fn invoke(
+        &self,
+        object: Option<Object>,
+        mut args: Args,
+    ) -> Result<Option<Object>, Exception> {
         //convert object to invoke on to a pointer.
         let obj_ptr = object.map_or(core::ptr::null_mut(), |obj| obj.get_ptr());
         let mut expect: *mut MonoException = null_mut();
         //convert argument types
-        let mut args = <Args as InteropSend>::get_mono_rep(args);
-        let mut params = <<Args as InteropSend>::TargetType as TupleToPtrs>::get_ptrs(
-            std::ptr::addr_of_mut!(args),
-        );
+
+        let mut params = args.get_ptrs();
         //invoke the method itself
         let res_ptr = unsafe {
             crate::binds::mono_runtime_invoke(
@@ -281,8 +271,4 @@ where
         }
         Some(res)
     }
-}
-unsafe impl<Args: InteropSend + CompareClasses> Sync for Method<Args> where
-    <Args as InteropSend>::TargetType: TupleToPtrs
-{
 }

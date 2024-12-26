@@ -1,10 +1,11 @@
-use crate::binds::{MonoObject, MonoReflectionType, MonoType};
+use crate::binds::{MonoClass, MonoObject, MonoReflectionType, MonoType};
 use crate::dimensions::Dim1D;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
 use crate::{Array, Class, Domain, Image, Method};
 use crate::{InteropClass, InteropRecive, InteropSend};
 use crate::{Object, ObjectTrait};
 use std::ffi::CString;
+use std::sync::LazyLock;
 /// Rust representation of managed object derived form class `System.Type`
 pub struct ReflectionType {
     #[cfg(not(feature = "referneced_objects"))]
@@ -64,25 +65,6 @@ impl ReflectionType {
         gc_unsafe_exit(marker);
         res
     }
-    // Unfinished
-    #[allow(dead_code)]
-    fn create_generic(gtype_img: Image, gtype: &str, gargs: &[Self]) -> Option<Self> {
-        let garg_count = gargs.len();
-        let gtype_str = format!("{gtype}`{garg_count}");
-        println!("{gtype_str}");
-        let Some(res) = Self::from_name(&gtype_str, gtype_img) else { return None };
-        let arr: Array<Dim1D, Self> = gargs.into();
-        let obj = res.cast::<Object>().unwrap();
-        let res = MAKE_GENERIC_TYPE_MET.invoke(Some(obj), (arr,));
-        // handle exceptions
-        let res = match res {
-            Ok(res) => res,
-            Err(except_msg) => panic!("EXCEPTION:'{except_msg}'"), //return None,
-        };
-        // handle null
-        let Some(res) = res else { return None };
-        Object::cast::<Self>(&res)
-    }
 }
 /*
 impl InteropRecive for ReflectionType {
@@ -129,25 +111,15 @@ impl ObjectTrait for ReflectionType {
         }
     }
 }
-use lazy_static::lazy_static;
-lazy_static! {
-    static ref TYPE_CLASS: Class = {
-        let img = crate::Assembly::assembly_loaded("mscorlib")
-            .expect("Assembly mscorlib not loaded, could not get System.Type class!")
-            .get_image();
-        Class::from_name_case(&img, "System", "Type")
-            .expect("Could not get System.Type class form mscorlib!")
-    };
-    static ref MAKE_GENERIC_TYPE_MET: Method<(Array<Dim1D, ReflectionType>,)> = {
-        let img = crate::Assembly::assembly_loaded("mscorlib")
-            .expect("Assembly mscorlib not loaded, could not get System.Type class!")
-            .get_image();
-        let class = Class::from_name_case(&img, "System", "Type")
-            .expect("Could not get System.Type class form mscorlib!");
-        Method::get_from_name(&class, "MakeGenericType", 1)
-            .expect("Could not get System.Type::MakeGenericType method!")
-    };
-}
+
+static TYPE_CLASS: LazyLock<Class> = LazyLock::new(|| {
+    let img = crate::Assembly::assembly_loaded("mscorlib")
+        .expect("Assembly mscorlib not loaded, could not get System.Type class!")
+        .get_image();
+    Class::from_name_case(&img, "System", "Type")
+        .expect("Could not get System.Type class form mscorlib!")
+});
+
 impl Clone for ReflectionType {
     fn clone(&self) -> Self {
         unsafe { Self::from_ptr(self.get_ptr()) }.unwrap()

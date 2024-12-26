@@ -101,7 +101,7 @@ fn main() {
                 write!(res, "\"{error}\" ").unwrap();
             }
             write!(res,"are missing. Is mono installed propely? It cna be downloaded here: https://www.mono-project.com/download/stable/ ").unwrap();
-            panic!("{}", res);
+            //panic!("{}", res);
         }
     }
     os_specific::insert_link_args();

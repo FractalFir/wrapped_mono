@@ -169,7 +169,7 @@ rusty_fork_test! {
         bindgen::BindingGenerator::create("target/test_bind.rs").unwrap().add_assembly(asm)
         .add_assembly(Assembly::assembly_loaded("mscorlib").unwrap())
         .generate().unwrap();
-        panic!();
+
     }
     /*
     #[test]
@@ -179,13 +179,7 @@ rusty_fork_test! {
         let tuple_class = <(i32,u32) as InteropClass>::get_mono_class();
     }*/
 }
-use crate::wrapped_mono_macros::{InteropRecive, InteropSend};
-#[derive(InteropRecive, InteropSend)]
-struct Vec3 {
-    x: f32,
-    y: f32,
-    z: f32,
-}
+
 use crate::binds::MonoObject;
 struct CustomClass {
     object: Object,

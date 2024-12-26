@@ -95,6 +95,7 @@ where
         gc_unsafe_exit(marker);
         rr
     }
+
     /// Function setting element at *index* of [`Array`] to *value*
     /// # Arguments
     /// |Name   |Type   |Description|
@@ -118,8 +119,10 @@ where
     ///     input.set([1,0],9);
     /// }
     /// ```
-    pub fn set(&mut self, indices: Dim::Lengths, value: T) {
-        let tmp = T::get_mono_rep(value);
+    pub fn set(&mut self, indices: Dim::Lengths, mut value: T)
+    where
+        T: InteropSend,
+    {
         let index = self.get_index(indices);
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
@@ -128,15 +131,20 @@ where
             #[allow(clippy::cast_possible_wrap)]
             crate::binds::mono_array_addr_with_size(
                 self.get_ptr().cast(),
-                std::mem::size_of::<T::TargetType>() as i32,
+                std::mem::size_of::<T>() as i32,
                 index,
             )
-            .cast()
         };
-        unsafe { (*ptr) = tmp };
+        if T::is_class_type() {
+            unsafe { (*ptr.cast()) = value.get_ffi_ptr() };
+        } else {
+            unsafe { (*ptr.cast()) = value };
+        }
+
         #[cfg(feature = "referneced_objects")]
         gc_unsafe_exit(marker);
     }
+
     /// Function returning 1D length of the array(element count).
     /// # Arguments
     /// |Name   |Type   |Description|
@@ -357,6 +365,7 @@ where
     }
 }
 use crate::dimensions::Dim1D;
+
 impl<T: InteropSend + InteropRecive + InteropClass + Clone> From<&[T]> for Array<Dim1D, T> {
     fn from(src: &[T]) -> Self {
         let size = src.len();

@@ -1,3 +1,5 @@
+use std::os::raw::c_void;
+
 use crate::object::ObjectTrait;
 /// Trait specifying how to convert a type when transferring it between managed and unmanaged code. It specifies how to convert
 /// `SourceType` used by `MonoRuntime` to type implementing this trait.
@@ -9,11 +11,26 @@ pub trait InteropRecive {
 }
 /// Trait specifying how to convert a type when transferring it between managed and unmanaged code. It specifies how to convert type implementing this trait
 /// to `TargetType` used by `MonoRuntime`.
-pub trait InteropSend {
-    ///Type used by `MonoRuntime`, that type implementing [`InteropSend`] trait should be converted to when returning it to `MonoRuntime`.
-    type TargetType: Copy;
+/// # Safety
+/// This type has the appopieate layout on the mono side.
+pub unsafe trait InteropSend: Sized {
     ///Function converting type implementing [`InteropRecive`] trait to type that should be returned to `MonoRuntime`.
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType;
+    fn get_ffi_ptr(&mut self) -> *mut c_void {
+        std::ptr::addr_of_mut!(*self) as *mut c_void
+    }
+    fn is_class_type() -> bool {
+        false
+    }
+    /// Internal function used for returing values from Rust callbacks to  Mono functions
+    unsafe fn return_value_to_mono(mut self) -> Self {
+        if Self::is_class_type() {
+            assert_eq!(std::mem::size_of::<Self>(), std::mem::size_of::<*mut ()>());
+            let ptr = self.get_ffi_ptr();
+            (&ptr as *const *mut c_void as *const Self).read()
+        } else {
+            self
+        }
+    }
 }
 impl InteropRecive for String {
     type SourceType = *mut crate::binds::MonoString;
@@ -128,121 +145,46 @@ impl InteropRecive for char {
     }
 }
 //return section
-impl InteropSend for i8 {
-    type TargetType = Self;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
-}
-impl InteropSend for i16 {
-    type TargetType = Self;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
-}
-impl InteropSend for i32 {
-    type TargetType = Self;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
-}
-impl InteropSend for i64 {
-    type TargetType = Self;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
-}
-impl InteropSend for u8 {
-    type TargetType = Self;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
-}
-impl InteropSend for u16 {
-    type TargetType = Self;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
-}
-impl InteropSend for u32 {
-    type TargetType = Self;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
-}
-impl InteropSend for u64 {
-    type TargetType = Self;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
-}
-impl InteropSend for f32 {
-    type TargetType = Self;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
-}
-impl InteropSend for f64 {
-    type TargetType = Self;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
-}
-impl InteropSend for usize {
-    type TargetType = Self;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
-}
-impl InteropSend for isize {
-    type TargetType = Self;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
-}
-impl<T> InteropSend for *mut T {
-    type TargetType = Self;
-    fn get_mono_rep(mono_arg: Self::TargetType) -> Self {
-        mono_arg
-    }
-}
-impl<T> InteropSend for *const T {
-    type TargetType = Self;
-    fn get_mono_rep(mono_arg: Self::TargetType) -> Self {
-        mono_arg
-    }
-}
-impl InteropSend for char {
-    type TargetType = u16;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        let mut tmp = [0; 2];
-        rust_arg.encode_utf16(&mut tmp);
-        tmp[0]
-    }
-}
-impl InteropSend for bool {
-    type TargetType = Self;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        rust_arg
-    }
-}
-impl InteropSend for () {
-    type TargetType = Self;
-    fn get_mono_rep(_: Self) -> Self::TargetType {}
-}
-impl InteropSend for String {
-    type TargetType = *mut crate::binds::MonoString;
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
+unsafe impl InteropSend for i8 {}
+unsafe impl InteropSend for i16 {}
+unsafe impl InteropSend for i32 {}
+unsafe impl InteropSend for i64 {}
+unsafe impl InteropSend for u8 {}
+unsafe impl InteropSend for u16 {}
+unsafe impl InteropSend for u32 {}
+unsafe impl InteropSend for u64 {}
+unsafe impl InteropSend for f32 {}
+unsafe impl InteropSend for f64 {}
+unsafe impl InteropSend for usize {}
+unsafe impl InteropSend for isize {}
+unsafe impl<T> InteropSend for *mut T {}
+unsafe impl<T> InteropSend for *const T {}
+
+unsafe impl InteropSend for bool {}
+unsafe impl InteropSend for () {}
+unsafe impl InteropSend for &str {
+    fn get_ffi_ptr(&mut self) -> *mut c_void {
         use crate::MString;
         MString::new(
             &crate::Domain::get_current()
                 .expect("Could not get current domain when sending strings to mono runtime!"),
-            &rust_arg,
+            self,
         )
-        .get_ptr()
-        .cast()
+        .get_ffi_ptr()
+    }
+    fn is_class_type() -> bool {
+        true
     }
 }
+unsafe impl InteropSend for String {
+    fn get_ffi_ptr(&mut self) -> *mut c_void {
+        self.as_str().get_ffi_ptr()
+    }
+    fn is_class_type() -> bool {
+        true
+    }
+}
+
 use crate::class::Class;
 /// Trait allowing for boxing and unboxing type from objects
 /// # Safety
@@ -270,19 +212,23 @@ impl<T: ObjectTrait> InteropRecive for T {
         }
     }
 }
-impl<T: ObjectTrait> InteropSend for T {
-    type TargetType = *mut crate::binds::MonoObject;
-    fn get_mono_rep(src: Self) -> Self::TargetType {
-        src.get_ptr()
+unsafe impl<T: ObjectTrait> InteropSend for T {
+    fn get_ffi_ptr(&mut self) -> *mut c_void {
+        self.get_ptr() as *mut c_void
+    }
+    fn is_class_type() -> bool {
+        true
     }
 }
-impl<T: ObjectTrait> InteropSend for Option<T> {
-    type TargetType = *mut crate::binds::MonoObject;
-    fn get_mono_rep(src: Self) -> Self::TargetType {
-        match src {
-            Some(src) => src.get_ptr(),
+unsafe impl<T: ObjectTrait> InteropSend for Option<T> {
+    fn get_ffi_ptr(&mut self) -> *mut c_void {
+        match self {
+            Some(src) => src.get_ffi_ptr(),
             None => std::ptr::null_mut(),
         }
+    }
+    fn is_class_type() -> bool {
+        true
     }
 }
 impl<T: ObjectTrait> InteropRecive for Option<T> {
@@ -406,533 +352,3 @@ impl InteropBox for f64 {}
 impl InteropBox for isize {}
 impl InteropBox for usize {}
 impl InteropBox for bool {}
-impl InteropBox for char {}
-
-//use crate::tupleutilis::*;
-//Conversion of a tuple from one format to another
-impl<A: InteropSend> InteropSend for (A,) {
-    type TargetType = (A::TargetType,);
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (A::get_mono_rep(rust_arg.0),)
-    }
-}
-impl<A: InteropSend, B: InteropSend> InteropSend for (A, B) {
-    type TargetType = (A::TargetType, B::TargetType);
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (A::get_mono_rep(rust_arg.0), B::get_mono_rep(rust_arg.1))
-    }
-}
-impl<A: InteropSend, B: InteropSend, C: InteropSend> InteropSend for (A, B, C) {
-    type TargetType = (A::TargetType, B::TargetType, C::TargetType);
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-        )
-    }
-}
-impl<A: InteropSend, B: InteropSend, C: InteropSend, D: InteropSend> InteropSend for (A, B, C, D) {
-    type TargetType = (A::TargetType, B::TargetType, C::TargetType, D::TargetType);
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-            D::get_mono_rep(rust_arg.3),
-        )
-    }
-}
-impl<A: InteropSend, B: InteropSend, C: InteropSend, D: InteropSend, E: InteropSend> InteropSend
-    for (A, B, C, D, E)
-{
-    type TargetType = (
-        A::TargetType,
-        B::TargetType,
-        C::TargetType,
-        D::TargetType,
-        E::TargetType,
-    );
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-            D::get_mono_rep(rust_arg.3),
-            E::get_mono_rep(rust_arg.4),
-        )
-    }
-}
-impl<
-        A: InteropSend,
-        B: InteropSend,
-        C: InteropSend,
-        D: InteropSend,
-        E: InteropSend,
-        F: InteropSend,
-    > InteropSend for (A, B, C, D, E, F)
-{
-    type TargetType = (
-        A::TargetType,
-        B::TargetType,
-        C::TargetType,
-        D::TargetType,
-        E::TargetType,
-        F::TargetType,
-    );
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-            D::get_mono_rep(rust_arg.3),
-            E::get_mono_rep(rust_arg.4),
-            F::get_mono_rep(rust_arg.5),
-        )
-    }
-}
-impl<
-        A: InteropSend,
-        B: InteropSend,
-        C: InteropSend,
-        D: InteropSend,
-        E: InteropSend,
-        F: InteropSend,
-        G: InteropSend,
-    > InteropSend for (A, B, C, D, E, F, G)
-{
-    type TargetType = (
-        A::TargetType,
-        B::TargetType,
-        C::TargetType,
-        D::TargetType,
-        E::TargetType,
-        F::TargetType,
-        G::TargetType,
-    );
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-            D::get_mono_rep(rust_arg.3),
-            E::get_mono_rep(rust_arg.4),
-            F::get_mono_rep(rust_arg.5),
-            G::get_mono_rep(rust_arg.6),
-        )
-    }
-}
-impl<
-        A: InteropSend,
-        B: InteropSend,
-        C: InteropSend,
-        D: InteropSend,
-        E: InteropSend,
-        F: InteropSend,
-        G: InteropSend,
-        H: InteropSend,
-    > InteropSend for (A, B, C, D, E, F, G, H)
-{
-    type TargetType = (
-        A::TargetType,
-        B::TargetType,
-        C::TargetType,
-        D::TargetType,
-        E::TargetType,
-        F::TargetType,
-        G::TargetType,
-        H::TargetType,
-    );
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-            D::get_mono_rep(rust_arg.3),
-            E::get_mono_rep(rust_arg.4),
-            F::get_mono_rep(rust_arg.5),
-            G::get_mono_rep(rust_arg.6),
-            H::get_mono_rep(rust_arg.7),
-        )
-    }
-}
-impl<
-        A: InteropSend,
-        B: InteropSend,
-        C: InteropSend,
-        D: InteropSend,
-        E: InteropSend,
-        F: InteropSend,
-        G: InteropSend,
-        H: InteropSend,
-        I: InteropSend,
-    > InteropSend for (A, B, C, D, E, F, G, H, I)
-{
-    type TargetType = (
-        A::TargetType,
-        B::TargetType,
-        C::TargetType,
-        D::TargetType,
-        E::TargetType,
-        F::TargetType,
-        G::TargetType,
-        H::TargetType,
-        I::TargetType,
-    );
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-            D::get_mono_rep(rust_arg.3),
-            E::get_mono_rep(rust_arg.4),
-            F::get_mono_rep(rust_arg.5),
-            G::get_mono_rep(rust_arg.6),
-            H::get_mono_rep(rust_arg.7),
-            I::get_mono_rep(rust_arg.8),
-        )
-    }
-}
-impl<
-        A: InteropSend,
-        B: InteropSend,
-        C: InteropSend,
-        D: InteropSend,
-        E: InteropSend,
-        F: InteropSend,
-        G: InteropSend,
-        H: InteropSend,
-        I: InteropSend,
-        J: InteropSend,
-    > InteropSend for (A, B, C, D, E, F, G, H, I, J)
-{
-    type TargetType = (
-        A::TargetType,
-        B::TargetType,
-        C::TargetType,
-        D::TargetType,
-        E::TargetType,
-        F::TargetType,
-        G::TargetType,
-        H::TargetType,
-        I::TargetType,
-        J::TargetType,
-    );
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-            D::get_mono_rep(rust_arg.3),
-            E::get_mono_rep(rust_arg.4),
-            F::get_mono_rep(rust_arg.5),
-            G::get_mono_rep(rust_arg.6),
-            H::get_mono_rep(rust_arg.7),
-            I::get_mono_rep(rust_arg.8),
-            J::get_mono_rep(rust_arg.9),
-        )
-    }
-}
-impl<
-        A: InteropSend,
-        B: InteropSend,
-        C: InteropSend,
-        D: InteropSend,
-        E: InteropSend,
-        F: InteropSend,
-        G: InteropSend,
-        H: InteropSend,
-        I: InteropSend,
-        J: InteropSend,
-        K: InteropSend,
-    > InteropSend for (A, B, C, D, E, F, G, H, I, J, K)
-{
-    type TargetType = (
-        A::TargetType,
-        B::TargetType,
-        C::TargetType,
-        D::TargetType,
-        E::TargetType,
-        F::TargetType,
-        G::TargetType,
-        H::TargetType,
-        I::TargetType,
-        J::TargetType,
-        K::TargetType,
-    );
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-            D::get_mono_rep(rust_arg.3),
-            E::get_mono_rep(rust_arg.4),
-            F::get_mono_rep(rust_arg.5),
-            G::get_mono_rep(rust_arg.6),
-            H::get_mono_rep(rust_arg.7),
-            I::get_mono_rep(rust_arg.8),
-            J::get_mono_rep(rust_arg.9),
-            K::get_mono_rep(rust_arg.10),
-        )
-    }
-}
-impl<
-        A: InteropSend,
-        B: InteropSend,
-        C: InteropSend,
-        D: InteropSend,
-        E: InteropSend,
-        F: InteropSend,
-        G: InteropSend,
-        H: InteropSend,
-        I: InteropSend,
-        J: InteropSend,
-        K: InteropSend,
-        L: InteropSend,
-    > InteropSend for (A, B, C, D, E, F, G, H, I, J, K, L)
-{
-    type TargetType = (
-        A::TargetType,
-        B::TargetType,
-        C::TargetType,
-        D::TargetType,
-        E::TargetType,
-        F::TargetType,
-        G::TargetType,
-        H::TargetType,
-        I::TargetType,
-        J::TargetType,
-        K::TargetType,
-        L::TargetType,
-    );
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-            D::get_mono_rep(rust_arg.3),
-            E::get_mono_rep(rust_arg.4),
-            F::get_mono_rep(rust_arg.5),
-            G::get_mono_rep(rust_arg.6),
-            H::get_mono_rep(rust_arg.7),
-            I::get_mono_rep(rust_arg.8),
-            J::get_mono_rep(rust_arg.9),
-            K::get_mono_rep(rust_arg.10),
-            L::get_mono_rep(rust_arg.11),
-        )
-    }
-}
-impl<
-        A: InteropSend,
-        B: InteropSend,
-        C: InteropSend,
-        D: InteropSend,
-        E: InteropSend,
-        F: InteropSend,
-        G: InteropSend,
-        H: InteropSend,
-        I: InteropSend,
-        J: InteropSend,
-        K: InteropSend,
-        L: InteropSend,
-        M: InteropSend,
-    > InteropSend for (A, B, C, D, E, F, G, H, I, J, K, L, M)
-{
-    type TargetType = (
-        A::TargetType,
-        B::TargetType,
-        C::TargetType,
-        D::TargetType,
-        E::TargetType,
-        F::TargetType,
-        G::TargetType,
-        H::TargetType,
-        I::TargetType,
-        J::TargetType,
-        K::TargetType,
-        L::TargetType,
-        M::TargetType,
-    );
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-            D::get_mono_rep(rust_arg.3),
-            E::get_mono_rep(rust_arg.4),
-            F::get_mono_rep(rust_arg.5),
-            G::get_mono_rep(rust_arg.6),
-            H::get_mono_rep(rust_arg.7),
-            I::get_mono_rep(rust_arg.8),
-            J::get_mono_rep(rust_arg.9),
-            K::get_mono_rep(rust_arg.10),
-            L::get_mono_rep(rust_arg.11),
-            M::get_mono_rep(rust_arg.12),
-        )
-    }
-}
-impl<
-        A: InteropSend,
-        B: InteropSend,
-        C: InteropSend,
-        D: InteropSend,
-        E: InteropSend,
-        F: InteropSend,
-        G: InteropSend,
-        H: InteropSend,
-        I: InteropSend,
-        J: InteropSend,
-        K: InteropSend,
-        L: InteropSend,
-        M: InteropSend,
-        N: InteropSend,
-    > InteropSend for (A, B, C, D, E, F, G, H, I, J, K, L, M, N)
-{
-    type TargetType = (
-        A::TargetType,
-        B::TargetType,
-        C::TargetType,
-        D::TargetType,
-        E::TargetType,
-        F::TargetType,
-        G::TargetType,
-        H::TargetType,
-        I::TargetType,
-        J::TargetType,
-        K::TargetType,
-        L::TargetType,
-        M::TargetType,
-        N::TargetType,
-    );
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-            D::get_mono_rep(rust_arg.3),
-            E::get_mono_rep(rust_arg.4),
-            F::get_mono_rep(rust_arg.5),
-            G::get_mono_rep(rust_arg.6),
-            H::get_mono_rep(rust_arg.7),
-            I::get_mono_rep(rust_arg.8),
-            J::get_mono_rep(rust_arg.9),
-            K::get_mono_rep(rust_arg.10),
-            L::get_mono_rep(rust_arg.11),
-            M::get_mono_rep(rust_arg.12),
-            N::get_mono_rep(rust_arg.13),
-        )
-    }
-}
-impl<
-        A: InteropSend,
-        B: InteropSend,
-        C: InteropSend,
-        D: InteropSend,
-        E: InteropSend,
-        F: InteropSend,
-        G: InteropSend,
-        H: InteropSend,
-        I: InteropSend,
-        J: InteropSend,
-        K: InteropSend,
-        L: InteropSend,
-        M: InteropSend,
-        N: InteropSend,
-        O: InteropSend,
-    > InteropSend for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)
-{
-    type TargetType = (
-        A::TargetType,
-        B::TargetType,
-        C::TargetType,
-        D::TargetType,
-        E::TargetType,
-        F::TargetType,
-        G::TargetType,
-        H::TargetType,
-        I::TargetType,
-        J::TargetType,
-        K::TargetType,
-        L::TargetType,
-        M::TargetType,
-        N::TargetType,
-        O::TargetType,
-    );
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-            D::get_mono_rep(rust_arg.3),
-            E::get_mono_rep(rust_arg.4),
-            F::get_mono_rep(rust_arg.5),
-            G::get_mono_rep(rust_arg.6),
-            H::get_mono_rep(rust_arg.7),
-            I::get_mono_rep(rust_arg.8),
-            J::get_mono_rep(rust_arg.9),
-            K::get_mono_rep(rust_arg.10),
-            L::get_mono_rep(rust_arg.11),
-            M::get_mono_rep(rust_arg.12),
-            N::get_mono_rep(rust_arg.13),
-            O::get_mono_rep(rust_arg.14),
-        )
-    }
-}
-impl<
-        A: InteropSend,
-        B: InteropSend,
-        C: InteropSend,
-        D: InteropSend,
-        E: InteropSend,
-        F: InteropSend,
-        G: InteropSend,
-        H: InteropSend,
-        I: InteropSend,
-        J: InteropSend,
-        K: InteropSend,
-        L: InteropSend,
-        M: InteropSend,
-        N: InteropSend,
-        O: InteropSend,
-        P: InteropSend,
-    > InteropSend for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)
-{
-    type TargetType = (
-        A::TargetType,
-        B::TargetType,
-        C::TargetType,
-        D::TargetType,
-        E::TargetType,
-        F::TargetType,
-        G::TargetType,
-        H::TargetType,
-        I::TargetType,
-        J::TargetType,
-        K::TargetType,
-        L::TargetType,
-        M::TargetType,
-        N::TargetType,
-        O::TargetType,
-        P::TargetType,
-    );
-    fn get_mono_rep(rust_arg: Self) -> Self::TargetType {
-        (
-            A::get_mono_rep(rust_arg.0),
-            B::get_mono_rep(rust_arg.1),
-            C::get_mono_rep(rust_arg.2),
-            D::get_mono_rep(rust_arg.3),
-            E::get_mono_rep(rust_arg.4),
-            F::get_mono_rep(rust_arg.5),
-            G::get_mono_rep(rust_arg.6),
-            H::get_mono_rep(rust_arg.7),
-            I::get_mono_rep(rust_arg.8),
-            J::get_mono_rep(rust_arg.9),
-            K::get_mono_rep(rust_arg.10),
-            L::get_mono_rep(rust_arg.11),
-            M::get_mono_rep(rust_arg.12),
-            N::get_mono_rep(rust_arg.13),
-            O::get_mono_rep(rust_arg.14),
-            P::get_mono_rep(rust_arg.15),
-        )
-    }
-}

@@ -3,396 +3,407 @@ use core::ffi::c_void;
 //for argument procesing
 type VoidPtr = *mut c_void;
 //Conversion of a tuple to pointers
-pub trait TupleToPtrs {
-    type Res;
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res;
+pub trait TupleToFFIPtrs {
+    type PTRS;
+    fn get_ptrs(&mut self) -> Self::PTRS;
 }
-#[allow(clippy::similar_names)]
-impl TupleToPtrs for () {
-    type Res = [*mut c_void; 0];
-    fn get_ptrs(_base_ptr: *mut Self) -> Self::Res {
+impl TupleToFFIPtrs for () {
+    type PTRS = [*mut c_void; 0];
+    fn get_ptrs(&mut self) -> Self::PTRS {
         []
     }
 }
-impl<A> TupleToPtrs for (A,) {
-    type Res = [*mut c_void; 1];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        [a as VoidPtr]
+impl<A: InteropSend> TupleToFFIPtrs for (A,) {
+    type PTRS = [*mut c_void; 1];
+    fn get_ptrs(&mut self) -> Self::PTRS {
+        [self.0.get_ffi_ptr()]
     }
 }
-impl<A, B> TupleToPtrs for (A, B) {
-    type Res = [*mut c_void; 2];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        [a as VoidPtr, b as VoidPtr]
+impl<A: InteropSend, B: InteropSend> TupleToFFIPtrs for (A, B) {
+    type PTRS = [*mut c_void; 2];
+    fn get_ptrs(&mut self) -> Self::PTRS {
+        [self.0.get_ffi_ptr(), self.1.get_ffi_ptr()]
     }
 }
-impl<A, B, C> TupleToPtrs for (A, B, C) {
-    type Res = [*mut c_void; 3];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        [a as VoidPtr, b as VoidPtr, c as VoidPtr]
-    }
-}
-impl<A, B, C, D> TupleToPtrs for (A, B, C, D) {
-    type Res = [*mut c_void; 4];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        let d = c + std::mem::size_of::<C>();
-        [a as VoidPtr, b as VoidPtr, c as VoidPtr, d as VoidPtr]
-    }
-}
-impl<A, B, C, D, E> TupleToPtrs for (A, B, C, D, E) {
-    type Res = [*mut c_void; 5];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        let d = c + std::mem::size_of::<C>();
-        let e = d + std::mem::size_of::<D>();
+impl<A: InteropSend, B: InteropSend, C: InteropSend> TupleToFFIPtrs for (A, B, C) {
+    type PTRS = [*mut c_void; 3];
+    fn get_ptrs(&mut self) -> Self::PTRS {
         [
-            a as VoidPtr,
-            b as VoidPtr,
-            c as VoidPtr,
-            d as VoidPtr,
-            e as VoidPtr,
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
         ]
     }
 }
-impl<A, B, C, D, E, F> TupleToPtrs for (A, B, C, D, E, F) {
-    type Res = [*mut c_void; 6];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        let d = c + std::mem::size_of::<C>();
-        let e = d + std::mem::size_of::<D>();
-        let f = e + std::mem::size_of::<E>();
-        [
-            a as VoidPtr,
-            b as VoidPtr,
-            c as VoidPtr,
-            d as VoidPtr,
-            e as VoidPtr,
-            f as VoidPtr,
-        ]
-    }
-}
-impl<A, B, C, D, E, F, G> TupleToPtrs for (A, B, C, D, E, F, G) {
-    type Res = [*mut c_void; 7];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        let d = c + std::mem::size_of::<C>();
-        let e = d + std::mem::size_of::<D>();
-        let f = e + std::mem::size_of::<E>();
-        let g = f + std::mem::size_of::<F>();
-        [
-            a as VoidPtr,
-            b as VoidPtr,
-            c as VoidPtr,
-            d as VoidPtr,
-            e as VoidPtr,
-            f as VoidPtr,
-            g as VoidPtr,
-        ]
-    }
-}
-impl<A, B, C, D, E, F, G, H> TupleToPtrs for (A, B, C, D, E, F, G, H) {
-    type Res = [*mut c_void; 8];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        let d = c + std::mem::size_of::<C>();
-        let e = d + std::mem::size_of::<D>();
-        let f = e + std::mem::size_of::<E>();
-        let g = f + std::mem::size_of::<F>();
-        let h = g + std::mem::size_of::<G>();
-        [
-            a as VoidPtr,
-            b as VoidPtr,
-            c as VoidPtr,
-            d as VoidPtr,
-            e as VoidPtr,
-            f as VoidPtr,
-            g as VoidPtr,
-            h as VoidPtr,
-        ]
-    }
-}
-impl<A, B, C, D, E, F, G, H, I> TupleToPtrs for (A, B, C, D, E, F, G, H, I) {
-    type Res = [*mut c_void; 9];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        let d = c + std::mem::size_of::<C>();
-        let e = d + std::mem::size_of::<D>();
-        let f = e + std::mem::size_of::<E>();
-        let g = f + std::mem::size_of::<F>();
-        let h = g + std::mem::size_of::<G>();
-        let i = h + std::mem::size_of::<H>();
-        [
-            a as VoidPtr,
-            b as VoidPtr,
-            c as VoidPtr,
-            d as VoidPtr,
-            e as VoidPtr,
-            f as VoidPtr,
-            g as VoidPtr,
-            h as VoidPtr,
-            i as VoidPtr,
-        ]
-    }
-}
-impl<A, B, C, D, E, F, G, H, I, J> TupleToPtrs for (A, B, C, D, E, F, G, H, I, J) {
-    type Res = [*mut c_void; 10];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        let d = c + std::mem::size_of::<C>();
-        let e = d + std::mem::size_of::<D>();
-        let f = e + std::mem::size_of::<E>();
-        let g = f + std::mem::size_of::<F>();
-        let h = g + std::mem::size_of::<G>();
-        let i = h + std::mem::size_of::<H>();
-        let j = i + std::mem::size_of::<I>();
-        [
-            a as VoidPtr,
-            b as VoidPtr,
-            c as VoidPtr,
-            d as VoidPtr,
-            e as VoidPtr,
-            f as VoidPtr,
-            g as VoidPtr,
-            h as VoidPtr,
-            i as VoidPtr,
-            j as VoidPtr,
-        ]
-    }
-}
-impl<A, B, C, D, E, F, G, H, I, J, K> TupleToPtrs for (A, B, C, D, E, F, G, H, I, J, K) {
-    type Res = [*mut c_void; 11];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        let d = c + std::mem::size_of::<C>();
-        let e = d + std::mem::size_of::<D>();
-        let f = e + std::mem::size_of::<E>();
-        let g = f + std::mem::size_of::<F>();
-        let h = g + std::mem::size_of::<G>();
-        let i = h + std::mem::size_of::<H>();
-        let j = i + std::mem::size_of::<I>();
-        let k = j + std::mem::size_of::<J>();
-        [
-            a as VoidPtr,
-            b as VoidPtr,
-            c as VoidPtr,
-            d as VoidPtr,
-            e as VoidPtr,
-            f as VoidPtr,
-            g as VoidPtr,
-            h as VoidPtr,
-            i as VoidPtr,
-            j as VoidPtr,
-            k as VoidPtr,
-        ]
-    }
-}
-impl<A, B, C, D, E, F, G, H, I, J, K, L> TupleToPtrs for (A, B, C, D, E, F, G, H, I, J, K, L) {
-    type Res = [*mut c_void; 12];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        let d = c + std::mem::size_of::<C>();
-        let e = d + std::mem::size_of::<D>();
-        let f = e + std::mem::size_of::<E>();
-        let g = f + std::mem::size_of::<F>();
-        let h = g + std::mem::size_of::<G>();
-        let i = h + std::mem::size_of::<H>();
-        let j = i + std::mem::size_of::<I>();
-        let k = j + std::mem::size_of::<J>();
-        let l = k + std::mem::size_of::<K>();
-        [
-            a as VoidPtr,
-            b as VoidPtr,
-            c as VoidPtr,
-            d as VoidPtr,
-            e as VoidPtr,
-            f as VoidPtr,
-            g as VoidPtr,
-            h as VoidPtr,
-            i as VoidPtr,
-            j as VoidPtr,
-            k as VoidPtr,
-            l as VoidPtr,
-        ]
-    }
-}
-impl<A, B, C, D, E, F, G, H, I, J, K, L, M> TupleToPtrs
-    for (A, B, C, D, E, F, G, H, I, J, K, L, M)
+impl<A: InteropSend, B: InteropSend, C: InteropSend, D: InteropSend> TupleToFFIPtrs
+    for (A, B, C, D)
 {
-    type Res = [*mut c_void; 13];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        let d = c + std::mem::size_of::<C>();
-        let e = d + std::mem::size_of::<D>();
-        let f = e + std::mem::size_of::<E>();
-        let g = f + std::mem::size_of::<F>();
-        let h = g + std::mem::size_of::<G>();
-        let i = h + std::mem::size_of::<H>();
-        let j = i + std::mem::size_of::<I>();
-        let k = j + std::mem::size_of::<J>();
-        let l = k + std::mem::size_of::<K>();
-        let m = l + std::mem::size_of::<L>();
+    type PTRS = [*mut c_void; 4];
+    fn get_ptrs(&mut self) -> Self::PTRS {
         [
-            a as VoidPtr,
-            b as VoidPtr,
-            c as VoidPtr,
-            d as VoidPtr,
-            e as VoidPtr,
-            f as VoidPtr,
-            g as VoidPtr,
-            h as VoidPtr,
-            i as VoidPtr,
-            j as VoidPtr,
-            k as VoidPtr,
-            l as VoidPtr,
-            m as VoidPtr,
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
+            self.3.get_ffi_ptr(),
         ]
     }
 }
-impl<A, B, C, D, E, F, G, H, I, J, K, L, M, N> TupleToPtrs
-    for (A, B, C, D, E, F, G, H, I, J, K, L, M, N)
+impl<A: InteropSend, B: InteropSend, C: InteropSend, D: InteropSend, E: InteropSend> TupleToFFIPtrs
+    for (A, B, C, D, E)
 {
-    type Res = [*mut c_void; 14];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        let d = c + std::mem::size_of::<C>();
-        let e = d + std::mem::size_of::<D>();
-        let f = e + std::mem::size_of::<E>();
-        let g = f + std::mem::size_of::<F>();
-        let h = g + std::mem::size_of::<G>();
-        let i = h + std::mem::size_of::<H>();
-        let j = i + std::mem::size_of::<I>();
-        let k = j + std::mem::size_of::<J>();
-        let l = k + std::mem::size_of::<K>();
-        let m = l + std::mem::size_of::<L>();
-        let n = m + std::mem::size_of::<M>();
+    type PTRS = [*mut c_void; 5];
+    fn get_ptrs(&mut self) -> Self::PTRS {
         [
-            a as VoidPtr,
-            b as VoidPtr,
-            c as VoidPtr,
-            d as VoidPtr,
-            e as VoidPtr,
-            f as VoidPtr,
-            g as VoidPtr,
-            h as VoidPtr,
-            i as VoidPtr,
-            j as VoidPtr,
-            k as VoidPtr,
-            l as VoidPtr,
-            m as VoidPtr,
-            n as VoidPtr,
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
+            self.3.get_ffi_ptr(),
+            self.4.get_ffi_ptr(),
         ]
     }
 }
-impl<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> TupleToPtrs
-    for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)
+impl<
+        A: InteropSend,
+        B: InteropSend,
+        C: InteropSend,
+        D: InteropSend,
+        E: InteropSend,
+        F: InteropSend,
+    > TupleToFFIPtrs for (A, B, C, D, E, F)
 {
-    type Res = [*mut c_void; 15];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        let d = c + std::mem::size_of::<C>();
-        let e = d + std::mem::size_of::<D>();
-        let f = e + std::mem::size_of::<E>();
-        let g = f + std::mem::size_of::<F>();
-        let h = g + std::mem::size_of::<G>();
-        let i = h + std::mem::size_of::<H>();
-        let j = i + std::mem::size_of::<I>();
-        let k = j + std::mem::size_of::<J>();
-        let l = k + std::mem::size_of::<K>();
-        let m = l + std::mem::size_of::<L>();
-        let n = m + std::mem::size_of::<M>();
-        let o = n + std::mem::size_of::<N>();
+    type PTRS = [*mut c_void; 6];
+    fn get_ptrs(&mut self) -> Self::PTRS {
         [
-            a as VoidPtr,
-            b as VoidPtr,
-            c as VoidPtr,
-            d as VoidPtr,
-            e as VoidPtr,
-            f as VoidPtr,
-            g as VoidPtr,
-            h as VoidPtr,
-            i as VoidPtr,
-            j as VoidPtr,
-            k as VoidPtr,
-            l as VoidPtr,
-            m as VoidPtr,
-            n as VoidPtr,
-            o as VoidPtr,
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
+            self.3.get_ffi_ptr(),
+            self.4.get_ffi_ptr(),
+            self.5.get_ffi_ptr(),
         ]
     }
 }
-impl<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> TupleToPtrs
-    for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)
+impl<
+        A: InteropSend,
+        B: InteropSend,
+        C: InteropSend,
+        D: InteropSend,
+        E: InteropSend,
+        F: InteropSend,
+        G: InteropSend,
+    > TupleToFFIPtrs for (A, B, C, D, E, F, G)
 {
-    type Res = [*mut c_void; 16];
-    fn get_ptrs(base_ptr: *mut Self) -> Self::Res {
-        let a = base_ptr as usize;
-        let b = a + std::mem::size_of::<A>();
-        let c = b + std::mem::size_of::<B>();
-        let d = c + std::mem::size_of::<C>();
-        let e = d + std::mem::size_of::<D>();
-        let f = e + std::mem::size_of::<E>();
-        let g = f + std::mem::size_of::<F>();
-        let h = g + std::mem::size_of::<G>();
-        let i = h + std::mem::size_of::<H>();
-        let j = i + std::mem::size_of::<I>();
-        let k = j + std::mem::size_of::<J>();
-        let l = k + std::mem::size_of::<K>();
-        let m = l + std::mem::size_of::<L>();
-        let n = m + std::mem::size_of::<M>();
-        let o = n + std::mem::size_of::<N>();
-        let p = o + std::mem::size_of::<O>();
+    type PTRS = [*mut c_void; 7];
+    fn get_ptrs(&mut self) -> Self::PTRS {
         [
-            a as VoidPtr,
-            b as VoidPtr,
-            c as VoidPtr,
-            d as VoidPtr,
-            e as VoidPtr,
-            f as VoidPtr,
-            g as VoidPtr,
-            h as VoidPtr,
-            i as VoidPtr,
-            j as VoidPtr,
-            k as VoidPtr,
-            l as VoidPtr,
-            m as VoidPtr,
-            n as VoidPtr,
-            o as VoidPtr,
-            p as VoidPtr,
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
+            self.3.get_ffi_ptr(),
+            self.4.get_ffi_ptr(),
+            self.5.get_ffi_ptr(),
+            self.6.get_ffi_ptr(),
         ]
     }
 }
-use crate::{Class, InteropClass};
+impl<
+        A: InteropSend,
+        B: InteropSend,
+        C: InteropSend,
+        D: InteropSend,
+        E: InteropSend,
+        F: InteropSend,
+        G: InteropSend,
+        H: InteropSend,
+    > TupleToFFIPtrs for (A, B, C, D, E, F, G, H)
+{
+    type PTRS = [*mut c_void; 8];
+    fn get_ptrs(&mut self) -> Self::PTRS {
+        [
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
+            self.3.get_ffi_ptr(),
+            self.4.get_ffi_ptr(),
+            self.5.get_ffi_ptr(),
+            self.6.get_ffi_ptr(),
+            self.7.get_ffi_ptr(),
+        ]
+    }
+}
+impl<
+        A: InteropSend,
+        B: InteropSend,
+        C: InteropSend,
+        D: InteropSend,
+        E: InteropSend,
+        F: InteropSend,
+        G: InteropSend,
+        H: InteropSend,
+        I: InteropSend,
+    > TupleToFFIPtrs for (A, B, C, D, E, F, G, H, I)
+{
+    type PTRS = [*mut c_void; 9];
+    fn get_ptrs(&mut self) -> Self::PTRS {
+        [
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
+            self.3.get_ffi_ptr(),
+            self.4.get_ffi_ptr(),
+            self.5.get_ffi_ptr(),
+            self.6.get_ffi_ptr(),
+            self.7.get_ffi_ptr(),
+            self.8.get_ffi_ptr(),
+        ]
+    }
+}
+impl<
+        A: InteropSend,
+        B: InteropSend,
+        C: InteropSend,
+        D: InteropSend,
+        E: InteropSend,
+        F: InteropSend,
+        G: InteropSend,
+        H: InteropSend,
+        I: InteropSend,
+        J: InteropSend,
+    > TupleToFFIPtrs for (A, B, C, D, E, F, G, H, I, J)
+{
+    type PTRS = [*mut c_void; 10];
+    fn get_ptrs(&mut self) -> Self::PTRS {
+        [
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
+            self.3.get_ffi_ptr(),
+            self.4.get_ffi_ptr(),
+            self.5.get_ffi_ptr(),
+            self.6.get_ffi_ptr(),
+            self.7.get_ffi_ptr(),
+            self.8.get_ffi_ptr(),
+            self.9.get_ffi_ptr(),
+        ]
+    }
+}
+impl<
+        A: InteropSend,
+        B: InteropSend,
+        C: InteropSend,
+        D: InteropSend,
+        E: InteropSend,
+        F: InteropSend,
+        G: InteropSend,
+        H: InteropSend,
+        I: InteropSend,
+        J: InteropSend,
+        K: InteropSend,
+    > TupleToFFIPtrs for (A, B, C, D, E, F, G, H, I, J, K)
+{
+    type PTRS = [*mut c_void; 11];
+    fn get_ptrs(&mut self) -> Self::PTRS {
+        [
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
+            self.3.get_ffi_ptr(),
+            self.4.get_ffi_ptr(),
+            self.5.get_ffi_ptr(),
+            self.6.get_ffi_ptr(),
+            self.7.get_ffi_ptr(),
+            self.8.get_ffi_ptr(),
+            self.9.get_ffi_ptr(),
+            self.10.get_ffi_ptr(),
+        ]
+    }
+}
+impl<
+        A: InteropSend,
+        B: InteropSend,
+        C: InteropSend,
+        D: InteropSend,
+        E: InteropSend,
+        F: InteropSend,
+        G: InteropSend,
+        H: InteropSend,
+        I: InteropSend,
+        J: InteropSend,
+        K: InteropSend,
+        L: InteropSend,
+    > TupleToFFIPtrs for (A, B, C, D, E, F, G, H, I, J, K, L)
+{
+    type PTRS = [*mut c_void; 12];
+    fn get_ptrs(&mut self) -> Self::PTRS {
+        [
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
+            self.3.get_ffi_ptr(),
+            self.4.get_ffi_ptr(),
+            self.5.get_ffi_ptr(),
+            self.6.get_ffi_ptr(),
+            self.7.get_ffi_ptr(),
+            self.8.get_ffi_ptr(),
+            self.9.get_ffi_ptr(),
+            self.10.get_ffi_ptr(),
+            self.11.get_ffi_ptr(),
+        ]
+    }
+}
+impl<
+        A: InteropSend,
+        B: InteropSend,
+        C: InteropSend,
+        D: InteropSend,
+        E: InteropSend,
+        F: InteropSend,
+        G: InteropSend,
+        H: InteropSend,
+        I: InteropSend,
+        J: InteropSend,
+        K: InteropSend,
+        L: InteropSend,
+        M: InteropSend,
+    > TupleToFFIPtrs for (A, B, C, D, E, F, G, H, I, J, K, L, M)
+{
+    type PTRS = [*mut c_void; 13];
+    fn get_ptrs(&mut self) -> Self::PTRS {
+        [
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
+            self.3.get_ffi_ptr(),
+            self.4.get_ffi_ptr(),
+            self.5.get_ffi_ptr(),
+            self.6.get_ffi_ptr(),
+            self.7.get_ffi_ptr(),
+            self.8.get_ffi_ptr(),
+            self.9.get_ffi_ptr(),
+            self.10.get_ffi_ptr(),
+            self.11.get_ffi_ptr(),
+            self.12.get_ffi_ptr(),
+        ]
+    }
+}
+impl<
+        A: InteropSend,
+        B: InteropSend,
+        C: InteropSend,
+        D: InteropSend,
+        E: InteropSend,
+        F: InteropSend,
+        G: InteropSend,
+        H: InteropSend,
+        I: InteropSend,
+        J: InteropSend,
+        K: InteropSend,
+        L: InteropSend,
+        M: InteropSend,
+        N: InteropSend,
+    > TupleToFFIPtrs for (A, B, C, D, E, F, G, H, I, J, K, L, M, N)
+{
+    type PTRS = [*mut c_void; 14];
+    fn get_ptrs(&mut self) -> Self::PTRS {
+        [
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
+            self.3.get_ffi_ptr(),
+            self.4.get_ffi_ptr(),
+            self.5.get_ffi_ptr(),
+            self.6.get_ffi_ptr(),
+            self.7.get_ffi_ptr(),
+            self.8.get_ffi_ptr(),
+            self.9.get_ffi_ptr(),
+            self.10.get_ffi_ptr(),
+            self.11.get_ffi_ptr(),
+            self.12.get_ffi_ptr(),
+            self.13.get_ffi_ptr(),
+        ]
+    }
+}
+impl<
+        A: InteropSend,
+        B: InteropSend,
+        C: InteropSend,
+        D: InteropSend,
+        E: InteropSend,
+        F: InteropSend,
+        G: InteropSend,
+        H: InteropSend,
+        I: InteropSend,
+        J: InteropSend,
+        K: InteropSend,
+        L: InteropSend,
+        M: InteropSend,
+        N: InteropSend,
+        O: InteropSend,
+    > TupleToFFIPtrs for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)
+{
+    type PTRS = [*mut c_void; 15];
+    fn get_ptrs(&mut self) -> Self::PTRS {
+        [
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
+            self.3.get_ffi_ptr(),
+            self.4.get_ffi_ptr(),
+            self.5.get_ffi_ptr(),
+            self.6.get_ffi_ptr(),
+            self.7.get_ffi_ptr(),
+            self.8.get_ffi_ptr(),
+            self.9.get_ffi_ptr(),
+            self.10.get_ffi_ptr(),
+            self.11.get_ffi_ptr(),
+            self.12.get_ffi_ptr(),
+            self.13.get_ffi_ptr(),
+            self.14.get_ffi_ptr(),
+        ]
+    }
+}
+impl<
+        A: InteropSend,
+        B: InteropSend,
+        C: InteropSend,
+        D: InteropSend,
+        E: InteropSend,
+        F: InteropSend,
+        G: InteropSend,
+        H: InteropSend,
+        I: InteropSend,
+        J: InteropSend,
+        K: InteropSend,
+        L: InteropSend,
+        M: InteropSend,
+        N: InteropSend,
+        O: InteropSend,
+        P: InteropSend,
+    > TupleToFFIPtrs for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)
+{
+    type PTRS = [*mut c_void; 16];
+    fn get_ptrs(&mut self) -> Self::PTRS {
+        [
+            self.0.get_ffi_ptr(),
+            self.1.get_ffi_ptr(),
+            self.2.get_ffi_ptr(),
+            self.3.get_ffi_ptr(),
+            self.4.get_ffi_ptr(),
+            self.5.get_ffi_ptr(),
+            self.6.get_ffi_ptr(),
+            self.7.get_ffi_ptr(),
+            self.8.get_ffi_ptr(),
+            self.9.get_ffi_ptr(),
+            self.10.get_ffi_ptr(),
+            self.11.get_ffi_ptr(),
+            self.12.get_ffi_ptr(),
+            self.13.get_ffi_ptr(),
+            self.14.get_ffi_ptr(),
+            self.15.get_ffi_ptr(),
+        ]
+    }
+}
+use crate::{Class, InteropClass, InteropSend};
 pub trait CompareClasses {
     fn compare(clases: &[Class]) -> bool;
 }
@@ -408,7 +419,7 @@ impl<A: InteropClass> CompareClasses for (A,) {
 }
 impl<A: InteropClass, B: InteropClass> CompareClasses for (A, B)
 where
-    (A, B): TupleToPtrs,
+    (A, B): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 2)
@@ -418,7 +429,7 @@ where
 }
 impl<A: InteropClass, B: InteropClass, C: InteropClass> CompareClasses for (A, B, C)
 where
-    (A, B, C): TupleToPtrs,
+    (A, B, C): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 3)
@@ -430,7 +441,7 @@ where
 impl<A: InteropClass, B: InteropClass, C: InteropClass, D: InteropClass> CompareClasses
     for (A, B, C, D)
 where
-    (A, B, C, D): TupleToPtrs,
+    (A, B, C, D): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 4)
@@ -443,7 +454,7 @@ where
 impl<A: InteropClass, B: InteropClass, C: InteropClass, D: InteropClass, E: InteropClass>
     CompareClasses for (A, B, C, D, E)
 where
-    (A, B, C, D, E): TupleToPtrs,
+    (A, B, C, D, E): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 5)
@@ -463,7 +474,7 @@ impl<
         F: InteropClass,
     > CompareClasses for (A, B, C, D, E, F)
 where
-    (A, B, C, D, E, F): TupleToPtrs,
+    (A, B, C, D, E, F): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 6)
@@ -485,7 +496,7 @@ impl<
         G: InteropClass,
     > CompareClasses for (A, B, C, D, E, F, G)
 where
-    (A, B, C, D, E, F, G): TupleToPtrs,
+    (A, B, C, D, E, F, G): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 7)
@@ -509,7 +520,7 @@ impl<
         H: InteropClass,
     > CompareClasses for (A, B, C, D, E, F, G, H)
 where
-    (A, B, C, D, E, F, G, H): TupleToPtrs,
+    (A, B, C, D, E, F, G, H): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 8)
@@ -535,7 +546,7 @@ impl<
         I: InteropClass,
     > CompareClasses for (A, B, C, D, E, F, G, H, I)
 where
-    (A, B, C, D, E, F, G, H, I): TupleToPtrs,
+    (A, B, C, D, E, F, G, H, I): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 9)
@@ -563,7 +574,7 @@ impl<
         J: InteropClass,
     > CompareClasses for (A, B, C, D, E, F, G, H, I, J)
 where
-    (A, B, C, D, E, F, G, H, I, J): TupleToPtrs,
+    (A, B, C, D, E, F, G, H, I, J): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 10)
@@ -593,7 +604,7 @@ impl<
         K: InteropClass,
     > CompareClasses for (A, B, C, D, E, F, G, H, I, J, K)
 where
-    (A, B, C, D, E, F, G, H, I, J, K): TupleToPtrs,
+    (A, B, C, D, E, F, G, H, I, J, K): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 11)
@@ -625,7 +636,7 @@ impl<
         L: InteropClass,
     > CompareClasses for (A, B, C, D, E, F, G, H, I, J, K, L)
 where
-    (A, B, C, D, E, F, G, H, I, J, K, L): TupleToPtrs,
+    (A, B, C, D, E, F, G, H, I, J, K, L): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 12)
@@ -659,7 +670,7 @@ impl<
         M: InteropClass,
     > CompareClasses for (A, B, C, D, E, F, G, H, I, J, K, L, M)
 where
-    (A, B, C, D, E, F, G, H, I, J, K, L, M): TupleToPtrs,
+    (A, B, C, D, E, F, G, H, I, J, K, L, M): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 13)
@@ -695,7 +706,7 @@ impl<
         N: InteropClass,
     > CompareClasses for (A, B, C, D, E, F, G, H, I, J, K, L, M, N)
 where
-    (A, B, C, D, E, F, G, H, I, J, K, L, M, N): TupleToPtrs,
+    (A, B, C, D, E, F, G, H, I, J, K, L, M, N): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 14)
@@ -733,7 +744,7 @@ impl<
         O: InteropClass,
     > CompareClasses for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)
 where
-    (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O): TupleToPtrs,
+    (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 15)
@@ -773,7 +784,7 @@ impl<
         P: InteropClass,
     > CompareClasses for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)
 where
-    (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P): TupleToPtrs,
+    (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P): TupleToFFIPtrs,
 {
     fn compare(clases: &[Class]) -> bool {
         (clases.len() == 16)

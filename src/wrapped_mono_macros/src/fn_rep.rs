@@ -13,11 +13,8 @@ pub struct FnRep {
 impl fmt::Display for FnRep {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "FnRep{{name:{}", self.name)?;
-        match &self.ret {
-            Some(s) => {
-                write!(f, ",ret:{s}")?;
-            }
-            None => {}
+        if let Some(s) = &self.ret {
+            write!(f, ",ret:{s}")?;
         }
         write!(f, ",args:{{")?;
         for arg in &self.args {
@@ -160,13 +157,9 @@ impl FnRep {
             proc_macro::Delimiter::Parenthesis,
             fn_sig_params,
         ))));
-        match &self.ret {
-            Some(return_type) => {
-                res.extend(TokenStream::from_str("-><"));
-                res.extend(TokenStream::from(return_type.clone()));
-                res.extend(TokenStream::from_str("as InteropSend>::TargetType"));
-            }
-            None => (),
+        if let Some(return_type) = &self.ret {
+            res.extend(TokenStream::from_str("->"));
+            res.extend(TokenStream::from(return_type.clone()));
         }
         res.extend(TokenStream::from_str(";"));
         res
@@ -185,16 +178,9 @@ impl FnRep {
         .expect("Could not create token stream!");
         //function args
         stream.extend(self.create_in_arg_list());
-        match &self.ret {
-            Some(ret) => {
-                //println!("#|#\n{}\n#|#",ret);
-                stream.extend(TokenStream::from_str("-><"));
-                stream.extend(TokenStream::from(ret.clone()));
-                stream.extend(TokenStream::from_str(
-                    "as wrapped_mono::InteropSend>::TargetType",
-                ));
-            }
-            None => (),
+        if let Some(ret) = &self.ret {
+            stream.extend(TokenStream::from_str("->"));
+            stream.extend(TokenStream::from(ret.clone()));
         }
         //argument handlers
         let mut inner: TokenStream = TokenStream::new();
@@ -203,6 +189,7 @@ impl FnRep {
         }
         //inner function call
         //result if needed.
+        inner.extend(TokenStream::from_str("use wrapped_mono::interop::InteropSend;"));
         inner.extend(TokenStream::from_str(&format!(
             "let fnc_call_res_val = {}",
             &self.name
@@ -219,10 +206,8 @@ impl FnRep {
             call_args,
         ))));
         inner.extend(TokenStream::from_str(";"));
-        if let Some(ret) = &self.ret {
-            inner.extend(TokenStream::from_str(&format!(
-                "return <{ret} as wrapped_mono::InteropSend>::get_mono_rep(fnc_call_res_val);"
-            )));
+        if self.ret.is_some() {
+            inner.extend(TokenStream::from_str("return unsafe{fnc_call_res_val.return_value_to_mono()};"));
         }
 
         stream.extend(TokenStream::from(TokenTree::Group(proc_macro::Group::new(

@@ -1,7 +1,7 @@
 use crate::binds::MonoObject;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
 use crate::interop::{InteropRecive, InteropSend};
-use crate::tupleutilis::{CompareClasses, TupleToPtrs};
+use crate::tupleutilis::{CompareClasses, TupleToFFIPtrs};
 #[allow(unused_imports)] // for docs
 // use crate::delegate::Delegate;
 use crate::{class::Class, domain::Domain, method::Method};
@@ -312,16 +312,10 @@ impl Object {
     /// let mut val:i32 = 0;
     /// let obj = Object::box_val::<i32>(&domain,val); //New object of type `Int32?`
     ///```
-    pub fn box_val<T: InteropBox>(domain: &Domain, data: T) -> Self {
-        let mut data = <T as InteropSend>::get_mono_rep(data);
+    pub fn box_val<T: InteropBox>(domain: &Domain, mut data: T) -> Self {
+        let data = <T as InteropSend>::get_ffi_ptr(&mut data);
         let class = T::get_mono_class();
-        unsafe {
-            Self::box_val_unsafe(
-                domain,
-                &class,
-                std::ptr::addr_of_mut!(data).cast::<std::ffi::c_void>(),
-            )
-        }
+        unsafe { Self::box_val_unsafe(domain, &class, data) }
     }
     ///Gets an implementation virtual [`Method`] *`method`* for a specific [`Object`] *`obj`*.<br>
     /// # Explanation
@@ -341,13 +335,10 @@ impl Object {
     /// When you call`get_vitual_method` on object that is instance of **`ChildClass`**
     /// and method **`ParrentClass::SomeMethod`** you will get return value of **`ChildClass::SomeMethod`**.
     #[must_use]
-    pub fn get_virtual_method<T: TupleToPtrs + CompareClasses + InteropSend>(
+    pub fn get_virtual_method<T: TupleToFFIPtrs + CompareClasses + InteropSend>(
         obj: &Self,
         method: &Method<T>,
-    ) -> Option<Method<T>>
-    where
-        <T as InteropSend>::TargetType: TupleToPtrs,
-    {
+    ) -> Option<Method<T>> {
         #[cfg(feature = "referneced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {

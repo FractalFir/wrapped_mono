@@ -10,7 +10,7 @@ pub struct Exception {
     handle: GCHandle,
 }
 impl Exception {
-    /// Raise exception (it can be then cached by catch clause in managed code)
+    /// Raise exception (it can be then catched by catch clause in managed code)
     /// # Safety
     /// This function is extremely unsafe, because when it is called, drop functions of local variables **are not** automatically  called.
     /// # Example

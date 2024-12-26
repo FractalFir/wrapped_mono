@@ -27,7 +27,7 @@ class Test{
         }
         object obj = GetObject();
         if(obj != null){
-            throw new System.Exception($"Recived something else than null!");
+            throw new System.Exception($"Recived something else than null {obj}!");
         }
         System.Environment.Exit(0);
     }

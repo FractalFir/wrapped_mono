@@ -407,7 +407,7 @@ impl TypeDefOrRef {
         let decoded = blob_decode_u32(src);
         Self::new(decoded)
     }
-    fn new(src: u32) -> Option<Self>{
+    fn new(src: u32) -> Option<Self> {
         let type_kind = src & 0b11;
         let type_index = src & !(0b11);
         match type_kind {
@@ -427,7 +427,7 @@ pub struct Signature {
     ret: TypeDefOrRef,
 }
 #[derive(Debug)]
-enum SignatureDecodeError{
+enum SignatureDecodeError {
     UnsuportedGeneric,
     InvalidTypedef,
 }
@@ -441,29 +441,31 @@ impl Signature {
     pub fn ret(&self) -> TypeDefOrRef {
         self.ret
     }
-    fn new(mut signature: &[u8]) -> Result<Self,SignatureDecodeError> {
+    fn new(mut signature: &[u8]) -> Result<Self, SignatureDecodeError> {
         let flags = SignatureFlags::new(signature[0]);
         signature = &signature[1..];
         if flags.callconv_type() == CallingConventionType::Generic {
             //TODO:support generic paramters
-            /* 
+            /*
             let _generics =
                 i32::from_le_bytes(signature[0..std::mem::size_of::<i32>()].try_into().unwrap());
             signature = &signature[std::mem::size_of::<i32>()..];*/
             return Err(SignatureDecodeError::UnsuportedGeneric);
         }
-        
+
         let param_count = blob_decode_u32(&mut signature);
         let mut params = Vec::with_capacity(param_count as usize);
         //println!("param_count:{param_count}");
         assert!(signature.len() > 1 || param_count == 0);
         for _ in 0..param_count {
-            let stype = TypeDefOrRef::decode(&mut signature).ok_or(SignatureDecodeError::InvalidTypedef)?;
+            let stype =
+                TypeDefOrRef::decode(&mut signature).ok_or(SignatureDecodeError::InvalidTypedef)?;
             //println!("stype:{stype:?}");
             params.push(stype);
         }
-        
-        let ret = TypeDefOrRef::decode(&mut signature).ok_or(SignatureDecodeError::InvalidTypedef)?;
+
+        let ret =
+            TypeDefOrRef::decode(&mut signature).ok_or(SignatureDecodeError::InvalidTypedef)?;
         let signature = signature.into();
         let params = params.into();
         Ok(Self {
@@ -509,7 +511,10 @@ impl MethodTable {
             let name = img.metadata_string_heap(name);
             let signature = table.decode_row_col(index, crate::binds::MONO_METHOD_SIGNATURE);
             let signature = Signature::new(img.blob_heap(signature));
-            let signature = match signature{Ok(signature)=>signature,Err(err)=>continue};
+            let signature = match signature {
+                Ok(signature) => signature,
+                Err(err) => continue,
+            };
             let paramlist = table.decode_row_col(index, crate::binds::MONO_METHOD_PARAMLIST);
             methods.push(Method {
                 rva,
@@ -588,7 +593,9 @@ pub struct TypeReferenceTable {
     refs: Box<[TypeReference]>,
 }
 impl TypeReferenceTable {
-    pub fn empty()->Self{Self{refs:Box::new([])}}
+    pub fn empty() -> Self {
+        Self { refs: Box::new([]) }
+    }
     #[must_use]
     fn from_meta_table(table: &MetadataTableInfo, img: Image) -> Self {
         let ref_count = table.get_table_rows();
@@ -624,8 +631,7 @@ impl TypeReferenceTable {
     }
 }
 #[derive(Debug)]
-pub struct TypeSpec{
-}
+pub struct TypeSpec {}
 #[derive(Debug)]
 pub struct TypeSpecTable {
     specs: Box<[TypeSpec]>,
@@ -636,8 +642,7 @@ impl TypeSpecTable {
         let ref_count = table.get_table_rows();
         let mut specs = Vec::with_capacity(ref_count as usize);
         for index in 0..ref_count {
-            let spec = TypeSpec {
-            };
+            let spec = TypeSpec {};
             specs.push(spec);
         }
         let specs = specs.into();
@@ -683,7 +688,7 @@ impl TypeDefinitionTable {
                 methods.methods().len()
             };
             //BUGFIX: should never normaly happen.
-            if method_list > method_list_end || method_list_end > methods.methods().len(){
+            if method_list > method_list_end || method_list_end > methods.methods().len() {
                 continue;
             }
             let methods = methods.methods()[method_list..method_list_end]

@@ -12,7 +12,7 @@ pub enum BindgenError {
     MissingTypeData,
 }
 fn escape_method(s: &str) -> String {
-    s.replace(".ctor","new").replace(".","_")
+    s.replace(".ctor", "new").replace(".", "_")
 }
 fn escape_namespace(s: &str) -> String {
     s.replace(".", "_")
@@ -54,17 +54,17 @@ impl BindingGenerator {
         if !self.has_corelib() {
             self.target.write_all(include_bytes!("corelib_binds.rs"))?;
         }
-        println!("asmc:{}",self.assemblies.len());
+        println!("asmc:{}", self.assemblies.len());
         for assembly_index in 0..self.assemblies.len() {
             let asm = self.assemblies[assembly_index];
             let img = asm.get_image();
-            let tdt = match TypeDefinitionTable::from_image(img){
-                Some(tdt)=>tdt,
-                None=>continue,
+            let tdt = match TypeDefinitionTable::from_image(img) {
+                Some(tdt) => tdt,
+                None => continue,
             };
-            let refs = match TypeReferenceTable::from_image(img){
-                Some(refs)=>refs,
-                None=>TypeReferenceTable::empty(),
+            let refs = match TypeReferenceTable::from_image(img) {
+                Some(refs) => refs,
+                None => TypeReferenceTable::empty(),
             };
             //println!("refs:{refs:?}");
             let asm_name = asm.get_name();
@@ -74,13 +74,13 @@ impl BindingGenerator {
         for assembly_index in 0..self.assemblies.len() {
             let asm = self.assemblies[assembly_index];
             let img = asm.get_image();
-            let tdt = match TypeDefinitionTable::from_image(img){
-                Some(tdt)=>tdt,
-                None=>continue,
+            let tdt = match TypeDefinitionTable::from_image(img) {
+                Some(tdt) => tdt,
+                None => continue,
             };
-            let refs = match TypeReferenceTable::from_image(img){
-                Some(refs)=>refs,
-                None=>TypeReferenceTable::empty(),
+            let refs = match TypeReferenceTable::from_image(img) {
+                Some(refs) => refs,
+                None => TypeReferenceTable::empty(),
             };
             let asm_name = asm.get_name();
             self.generate_methods(tdt, refs, &asm_name)?;
@@ -105,8 +105,14 @@ impl BindingGenerator {
         }
         false
     }
-    fn generate_method(&mut self, tdt: &TypeDefinitionTable,
-        refs: &TypeReferenceTable,method:&crate::metadata::Method,namespace:&str,type_name:&str) -> Result<(), BindgenError> {
+    fn generate_method(
+        &mut self,
+        tdt: &TypeDefinitionTable,
+        refs: &TypeReferenceTable,
+        method: &crate::metadata::Method,
+        namespace: &str,
+        type_name: &str,
+    ) -> Result<(), BindgenError> {
         let mut out = self.namespaces_out.get_mut(namespace).unwrap();
         let name = method.name();
         let escaped_name = escape_method(method.name());
@@ -118,12 +124,15 @@ impl BindingGenerator {
                 (escape_namespace(param.namespace()), param.name())
             } else if let TypeDefOrRef::TypeRef(index) = param {
                 let index = *index;
-                let r = match refs.refs().get(index as usize){Some(r)=>r,None=>return Ok(()),};
+                let r = match refs.refs().get(index as usize) {
+                    Some(r) => r,
+                    None => return Ok(()),
+                };
                 (escape_namespace(r.namespace()), r.name())
             } else {
                 break;
             };
-            if name.contains('<') || name.contains('`')  || name.contains('.'){
+            if name.contains('<') || name.contains('`') || name.contains('.') {
                 return Ok(());
             }
             //println!("param:{param:?},name:{name}");
@@ -132,8 +141,8 @@ impl BindingGenerator {
             } else {
                 param_names.push(format!("{namespace}::{name}"));
             }
-        } 
-        write!(out,"impl {type_name}_{escaped_name}_DISPATCH_ARGS for (")?;
+        }
+        write!(out, "impl {type_name}_{escaped_name}_DISPATCH_ARGS for (")?;
         if method.signature().flags().has_this() {
             if namespace.is_empty() {
                 param_names.push(name.into());
@@ -141,17 +150,20 @@ impl BindingGenerator {
                 param_names.push(format!("{namespace}::{name}"));
             }
         }
-        for param_name in &param_names{
-            write!(out,"{param_name},")?;
+        for param_name in &param_names {
+            write!(out, "{param_name},")?;
         }
-        write!(out,"){{")?;
-        write!(out,"\n\ttype ReturnType = System::Object;\n\ttype Args = (");
-        for param_name in &param_names{
-            write!(out,"{param_name},")?;
+        write!(out, "){{")?;
+        write!(
+            out,
+            "\n\ttype ReturnType = System::Object;\n\ttype Args = ("
+        );
+        for param_name in &param_names {
+            write!(out, "{param_name},")?;
         }
-        write!(out,");\n\tfn call(args:Args){{todo!()}}\n}}\n//END\n")?;
+        write!(out, ");\n\tfn call(args:Args){{todo!()}}\n}}\n//END\n")?;
         //write!(out,"//Method dispatcher\npub struct {escaped_name}_DISPATCHER;\n pub const {escaped_name}:{mname}_DISPATCHER = {mname}_DISPATCHER;\n trait {mname}_DISPATCHER_TRAIT{{type Return; fn invoke(&self)->Return;}}\nimpl {mname}_DISPATCHER {{ fn invoke<Args:{mname}_DISPATCHER_TRAIT>(args:Args)->Args::Return{{args.invoke()}} }}\n")?;
-        /* 
+        /*
         write!(out, "// Wrapper around method {mname}\n")?;
         write!(out, "impl {mname}_DISPATCHER_TRAIT for (")?;
         if meth.signature().flags().has_this() {
@@ -180,7 +192,7 @@ impl BindingGenerator {
             } else {
                 write!(out, "{namespace}::{name}")?;
             }
-        } 
+        }
         write!(out, "){{")?;
         write!(out, "todo!();");
         write!(out, "}}")?;
@@ -197,32 +209,32 @@ impl BindingGenerator {
             let namespace = escape_namespace(td.namespace());
             self.create_namespace(&namespace);
             let type_name = td.name();
-            if type_name.contains('<') || type_name.contains('`'){
+            if type_name.contains('<') || type_name.contains('`') {
                 continue;
             }
             //let type_name = escaped_name(type_name);
             {
                 let mut out = self.namespaces_out.get_mut(&namespace).unwrap();
-                write!(
-                    out,
-                    "//Implementations of methods for {type_name}\n"
-                )?;
+                write!(out, "//Implementations of methods for {type_name}\n")?;
             }
-            let mut methods:std::collections::HashSet<String> = HashSet::new();
+            let mut methods: std::collections::HashSet<String> = HashSet::new();
             for method in td.methods() {
                 let name = method.name();
-                if name.contains('<') || name.contains('>')|| name.contains('`') || name.contains('.'){
+                if name.contains('<')
+                    || name.contains('>')
+                    || name.contains('`')
+                    || name.contains('.')
+                {
                     continue;
                 }
-                self.generate_method(&tdt,&refs,method,&namespace,&type_name)?;
+                self.generate_method(&tdt, &refs, method, &namespace, &type_name)?;
                 let mut out = self.namespaces_out.get_mut(&namespace).unwrap();
                 let escaped_name = escape_method(method.name());
                 assert!(!escaped_name.contains('.'));
-                if !methods.contains(&escaped_name){
+                if !methods.contains(&escaped_name) {
                     write!(out, "trait {type_name}_{escaped_name}_DISPATCH_ARGS{{\n\ttype ReturnType;\n\ttype Args;\n\tfn call(args:Args)->Result<ReturnType,Exception>;\n\t//END\n}}\n");
                     methods.insert(escaped_name.clone());
                 }
-               
             }
             {
                 let mut out = self.namespaces_out.get_mut(&namespace).unwrap();

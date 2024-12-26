@@ -3,12 +3,20 @@ use rusty_fork::rusty_fork_test;
 use wrapped_mono_macros::*;
 mod some_mod {
     use wrapped_mono_macros::*;
+    use crate as wrapped_mono;
     #[invokable]
     pub fn some_fn() {}
 }
+///invokable macro does not work with <>
+#[invokable]
+fn get_object() -> Option<wrapped_mono::object::Object> {
+    None
+}
+
 rusty_fork_test! {
     #[test]
     fn internal_call(){
+        use crate as wrapped_mono;
         #[invokable]
         pub fn string_test(s:String) -> i32{
             assert!(s == "|one,two,three,four,");
@@ -24,7 +32,7 @@ rusty_fork_test! {
         }
         use wrapped_mono::array::*;
         use wrapped_mono::object::ObjectTrait;
-        use wrapped_mono::object::Object;
+
         #[invokable]
         fn pass_data_array(input:Array<Dim1D,i32>){
             let len = input.len();
@@ -36,11 +44,6 @@ rusty_fork_test! {
                 println!("i:{}",i);
                 assert!(input.get([i]) == i as i32);
             }
-        }
-        ///invokable macro does not work with <>
-        #[invokable]
-        fn get_object()->Option<Object>{
-            None
         }
 
         use wrapped_mono::*;
