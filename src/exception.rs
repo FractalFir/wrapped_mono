@@ -10,7 +10,7 @@ pub struct Exception {
     handle: GCHandle,
 }
 impl Exception {
-    /// Raise exception (it can be then catched by catch clause in managed code)
+    /// Raise exception (it can be then caught by catch clause in managed code)
     /// # Safety
     /// This function is extremely unsafe, because when it is called, drop functions of local variables **are not** automatically  called.
     /// # Example
@@ -602,7 +602,7 @@ impl Exception {
         gc_unsafe_exit(marker);
         res
     }
-    /// Creates [`Exception`] with a wraped inner [`Exception`] *inner*.
+    /// Creates [`Exception`] with a wrapped inner [`Exception`] *inner*.
     #[must_use]
     pub fn wrapped(inner: &Self) -> Self {
         #[cfg(feature = "referenced_objects")]

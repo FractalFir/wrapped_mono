@@ -89,7 +89,7 @@ impl BindingGenerator {
             self.generate_methods(tdt, refs, &asm_name)?;
         }
         for (key, value) in self.namespaces_out {
-            write!(self.target, "//Implentations for namespace \"{key}\"\n")?;
+            write!(self.target, "//Implementations for namespace \"{key}\"\n")?;
             if !key.is_empty() {
                 write!(self.target, "mod {key}{{\n")?;
                 self.target.write_all(&value)?;
@@ -349,7 +349,7 @@ pub fn generate_binds<P:AsRef<Path>>(path:P,assembly:Assembly)->Result<(),Bindge
     Ok(())
 }
 fn impl_method(method:&Method,out:&mut Vec<u8>)->Result<(),BindgenError> {
-    write!(out,"\n\t//Implenting method {name}",name = method.name())?;
+    write!(out,"\n\t//Implementing method {name}",name = method.name())?;
     Ok(())
 }
 fn impl_methods(td:&TypeDefinition,file:&mut File)->Result<(),BindgenError> {

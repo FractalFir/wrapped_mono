@@ -20,7 +20,7 @@
 //! ```no_run
 //! use wrapped_mono::*;
 //! fn main(){
-//!     // Initialise the runtime with default version(`None`), and root domian named "main_domain"
+//!     // Initialise the runtime with default version(`None`), and root domain named "main_domain"
 //!     let domain = jit::init("main_domain",None);
 //!
 //!     // Load assembly "SomeAssembly.dll"
@@ -119,7 +119,7 @@ pub use array::Array;
 #[doc(inline)]
 pub use assembly::Assembly;
 #[doc(inline)]
-pub use class::{Class, ClassField, ClassProperity};
+pub use class::{Class, ClassField, ClassProperty};
 #[doc(inline)]
 // pub use delegate::{Delegate, DelegateTrait};
 #[doc(inline)]

@@ -9,7 +9,8 @@ use std::ops::Index;
 // Documentation finished.
 /// Safe, rust representation of `MonoArray` (a reference to a managed array).
 /// # Nullable support
-/// [`Array<T>`] is non-nullable on default and will panic when null passed as argument form managed code. For nullable support use [`Option<Array<T>>`].
+/// [`Array<Dim, T>`] is non-nullable on default and will panic when null passed as argument form managed code.
+/// For nullable support use [`Option<Array<Dim, T>>`].
 /*
     why is there a weird constraint "where [();DIMENSIONS as usize]:Copy" in array type? It guarantees that Dimensions is higher than 0 and size array is larger than 0,
     so Array<DIMENSIONS,T> can exist.
@@ -244,7 +245,7 @@ where
         let marker = gc_unsafe_enter();
         let res =
             unsafe { Self::from_ptr(crate::binds::mono_array_clone(self.get_ptr().cast()).cast()) }
-                .expect("coud not create copy of an array!");
+                .expect("could not create copy of an array!");
         #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         res
@@ -263,7 +264,7 @@ where
     /// |Name   |Type   |Description|
     /// |-------|-------|------|
     /// |self|&Array|Array to get size of|
-    pub fn get_lenghts(&self) -> Dim::Lengths {
+    pub fn get_lengths(&self) -> Dim::Lengths {
         self.lengths
     }
 }

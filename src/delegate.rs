@@ -128,7 +128,7 @@ impl<Args: InteropSend> Delegate<Args> {
         unsafe { crate::binds::mono_get_delegate_invoke(self.get_class().get_ptr()) }
     }
 }
-/// Trait implemented only for [`Delegate`] type. Splits some functions up from from main [`Method`] type, allowing for different amount of delegate arguments.
+/// Trait implemented only for [`Delegate`] type. Splits some functions up from main [`Method`] type, allowing for different amount of delegate arguments.
 pub trait DelegateTrait<Args: InteropSend> {
     /// Creates new Delegate type from a *mut MonoDelegate. Checks if arguments of [`MonoDelegate`] and rust representation of a [`Delegate`] match and if not panic.
     /// Returns [`None`] if pointer is null.
@@ -137,8 +137,10 @@ pub trait DelegateTrait<Args: InteropSend> {
     /// |-------|-------|------|
     /// |met_ptr|*mut [`MonoDelegate`]|Pointer to delegate to create a representation for.|
     /// # Safety
-    /// Pointer must be either a valid pointer to [`MonoDelegate`] recived from mono runtime, or a null pointer.
-    /// **WARNING** argument types not yet checked for delegates with 1 or 0 arguments. This results from limitations of Rust type system and this version of the API, and can't be solved without some realy nasty hacks,
+    /// Pointer must be either a valid pointer to [`MonoDelegate`] received from mono runtime, or a null pointer.
+    /// **WARNING** argument types not yet checked for delegates with 1 or 0 arguments.
+    /// This results from limitations of Rust type system and this version of the API,
+    /// and can't be solved without some really nasty hacks,
     /// but will be fixed in the future.
     unsafe fn from_ptr(ptr: *mut MonoDelegate) -> Option<Self>
     where
@@ -150,8 +152,10 @@ pub trait DelegateTrait<Args: InteropSend> {
     /// |-------|-------|------|
     /// |met_ptr|*mut [`MonoDelegate`]|Pointer to delegate to create a representation for.|
     /// # Safety
-    /// Pointer must be either a valid pointer to [`MonoDelegate`] recived from mono runtime, or a null pointer.
-    /// **WARNING** argument types not yet checked for delegates with 1 or 0 arguments. This results from limitations of Rust type system and this version of the API, and can't be solved without some realy nasty hacks,
+    /// Pointer must be either a valid pointer to [`MonoDelegate`] received from mono runtime, or a null pointer.
+    /// **WARNING** argument types not yet checked for delegates with 1 or 0 arguments.
+    /// This results from limitations of Rust type system and this version of the API,
+    /// and can't be solved without some really nasty hacks,
     /// but will be fixed in the future.
     unsafe fn from_ptr_checked(ptr: *mut MonoDelegate) -> Option<Self>
     where
@@ -233,7 +237,7 @@ impl<Args: InteropSend> DelegateTrait<Args> for Delegate<Args> {
         } else {
             let except = unsafe {
                 Exception::from_ptr(expect)
-                    .expect("Imposible: pointer is null and not null at the same time.")
+                    .expect("Impossible: pointer is null and not null at the same time.")
             };
             #[cfg(feature = "referenced_objects")]
             gc_unsafe_exit(marker);
@@ -271,12 +275,12 @@ where
         if !<<Args as InteropSend>::TargetType as CompareClasses>::compare(&params) {
             use std::fmt::Write;
             let mut msg = format!(
-                "Delegate Type Mismatch! Got a deleagte accepting {} arguments of types:",
+                "Delegate Type Mismatch! Got a delegate accepting {} arguments of types:",
                 params.len()
             );
             for param in params {
                 write!(msg, ",\"{}\"", param.get_name_sig())
-                    .expect("Could not print inproper function argument types!");
+                    .expect("Could not print improper function argument types!");
             }
             panic!("{}", msg);
         }
@@ -338,7 +342,7 @@ where
         } else {
             let except = unsafe {
                 Exception::from_ptr(expect)
-                    .expect("Imposible: pointer is null and not null at the same time.")
+                    .expect("Impossible: pointer is null and not null at the same time.")
             };
             #[cfg(feature = "referenced_objects")]
             gc_unsafe_exit(marker);
@@ -413,7 +417,7 @@ impl<Args: InteropSend> ObjectTrait for Delegate<Args> {
         }
     }
     fn cast_to_object(&self) -> Object {
-        unsafe { Object::from_ptr(self.get_ptr() as *mut _) }.unwrap() /*Faliure impossible, object is always an object.*/
+        unsafe { Object::from_ptr(self.get_ptr() as *mut _) }.unwrap() /*Failure impossible, object is always an object.*/
     }
     fn cast_from_object(obj: &Object) -> Option<Self> {
         if !Self::get_mono_class().is_assignable_from(&obj.get_class()) {

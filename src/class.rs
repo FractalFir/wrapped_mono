@@ -32,7 +32,7 @@ impl Class {
         }
         Some(Self { class_ptr })
     }
-    /// Returns class named *name* in *namespace* in image *image*. Is not case sensitive!
+    /// Returns class named *name* in *namespace* in image *image*. Is not case-sensitive!
     ///
     /// # Arguments
     /// |Name   |Type   |Description|
@@ -44,7 +44,7 @@ impl Class {
     /// ```no_run
     /// # use wrapped_mono::*;
     /// # let some_image = Assembly::assembly_loaded("mscorlib").expect("Assembly mscorlib not loaded, could not get System.Type class!").get_image();
-    /// // Not case sensitive!
+    /// // Not case-sensitive!
     /// let some_class = Class::from_name(&some_image,"SyStem","tyPe").expect("Could not find a class!");
     /// ```
     #[must_use]
@@ -208,7 +208,7 @@ impl Class {
     /// For a class `SomeClass`
     /// # C#
     ///```csharp
-    /// class SomeClass:SomeparentClass{
+    /// class SomeClass:SomeParentClass{
     ///    
     /// }
     ///```
@@ -486,10 +486,10 @@ impl Class {
     }
     /// Returns property with name *name* or [`None`] if it is not inside class.
     #[must_use]
-    pub fn get_property_from_name(&self, name: &str) -> Option<ClassProperity> {
+    pub fn get_property_from_name(&self, name: &str) -> Option<ClassProperty> {
         let cstr = CString::new(name).expect(crate::STR2CSTR_ERR);
         let res = unsafe {
-            ClassProperity::from_ptr(crate::binds::mono_class_get_property_from_name(
+            ClassProperty::from_ptr(crate::binds::mono_class_get_property_from_name(
                 self.class_ptr,
                 cstr.as_ptr(),
             ))
@@ -499,11 +499,11 @@ impl Class {
     }
     /// Returns all properties of class *self*.
     #[must_use]
-    pub fn get_properities(&self) -> Vec<ClassProperity> {
+    pub fn get_properties(&self) -> Vec<ClassProperty> {
         let mut gptr = std::ptr::null_mut::<std::os::raw::c_void>();
         let mut res = Vec::new();
         while let Some(cf) = unsafe {
-            ClassProperity::from_ptr(crate::binds::mono_class_get_properties(
+            ClassProperty::from_ptr(crate::binds::mono_class_get_properties(
                 self.class_ptr,
                 std::ptr::addr_of_mut!(gptr),
             ))
@@ -530,7 +530,7 @@ impl std::cmp::PartialEq for Class {
 }
 use crate::binds::MonoClassField;
 use crate::object::Object;
-/// Representation of a class field. Accessors(getters,setters and indexers) are *not* fields, but properties! For them use [`ClassProperity`]
+/// Representation of a class field. Accessors(getters,setters and indexers) are *not* fields, but properties! For them use [`ClassProperty`]
 pub struct ClassField {
     cf_ptr: *mut MonoClassField,
 }
@@ -606,7 +606,7 @@ impl ClassField {
     ///```no_compile
     /// # use wrapped_mono::*;
     /// let some_field_value_object = some_field.get_value_object(&instance_of_some_class);
-    /// // Retrived value *some_field_value_object* is a boxed int, so we must unbox it.
+    /// // Retrieved value *some_field_value_object* is a boxed int, so we must unbox it.
     /// let some_field_value = some_field_value_object.unbox::<i32>();
     /// ```
     #[must_use]
@@ -716,11 +716,11 @@ use crate::binds::MonoProperty;
 use crate::Exception;
 use core::ptr::null_mut;
 /// Representation of class property(getters,setters) *not a class field!*
-pub struct ClassProperity {
+pub struct ClassProperty {
     prop_ptr: *mut MonoProperty,
 }
-impl ClassProperity {
-    /// Creates new [`ClassProperity`] from a *mut [`MonoProperty`].
+impl ClassProperty {
+    /// Creates new [`ClassProperty`] from a *mut [`MonoProperty`].
     /// # Safety
     /// The *ptr* must be either null or a valid pointer to *mut [`MonoProperty`]  or null.
     pub unsafe fn from_ptr(ptr: *mut MonoProperty) -> Option<Self> {
@@ -734,7 +734,8 @@ impl ClassProperity {
     pub fn get_ptr(&self) -> *mut MonoProperty {
         self.prop_ptr
     }
-    ///Gets value of property *self* of *object*(pass [`None`] if static), with parmateres *params*(only for Indexers,otherwise pass empty vec)
+    /// Gets value of property *self* of *object*(pass [`None`] if static), with parameters *params*
+    /// (only for Indexers,otherwise pass empty vec)
     /// # Safety
     /// Pointers in *params* must be a valid.
     /// # Errors
@@ -812,7 +813,7 @@ impl ClassProperity {
     #[must_use]
     pub fn get_parent(&self) -> Class {
         unsafe { Class::from_ptr(crate::binds::mono_property_get_parent(self.prop_ptr)) }
-            .expect("Cold not get class this properity is attached to")
+            .expect("Cold not get class this property is attached to")
     }
     //TODO:mono_property_get_name
 }

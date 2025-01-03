@@ -9,7 +9,7 @@ pub fn collect_generation(generation: i32) {
 pub fn collect() {
     unsafe { crate::binds::mono_gc_collect(max_generation()) };
 }
-///Get ammount of times garbage collection was preformed on *generation*.
+///Get amount of times garbage collection was performed on *generation*.
 #[must_use]
 pub fn collection_count(generation: i32) -> i32 {
     unsafe { crate::binds::mono_gc_collection_count(generation) }
@@ -29,12 +29,13 @@ pub fn get_generation(object: &Object) -> i32 {
 pub fn get_heap_size() -> i64 {
     unsafe { crate::binds::mono_gc_get_heap_size() }
 }
-///Gets ammount of heap that is in currently occupied by objects.
+///Gets amount of heap that is currently occupied by objects.
 #[must_use]
 pub fn get_used_size() -> i64 {
     unsafe { crate::binds::mono_gc_get_used_size() }
 }
-/// A Garbage Collector handle. Should only be used if default feature referenced objects is disabled. Otherwise all of its functionality is handled automatically behind the scenes
+/// A Garbage Collector handle. Should only be used if default feature referenced objects is disabled.
+/// Otherwise, all of its functionality is handled automatically behind the scenes
 pub struct GCHandle {
     handle: u32,
 }
@@ -122,11 +123,12 @@ extern "C" {
 
 #[doc(hidden)]
 #[must_use = "GCUnsafeAreaMarker marks a section of code that could be disturbed by GarbageCollector and prevents this from happening.
- It is created at begging of that critical section and must be consumend at its end, otherwise GCUnsfae Mode will newer be exited which will result in bugs and crashes."]
+ It is created at begging of that critical section and must be consumed at its end,
+ otherwise GCUnsafe Mode will never be exited which will result in bugs and crashes."]
 #[repr(transparent)]
 pub struct GCUnsafeAreaMarker {
     #[allow(dead_code)]
-    // This field is not unused, but it seems like it tor rust since it does not know anything about the C side of things
+    // This field is not unused, but it seems like it to rust since it does not know anything about the C side of things
     gc_unsafe_cookie: *mut i32,
 }
 #[doc(hidden)]
