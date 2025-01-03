@@ -1,6 +1,6 @@
 use crate::binds::MonoObject;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
-use crate::interop::{InteropClass, InteropRecive, InteropSend};
+use crate::interop::{InteropClass, InteropReceive, InteropSend};
 use crate::{dimensions::DimensionTrait, domain::Domain, Class, Object, ObjectTrait};
 use core::marker::PhantomData;
 use core::ptr::null_mut;
@@ -14,7 +14,7 @@ use std::ops::Index;
     why is there a weird constraint "where [();DIMENSIONS as usize]:Copy" in array type? It guarantees that Dimensions is higher than 0 and size array is larger than 0,
     so Array<DIMENSIONS,T> can exist.
 */
-pub struct Array<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass>
+pub struct Array<Dim: DimensionTrait, T: InteropSend + InteropReceive + InteropClass>
 where
     Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
     <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
@@ -27,7 +27,7 @@ where
     pd: PhantomData<T>,
     lengths: Dim::Lengths,
 }
-impl<T: InteropSend + InteropRecive + InteropClass, Dim: DimensionTrait> Array<Dim, T>
+impl<T: InteropSend + InteropReceive + InteropClass, Dim: DimensionTrait> Array<Dim, T>
 where
     Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy + Copy,
     <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
@@ -267,7 +267,7 @@ where
         self.lengths
     }
 }
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropClass
+impl<Dim: DimensionTrait, T: InteropSend + InteropReceive + InteropClass> InteropClass
     for Array<Dim, T>
 where
     Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
@@ -278,7 +278,7 @@ where
         Self::get_class()
     }
 }
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> ObjectTrait
+impl<Dim: DimensionTrait, T: InteropSend + InteropReceive + InteropClass> ObjectTrait
     for Array<Dim, T>
 where
     Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
@@ -343,7 +343,7 @@ where
         res
     }
 }
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> Clone for Array<Dim, T>
+impl<Dim: DimensionTrait, T: InteropSend + InteropReceive + InteropClass> Clone for Array<Dim, T>
 where
     Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
     <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
@@ -353,7 +353,7 @@ where
         unsafe { Self::from_ptr(self.get_ptr().cast()).unwrap() } //If object exists then it can't be null
     }
 }
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass, O: ObjectTrait>
+impl<Dim: DimensionTrait, T: InteropSend + InteropReceive + InteropClass, O: ObjectTrait>
     PartialEq<O> for Array<Dim, T>
 where
     Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
@@ -366,7 +366,7 @@ where
 }
 use crate::dimensions::Dim1D;
 
-impl<T: InteropSend + InteropRecive + InteropClass + Clone> From<&[T]> for Array<Dim1D, T> {
+impl<T: InteropSend + InteropReceive + InteropClass + Clone> From<&[T]> for Array<Dim1D, T> {
     fn from(src: &[T]) -> Self {
         let size = src.len();
         let dom = Domain::get_current().expect("Can't create arrays before JIT starts!");

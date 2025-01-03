@@ -10,7 +10,7 @@ namespace Vec3Namespace{
 }
 */
 //this types layout does not differ on managed and unmanged side.
-#[derive(InteropSend,InteropRecive)]
+#[derive(InteropSend,InteropReceive)]
 struct Vec3{
     x:f32,
     y:f32,
@@ -59,14 +59,14 @@ struct SomeObjectClass{
 }
 
 // Receiving `SomeObjectClass` as a non-nullable!
-impl InteropRecive for SomeObjectClass{
+impl InteropReceive for SomeObjectClass{
     type SourceType = *mut MonoObject;
     fn get_rust_rep(src:Self::SourceType)->Self{
         return unsafe{Object::from_ptr(src)}.expect("Got null on a non nullable type!");
     }
 }
 // Receiving `SomeObjectClass` as a nullable!
-impl InteropRecive for Option<SomeObjectClass>{
+impl InteropReceive for Option<SomeObjectClass>{
     type SourceType = Option<Object>;
     fn get_rust_rep(src:Self::SourceType)->Self{
         return src;

@@ -118,7 +118,7 @@ impl FnRep {
         for (curr, arg) in self.args.iter().enumerate() {
             let separator = if curr < len - 1 { ',' } else { ' ' };
             inner.extend(TokenStream::from_str(&format!(
-                "{}:<{} as wrapped_mono::InteropRecive>::SourceType{}",
+                "{}:<{} as wrapped_mono::InteropReceive>::SourceType{}",
                 arg.name,
                 arg.get_type_string(),
                 separator
@@ -148,7 +148,7 @@ impl FnRep {
         for arg in &self.args {
             // append the source type for all arguments
             fn_sig_params.extend(TokenStream::from_str(&format!(
-                "<{} as InteropRecive>::SourceType",
+                "<{} as InteropReceive>::SourceType",
                 &arg.get_type_string()
             )));
         }

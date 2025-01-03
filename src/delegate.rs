@@ -5,7 +5,7 @@ use crate::tupleutilis::{CompareClasses, TupleToPtrs};
 #[allow(unused_imports)] // for docs
 use crate::Method;
 use crate::ObjectTrait;
-use crate::{Class, Domain, Exception, InteropClass, InteropRecive, InteropSend, MString, Object};
+use crate::{Class, Domain, Exception, InteropClass, InteropReceive, InteropSend, MString, Object};
 use core::ptr::null_mut;
 use std::ffi::c_void;
 use std::marker::PhantomData;
@@ -347,7 +347,7 @@ where
     }
 }
 
-impl<Args: InteropSend> InteropRecive for Delegate<Args> {
+impl<Args: InteropSend> InteropReceive for Delegate<Args> {
     type SourceType = *mut MonoDelegate;
     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
@@ -355,7 +355,7 @@ impl<Args: InteropSend> InteropRecive for Delegate<Args> {
         unsafe { Self::from_ptr(ptr).expect("Expected non-null value but got null") }
     }
 }
-impl<Args: InteropSend> InteropRecive for Option<Delegate<Args>> {
+impl<Args: InteropSend> InteropReceive for Option<Delegate<Args>> {
     type SourceType = *mut MonoDelegate;
     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
     #[allow(clippy::not_unsafe_ptr_arg_deref)]

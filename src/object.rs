@@ -1,6 +1,6 @@
 use crate::binds::MonoObject;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
-use crate::interop::{InteropRecive, InteropSend};
+use crate::interop::{InteropReceive, InteropSend};
 use crate::tupleutilis::{CompareClasses, TupleToFFIPtrs};
 #[allow(unused_imports)] // for docs
 // use crate::delegate::Delegate;
@@ -280,7 +280,7 @@ impl Object {
         let marker = gc_unsafe_enter();
         let ptr = unsafe {
             crate::binds::mono_object_unbox(self.get_ptr())
-                .cast::<<T as InteropRecive>::SourceType>()
+                .cast::<<T as InteropReceive>::SourceType>()
         };
         let res = T::get_rust_rep(unsafe { *ptr });
         #[cfg(feature = "referneced_objects")]

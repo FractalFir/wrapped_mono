@@ -54,7 +54,7 @@
 //!     }
 //!     // Replace a method with "[MethodImplAttribute(MethodImplOptions.InternalCall)]" atribute with a rust function
 //!     add_internal_call!("SomeClass::SqrtInternalCall",sqrt);
-//!     // This supports all types with `InteropRecive` trait
+//!     // This supports all types with `InteropReceive` trait
 //!     #[invokable]
 //!     fn avg(input:Array<Dim1D,f32>)->f32{
 //!         let mut avg = 0.0;
@@ -129,7 +129,7 @@ pub use exception::Exception;
 #[doc(inline)]
 pub use image::Image;
 #[doc(inline)]
-pub use interop::{InteropBox, InteropClass, InteropRecive, InteropSend};
+pub use interop::{InteropBox, InteropClass, InteropReceive, InteropSend};
 #[doc(inline)]
 pub use method::Method;
 #[doc(inline)]
@@ -143,7 +143,7 @@ pub use reflection_type::ReflectionType;
 /// Custom macros used by `wrapped_mono`
 pub use wrapped_mono_macros; // Custom macros
 #[doc(inline)]
-pub use wrapped_mono_macros::{add_internal_call, invokable, InteropRecive};
+pub use wrapped_mono_macros::{add_internal_call, invokable, InteropReceive};
 
 static STR2CSTR_ERR: &str = "Cold not create CString!";
 static CSTR2STR_ERR: &str = "Could not convert CString to String";

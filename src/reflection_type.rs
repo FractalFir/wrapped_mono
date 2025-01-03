@@ -2,7 +2,7 @@ use crate::binds::{MonoClass, MonoObject, MonoReflectionType, MonoType};
 use crate::dimensions::Dim1D;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
 use crate::{Array, Class, Domain, Image, Method};
-use crate::{InteropClass, InteropRecive, InteropSend};
+use crate::{InteropClass, InteropReceive, InteropSend};
 use crate::{Object, ObjectTrait};
 use std::ffi::CString;
 use std::sync::LazyLock;
@@ -67,7 +67,7 @@ impl ReflectionType {
     }
 }
 /*
-impl InteropRecive for ReflectionType {
+impl InteropReceive for ReflectionType {
     type SourceType = *mut MonoReflectionType;
     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
     #[allow(clippy::not_unsafe_ptr_arg_deref)]

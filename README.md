@@ -91,7 +91,7 @@ fn main(){
     }
     // Replace a method with "[MethodImplAttribute(MethodImplOptions.InternalCall)]" atribute with a rust function
     add_internal_call!("SomeClass::SqrtInternalCall",sqrt);
-    // This supports all types with `InteropRecive` trait
+    // This supports all types with `InteropReceive` trait
     #[invokable]
     fn avg(input:Array<Dim1D,f32>)->f32{
         let mut avg = 0.0;

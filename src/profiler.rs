@@ -1,5 +1,5 @@
 use crate::binds::{MonoProfiler, MonoProfilerCallContext, MonoProfilerHandle, _MonoProfiler};
-use crate::interop::InteropRecive;
+use crate::interop::InteropReceive;
 use crate::{Domain, Method, Object};
 // Profiler is not finished so it has some dead code that will fixed addressed in the future TODO: fix profiler dead code
 struct _Profiler<T> {
@@ -31,18 +31,18 @@ impl ProfilerCallContext {
         }
     }
     ///Returns *index* argument of current call context. *index* must be within argument count of current method. Type must match argument.
-    pub fn get_arg<T: InteropRecive>(&self, index: u32) -> T {
+    pub fn get_arg<T: InteropReceive>(&self, index: u32) -> T {
         let ptr = unsafe { crate::binds::mono_profiler_call_context_get_argument(self.ptr, index) }
-            as *const <T as InteropRecive>::SourceType;
-        let src: <T as InteropRecive>::SourceType = unsafe { *(ptr) };
-        <T as InteropRecive>::get_rust_rep(src)
+            as *const <T as InteropReceive>::SourceType;
+        let src: <T as InteropReceive>::SourceType = unsafe { *(ptr) };
+        <T as InteropReceive>::get_rust_rep(src)
     }
     ///Return local argument from current call contex at *index*. Index must be valid and type must match.
-    pub fn get_local<T: InteropRecive>(&self, index: u32) -> T {
+    pub fn get_local<T: InteropReceive>(&self, index: u32) -> T {
         let ptr = unsafe { crate::binds::mono_profiler_call_context_get_local(self.ptr, index) }
-            as *const <T as InteropRecive>::SourceType;
-        let src: <T as InteropRecive>::SourceType = unsafe { *(ptr) };
-        <T as InteropRecive>::get_rust_rep(src)
+            as *const <T as InteropReceive>::SourceType;
+        let src: <T as InteropReceive>::SourceType = unsafe { *(ptr) };
+        <T as InteropReceive>::get_rust_rep(src)
     }
 }
 use std::alloc::{alloc, dealloc, Layout};
