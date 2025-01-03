@@ -62,6 +62,9 @@ impl BindingGenerator {
                 Some(tdt) => tdt,
                 None => continue,
             };
+            // TODO: isn't the None case below unreachable, because the case above would continue?
+            // TODO: Also, couldn't this loop be fused with the loop below? Or is it necessary to
+            // first generate all types before generating methods?
             let refs = match TypeReferenceTable::from_image(img) {
                 Some(refs) => refs,
                 None => TypeReferenceTable::empty(),
