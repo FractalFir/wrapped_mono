@@ -116,7 +116,7 @@ impl BindingGenerator {
         namespace: &str,
         type_name: &str,
     ) -> Result<(), BindgenError> {
-        let mut out = self.namespaces_out.get_mut(namespace).unwrap();
+        let out = self.namespaces_out.get_mut(namespace).unwrap();
         let name = method.name();
         let escaped_name = escape_method(method.name());
         let mut param_names = Vec::with_capacity(method.signature().params().len());
