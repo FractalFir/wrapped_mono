@@ -9,19 +9,19 @@ use crate::{class::Class, domain::Domain, method::Method};
 ///It means that while it may represent a nullable type, wrapped-mono will automaticly panic when recived null value.
 ///For nullable support use `Option<Object>`.
 pub struct Object {
-    #[cfg(not(feature = "referneced_objects"))]
+    #[cfg(not(feature = "referenced_objects"))]
     obj_ptr: *mut MonoObject,
-    #[cfg(feature = "referneced_objects")]
+    #[cfg(feature = "referenced_objects")]
     handle: GCHandle,
 }
 use crate::mstring::MString;
 ///Trait contining functions common for all types of manged objects.
 pub trait ObjectTrait: Sized + InteropClass {
     fn cast<Target: ObjectTrait>(&self) -> Option<Target> {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe { Target::from_ptr(self.get_ptr()) };
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         res
     }
@@ -59,10 +59,10 @@ pub trait ObjectTrait: Sized + InteropClass {
     /// ```
     #[must_use]
     fn hash(&self) -> i32 {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let hsh = unsafe { crate::binds::mono_object_hash(self.get_ptr()) };
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         hsh
     }
@@ -78,10 +78,10 @@ pub trait ObjectTrait: Sized + InteropClass {
     ///```
     #[must_use]
     fn get_domain(&self) -> Domain {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let dom = unsafe { Domain::from_ptr(crate::binds::mono_object_get_domain(self.get_ptr())) };
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         dom
     }
@@ -104,10 +104,10 @@ pub trait ObjectTrait: Sized + InteropClass {
     ///```
     #[must_use]
     fn get_size(&self) -> u32 {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let size = unsafe { crate::binds::mono_object_get_size(self.get_ptr()) };
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         size
     }
@@ -115,10 +115,10 @@ pub trait ObjectTrait: Sized + InteropClass {
     //TODO:extend this description to make it more clear
     #[doc(hidden)]
     fn reflection_get_token(&self) -> u32 {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let tok = unsafe { crate::binds::mono_reflection_get_token(self.get_ptr()) };
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         tok
     }
@@ -134,13 +134,13 @@ pub trait ObjectTrait: Sized + InteropClass {
     /// ```
     #[must_use]
     fn get_class(&self) -> Class {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let class = unsafe {
             Class::from_ptr(crate::binds::mono_object_get_class(self.get_ptr()))
                 .expect("Could not get class of an object")
         };
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         class
     }
@@ -148,7 +148,7 @@ pub trait ObjectTrait: Sized + InteropClass {
     /// # Errors
     /// Returns [`Exception`] if raised, and [`Option<MString>`] if not. Function returns [`Option<MString>`] to allow for null value to be returned.
     fn to_mstring(&self) -> Result<Option<MString>, Exception> {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let mut exc: *mut crate::binds::MonoException = core::ptr::null_mut();
         let res = unsafe {
@@ -161,7 +161,7 @@ pub trait ObjectTrait: Sized + InteropClass {
             )
         };
         let exc = unsafe { Exception::from_ptr(exc.cast()) };
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         exc.map_or_else(|| Ok(res), Err)
     }
@@ -170,11 +170,11 @@ use crate::exception::Exception;
 impl ObjectTrait for Object {
     ///Gets internal [`MonoObject`] pointer.
     fn get_ptr(&self) -> *mut MonoObject {
-        #[cfg(not(feature = "referneced_objects"))]
+        #[cfg(not(feature = "referenced_objects"))]
         {
             self.obj_ptr
         }
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         {
             self.handle.get_target()
         }
@@ -184,11 +184,11 @@ impl ObjectTrait for Object {
             !obj_ptr.is_null(),
             "Error: Violated function contract. *obj_ptr* must never be null, but was null."
         );
-        #[cfg(not(feature = "referneced_objects"))]
+        #[cfg(not(feature = "referenced_objects"))]
         {
             Self { obj_ptr }
         }
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         {
             Self {
                 handle: GCHandle::create_default(obj_ptr),
@@ -208,7 +208,7 @@ impl Object {
     /// ```
     #[must_use]
     pub fn new(domain: &crate::domain::Domain, class: &Class) -> Self {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let obj = unsafe {
             Self::from_ptr(crate::binds::mono_object_new(
@@ -217,7 +217,7 @@ impl Object {
             ))
         }
         .expect("Could not create new type from class!");
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         obj
     }
@@ -226,14 +226,14 @@ impl Object {
     /// *`obj_ptr`* must be either a valid [`MonoObject`] pointer or null, otherwise resulting [`Object`] will not be valid and will **cause crashes**.
     #[must_use]
     pub unsafe fn from_ptr(obj_ptr: *mut MonoObject) -> Option<Self> {
-        #[cfg(not(feature = "referneced_objects"))]
+        #[cfg(not(feature = "referenced_objects"))]
         {
             if obj_ptr.is_null() {
                 return None;
             }
             Some(Self { obj_ptr })
         }
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         {
             if obj_ptr.is_null() {
                 return None;
@@ -276,14 +276,14 @@ impl Object {
                 &t_class.get_name()
             );
         }
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let ptr = unsafe {
             crate::binds::mono_object_unbox(self.get_ptr())
                 .cast::<<T as InteropReceive>::SourceType>()
         };
         let res = T::get_rust_rep(unsafe { *ptr });
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         res
     }
@@ -292,7 +292,7 @@ impl Object {
         class: &Class,
         val: *mut std::ffi::c_void,
     ) -> Self {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let res = Self::from_ptr(crate::binds::mono_value_box(
             domain.get_ptr(),
@@ -300,7 +300,7 @@ impl Object {
             val,
         ))
         .expect("Could not box value");
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         res
     }
@@ -339,7 +339,7 @@ impl Object {
         obj: &Self,
         method: &Method<T>,
     ) -> Option<Method<T>> {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {
             Method::from_ptr(crate::binds::mono_object_get_virtual_method(
@@ -347,7 +347,7 @@ impl Object {
                 method.get_ptr(),
             ))
         };
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         res
     }
@@ -357,11 +357,11 @@ impl Object {
     #[must_use]
     pub fn clone_managed_object(&self) -> Self {
         //if clone fails, it means that there is a much bigger problem somewhere down the line, so it can be just ignored.
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe { Self::from_ptr(crate::binds::mono_object_clone(self.get_ptr())) }
             .expect("MonoRuntime could not clone object!");
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         res
     }

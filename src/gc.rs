@@ -65,7 +65,7 @@ impl GCHandle {
         unsafe { crate::binds::mono_gchandle_free(handle.handle) }
     }
 }
-#[cfg(feature = "referneced_objects")]
+#[cfg(feature = "referenced_objects")]
 impl Drop for GCHandle {
     fn drop(&mut self) {
         unsafe { crate::binds::mono_gchandle_free(self.handle) }

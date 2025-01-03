@@ -8,9 +8,9 @@ use std::ffi::CString;
 use std::sync::LazyLock;
 /// Rust representation of managed object derived form class `System.Type`
 pub struct ReflectionType {
-    #[cfg(not(feature = "referneced_objects"))]
+    #[cfg(not(feature = "referenced_objects"))]
     type_ptr: *mut MonoReflectionType,
-    #[cfg(feature = "referneced_objects")]
+    #[cfg(feature = "referenced_objects")]
     handle: GCHandle,
 }
 impl ReflectionType {
@@ -18,11 +18,11 @@ impl ReflectionType {
     #[allow(clippy::missing_panics_doc)]
     #[must_use]
     pub fn from_class(class: &Class) -> Self {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let ptr = unsafe { crate::binds::mono_class_get_type(class.get_ptr()) };
         let res = unsafe { Self::from_type_ptr(ptr).unwrap() }; // Converting class to ReflectionType should never fail
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         res
     }
@@ -51,7 +51,7 @@ impl ReflectionType {
     #[must_use]
     pub fn from_name(name: &str, img: Image) -> Option<Self> {
         let cstr = CString::new(name).expect("Could not convert string to CString");
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let ptr = unsafe {
             #[allow(clippy::cast_possible_truncation)]
@@ -61,7 +61,7 @@ impl ReflectionType {
             return None;
         }
         let res = unsafe { Self::from_type_ptr(ptr) };
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         res
     }
@@ -87,23 +87,23 @@ impl From<Class> for ReflectionType {
 }
 impl ObjectTrait for ReflectionType {
     fn get_ptr(&self) -> *mut MonoObject {
-        #[cfg(not(feature = "referneced_objects"))]
+        #[cfg(not(feature = "referenced_objects"))]
         {
             self.type_ptr.cast()
         }
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         {
             self.handle.get_target()
         }
     }
     unsafe fn from_ptr_unchecked(type_ptr: *mut MonoObject) -> Self {
-        #[cfg(not(feature = "referneced_objects"))]
+        #[cfg(not(feature = "referenced_objects"))]
         {
             Self {
                 type_ptr: type_ptr.cast(),
             }
         }
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         {
             Self {
                 handle: GCHandle::create_default(type_ptr.cast()),

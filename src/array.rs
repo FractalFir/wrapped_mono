@@ -20,9 +20,9 @@ where
     <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
     <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
-    #[cfg(not(feature = "referneced_objects"))]
+    #[cfg(not(feature = "referenced_objects"))]
     arr_ptr: *mut crate::binds::MonoArray,
-    #[cfg(feature = "referneced_objects")]
+    #[cfg(feature = "referenced_objects")]
     handle: GCHandle,
     pd: PhantomData<T>,
     lengths: Dim::Lengths,
@@ -79,7 +79,7 @@ where
     /// ```
     pub fn get(&self, indices: Dim::Lengths) -> T {
         let index = self.get_index(indices);
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         #[allow(clippy::cast_possible_truncation)]
         #[allow(clippy::cast_possible_wrap)]
@@ -91,7 +91,7 @@ where
             ) as *const T::SourceType)
         };
         let rr = T::get_rust_rep(src);
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         rr
     }
@@ -124,7 +124,7 @@ where
         T: InteropSend,
     {
         let index = self.get_index(indices);
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let ptr = unsafe {
             #[allow(clippy::cast_possible_truncation)]
@@ -141,7 +141,7 @@ where
             unsafe { (*ptr.cast()) = value };
         }
 
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
     }
 
@@ -163,10 +163,10 @@ where
     /// ```
     #[must_use]
     pub fn len(&self) -> usize {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let len = unsafe { crate::binds::mono_array_length(self.get_ptr().cast()) };
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         len
     }
@@ -187,11 +187,11 @@ where
     /// |self| &Array | array to cast to object|
     #[must_use]
     pub fn to_object(&self) -> Object {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe { Object::from_ptr(self.get_ptr().cast()) }
             .expect("Could not create object from array!");
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         res
     }
@@ -215,7 +215,7 @@ where
     pub fn new(domain: &Domain, size: &Dim::Lengths) -> Self {
         #[allow(clippy::cast_possible_truncation)]
         let class = <T as InteropClass>::get_mono_class().get_array_class(Dim::DIMENSIONS as u32);
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let arr = unsafe {
             Self::from_ptr(
@@ -229,7 +229,7 @@ where
             )
         }
         .expect("could not create a new array!");
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         arr
     }
@@ -240,12 +240,12 @@ where
     /// |self|&Array|Array to clone|
     #[must_use]
     pub fn clone_managed_array(&self) -> Self {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let res =
             unsafe { Self::from_ptr(crate::binds::mono_array_clone(self.get_ptr().cast()).cast()) }
                 .expect("coud not create copy of an array!");
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         res
     }
@@ -287,21 +287,21 @@ where
 {
     #[must_use]
     fn get_ptr(&self) -> *mut crate::binds::MonoObject {
-        #[cfg(not(feature = "referneced_objects"))]
+        #[cfg(not(feature = "referenced_objects"))]
         return self.arr_ptr.cast();
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         return self.handle.get_target();
     }
     #[must_use]
     unsafe fn from_ptr_unchecked(ptr: *mut MonoObject) -> Self {
         use crate::Method;
-        #[cfg(not(feature = "referneced_objects"))]
+        #[cfg(not(feature = "referenced_objects"))]
         let mut res = Self {
             arr_ptr: ptr.cast(),
             pd: PhantomData,
             lengths: Dim::zeroed(),
         };
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let mut res = Self {
             handle: GCHandle::create_default(ptr.cast()),
             pd: PhantomData,
