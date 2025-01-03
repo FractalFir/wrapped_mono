@@ -214,7 +214,7 @@ impl BindingGenerator {
             }
             //let type_name = escaped_name(type_name);
             {
-                let mut out = self.namespaces_out.get_mut(&namespace).unwrap();
+                let out = self.namespaces_out.get_mut(&namespace).unwrap();
                 write!(out, "//Implementations of methods for {type_name}\n")?;
             }
             let mut methods: std::collections::HashSet<String> = HashSet::new();
@@ -228,7 +228,7 @@ impl BindingGenerator {
                     continue;
                 }
                 self.generate_method(&tdt, &refs, method, &namespace, &type_name)?;
-                let mut out = self.namespaces_out.get_mut(&namespace).unwrap();
+                let out = self.namespaces_out.get_mut(&namespace).unwrap();
                 let escaped_name = escape_method(method.name());
                 assert!(!escaped_name.contains('.'));
                 if !methods.contains(&escaped_name) {
@@ -237,7 +237,7 @@ impl BindingGenerator {
                 }
             }
             {
-                let mut out = self.namespaces_out.get_mut(&namespace).unwrap();
+                let out = self.namespaces_out.get_mut(&namespace).unwrap();
                 write!(out, "//End of Implementations of methods for {type_name}\n")?;
             }
         }
@@ -258,7 +258,7 @@ impl BindingGenerator {
             let namespace = td.namespace();
             let escaped_namespace = escape_namespace(namespace);
             self.create_namespace(&escaped_namespace);
-            let mut out = self.namespaces_out.get_mut(&escaped_namespace).unwrap();
+            let out = self.namespaces_out.get_mut(&escaped_namespace).unwrap();
             write!(
                 out,
                 "// Bindings to object \"{name}\" in namespace \"{namespace}\".\n"
@@ -323,7 +323,7 @@ fn get_mono_class()->wrapped_mono::Class{{
     }
     //Inserts a namespace if it is not present
     fn create_namespace(&mut self, namespace: &str) {
-        if let Some(out) = self.namespaces_out.get_mut(namespace) {
+        if let Some(_out) = self.namespaces_out.get_mut(namespace) {
             return;
         }
         self.namespaces_out.insert(namespace.to_owned(), Vec::new());
