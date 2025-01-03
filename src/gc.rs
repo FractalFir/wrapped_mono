@@ -99,7 +99,7 @@ pub struct MonoStackData {
     pub stack_ptr: *const u8,
     pub dummy: i32,
 }
-#[cfg(old_gc_unsafe)]
+#[cfg(feature = "old_gc_unsafe")]
 extern "C" {
     #[doc(hidden)]
     pub fn mono_threads_enter_gc_unsafe_region_internal(msd: &MonoStackData) -> GCUnsafeAreaMarker;
@@ -109,7 +109,7 @@ extern "C" {
         msd: &MonoStackData,
     );
 }
-#[cfg(not(old_gc_unsafe))]
+#[cfg(not(feature = "old_gc_unsafe"))]
 extern "C" {
     #[doc(hidden)]
     pub fn mono_threads_enter_gc_unsafe_region(msd: &MonoStackData) -> GCUnsafeAreaMarker;
@@ -133,7 +133,7 @@ pub struct GCUnsafeAreaMarker {
 #[inline(always)]
 #[allow(clippy::inline_always)]
 pub fn gc_unsafe_enter() -> (GCUnsafeAreaMarker, MonoStackData) {
-    #[cfg(old_gc_unsafe)]
+    #[cfg(feature = "old_gc_unsafe")]
     {
         let stack_item: u8 = 0; //Useless dummy value used to get the stack pointer.
         let msd = crate::gc::MonoStackData {
@@ -143,7 +143,7 @@ pub fn gc_unsafe_enter() -> (GCUnsafeAreaMarker, MonoStackData) {
         let marker = unsafe { crate::gc::mono_threads_enter_gc_unsafe_region_internal(&msd) }; // Entering GC Unsafe mode (signalling to GC that we will be using managed objects that should not be moved)
         (marker, msd)
     }
-    #[cfg(not(old_gc_unsafe))]
+    #[cfg(not(feature = "old_gc_unsafe"))]
     {
         let stack_item: u8 = 0; //Useless dummy value used to get the stack pointer.
         let msd = crate::gc::MonoStackData {
@@ -158,11 +158,11 @@ pub fn gc_unsafe_enter() -> (GCUnsafeAreaMarker, MonoStackData) {
 #[inline(always)]
 #[allow(clippy::inline_always)]
 pub fn gc_unsafe_exit(markers: (GCUnsafeAreaMarker, MonoStackData)) {
-    #[cfg(old_gc_unsafe)]
+    #[cfg(feature = "old_gc_unsafe")]
     unsafe {
         crate::gc::mono_threads_exit_gc_unsafe_region_internal(markers.0, &markers.1);
     }
-    #[cfg(not(old_gc_unsafe))]
+    #[cfg(not(feature = "old_gc_unsafe"))]
     unsafe {
         crate::gc::mono_threads_exit_gc_unsafe_region(markers.0, &markers.1);
     }
