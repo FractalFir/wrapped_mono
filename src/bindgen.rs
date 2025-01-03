@@ -323,10 +323,9 @@ fn get_mono_class()->wrapped_mono::Class{{
     }
     //Inserts a namespace if it is not present
     fn create_namespace(&mut self, namespace: &str) {
-        if let Some(_out) = self.namespaces_out.get_mut(namespace) {
-            return;
+        if self.namespaces_out.get_mut(namespace).is_none() {
+            self.namespaces_out.insert(namespace.to_owned(), Vec::new());
         }
-        self.namespaces_out.insert(namespace.to_owned(), Vec::new());
     }
 }
 /*
