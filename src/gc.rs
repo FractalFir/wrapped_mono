@@ -9,7 +9,7 @@ pub fn collect_generation(generation: i32) {
 pub fn collect() {
     unsafe { crate::binds::mono_gc_collect(max_generation()) };
 }
-///Get ammount of times garbage collection was preformed on *generation*.
+///Get amount of times garbage collection was performed on *generation*.
 #[must_use]
 pub fn collection_count(generation: i32) -> i32 {
     unsafe { crate::binds::mono_gc_collection_count(generation) }
@@ -29,12 +29,13 @@ pub fn get_generation(object: &Object) -> i32 {
 pub fn get_heap_size() -> i64 {
     unsafe { crate::binds::mono_gc_get_heap_size() }
 }
-///Gets ammount of heap that is in currently occupied by objects.
+///Gets amount of heap that is currently occupied by objects.
 #[must_use]
 pub fn get_used_size() -> i64 {
     unsafe { crate::binds::mono_gc_get_used_size() }
 }
-/// A Garbage Collector handle. Should only be used if default feature referenced objects is disabled. Otherwise all of its functionality is handled automatically behind the scenes
+/// A Garbage Collector handle. Should only be used if default feature referenced objects is disabled.
+/// Otherwise, all of its functionality is handled automatically behind the scenes
 pub struct GCHandle {
     handle: u32,
 }
@@ -65,7 +66,7 @@ impl GCHandle {
         unsafe { crate::binds::mono_gchandle_free(handle.handle) }
     }
 }
-#[cfg(feature = "referneced_objects")]
+#[cfg(feature = "referenced_objects")]
 impl Drop for GCHandle {
     fn drop(&mut self) {
         unsafe { crate::binds::mono_gchandle_free(self.handle) }
@@ -99,7 +100,7 @@ pub struct MonoStackData {
     pub stack_ptr: *const u8,
     pub dummy: i32,
 }
-#[cfg(old_gc_unsafe)]
+#[cfg(feature = "old_gc_unsafe")]
 extern "C" {
     #[doc(hidden)]
     pub fn mono_threads_enter_gc_unsafe_region_internal(msd: &MonoStackData) -> GCUnsafeAreaMarker;
@@ -109,7 +110,7 @@ extern "C" {
         msd: &MonoStackData,
     );
 }
-#[cfg(not(old_gc_unsafe))]
+#[cfg(not(feature = "old_gc_unsafe"))]
 extern "C" {
     #[doc(hidden)]
     pub fn mono_threads_enter_gc_unsafe_region(msd: &MonoStackData) -> GCUnsafeAreaMarker;
@@ -122,18 +123,19 @@ extern "C" {
 
 #[doc(hidden)]
 #[must_use = "GCUnsafeAreaMarker marks a section of code that could be disturbed by GarbageCollector and prevents this from happening.
- It is created at begging of that critical section and must be consumend at its end, otherwise GCUnsfae Mode will newer be exited which will result in bugs and crashes."]
+ It is created at begging of that critical section and must be consumed at its end,
+ otherwise GCUnsafe Mode will never be exited which will result in bugs and crashes."]
 #[repr(transparent)]
 pub struct GCUnsafeAreaMarker {
     #[allow(dead_code)]
-    // This field is not unused, but it seems like it tor rust since it does not know anything about the C side of things
+    // This field is not unused, but it seems like it to rust since it does not know anything about the C side of things
     gc_unsafe_cookie: *mut i32,
 }
 #[doc(hidden)]
 #[inline(always)]
 #[allow(clippy::inline_always)]
 pub fn gc_unsafe_enter() -> (GCUnsafeAreaMarker, MonoStackData) {
-    #[cfg(old_gc_unsafe)]
+    #[cfg(feature = "old_gc_unsafe")]
     {
         let stack_item: u8 = 0; //Useless dummy value used to get the stack pointer.
         let msd = crate::gc::MonoStackData {
@@ -143,7 +145,7 @@ pub fn gc_unsafe_enter() -> (GCUnsafeAreaMarker, MonoStackData) {
         let marker = unsafe { crate::gc::mono_threads_enter_gc_unsafe_region_internal(&msd) }; // Entering GC Unsafe mode (signalling to GC that we will be using managed objects that should not be moved)
         (marker, msd)
     }
-    #[cfg(not(old_gc_unsafe))]
+    #[cfg(not(feature = "old_gc_unsafe"))]
     {
         let stack_item: u8 = 0; //Useless dummy value used to get the stack pointer.
         let msd = crate::gc::MonoStackData {
@@ -158,11 +160,11 @@ pub fn gc_unsafe_enter() -> (GCUnsafeAreaMarker, MonoStackData) {
 #[inline(always)]
 #[allow(clippy::inline_always)]
 pub fn gc_unsafe_exit(markers: (GCUnsafeAreaMarker, MonoStackData)) {
-    #[cfg(old_gc_unsafe)]
+    #[cfg(feature = "old_gc_unsafe")]
     unsafe {
         crate::gc::mono_threads_exit_gc_unsafe_region_internal(markers.0, &markers.1);
     }
-    #[cfg(not(old_gc_unsafe))]
+    #[cfg(not(feature = "old_gc_unsafe"))]
     unsafe {
         crate::gc::mono_threads_exit_gc_unsafe_region(markers.0, &markers.1);
     }

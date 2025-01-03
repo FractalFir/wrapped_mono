@@ -11,7 +11,8 @@ pub struct Method<Args: TupleToFFIPtrs + CompareClasses> {
     method: *mut MonoMethod,
     args_type: PhantomData<Args>,
 }
-/// Trait implemented only for [`Method`] type. Spiliting it from main [`Method`] type allows for different amount of method arguments.
+/// Trait implemented only for [`Method`] type.
+/// Splitting it from main [`Method`] type allows for different amount of method arguments.
 /*
 pub trait MethodTrait<Args: InteropSend + CompareClasses>
 where
@@ -32,8 +33,9 @@ where
     /// |-------|-------|------|
     /// |`met_ptr`|*mut [`MonoMethod`]|Pointer to method to create a representation for.|
     /// # Safety
-    /// Pointer must be either a valid pointer to [`MonoMethod`] recived from mono runtime, or a null pointer.
-    /// **WARNING** argument types not yet checked for methods with 1 or 0 arguments. This results from limitations of Rust type system, and can't be solved without some realy nasty hacks,
+    /// Pointer must be either a valid pointer to [`MonoMethod`] received from mono runtime, or a null pointer.
+    /// **WARNING** argument types not yet checked for methods with 1 or 0 arguments.
+    /// This results from limitations of Rust type system, and can't be solved without some really nasty hacks,
     /// but will be fixed in the future
     unsafe fn from_ptr(met_ptr: *mut MonoMethod) -> Option<Self>;
     /// Creates new Method type from a *mut MonoMethod, checks if arguments of [`MonoMethod`] and rust representation of a [`Method`] match and returns [`None`] if so.
@@ -43,8 +45,8 @@ where
     /// |-------|-------|------|
     /// |`met_ptr`|*mut [`MonoMethod`]|Pointer to method to create a representation for.|
     /// # Safety
-    /// Pointer must be either a valid pointer to [`MonoMethod`] recived from mono runtime, or a null pointer.
-    /// **WARNING** argument types not yet checked for methods with 1 or 0 arguments. This results from limitations of Rust type system, and can't be solved without some realy nasty hacks,
+    /// Pointer must be either a valid pointer to [`MonoMethod`] received from mono runtime, or a null pointer.
+    /// **WARNING** argument types not yet checked for methods with 1 or 0 arguments. This results from limitations of Rust type system, and can't be solved without some really nasty hacks,
     /// but will be fixed in the future
     unsafe fn from_ptr_checked(met_ptr: *mut MonoMethod) -> Option<Self>;
 }
@@ -66,7 +68,7 @@ impl<Args: TupleToFFIPtrs + CompareClasses> Method<Args> {
     /// |`self`   |&[`Method`]|   Rust representation of the method preforming the call.|
     /// |`called` |&[`Method`]|   Rust representation of the method being called.|
     #[must_use]
-    pub fn can_acces_method<T: TupleToFFIPtrs + CompareClasses>(&self, called: &Method<T>) -> bool {
+    pub fn can_access_method<T: TupleToFFIPtrs + CompareClasses>(&self, called: &Method<T>) -> bool {
         (unsafe { crate::binds::mono_method_can_access_method(self.method, called.method) } != 0)
     }
     ///Metadata token. Not working without MetadataAPI
@@ -97,7 +99,7 @@ impl<Args: TupleToFFIPtrs + CompareClasses> Method<Args> {
     /// |-------|-------|------|
     /// |class|&[`Class`]|Class the sought method belongs to|
     /// |`name`|&[`str`]|Name of the method|
-    /// |`param_count`|&[`i32`]|Ammount of parameters(arguments) method accepts|
+    /// |`param_count`|&[`i32`]|Amount of parameters(arguments) method accepts|
     #[must_use]
     pub fn get_from_name(
         class: &crate::class::Class,
@@ -221,7 +223,7 @@ impl<Args: CompareClasses + TupleToFFIPtrs> Method<Args> {
         } else {
             let except = unsafe {
                 Exception::from_ptr(expect.cast())
-                    .expect("Imposible: pointer is null and not null at the same time.")
+                    .expect("Impossible: pointer is null and not null at the same time.")
             };
             Err(except)
         }
@@ -233,7 +235,7 @@ impl<Args: CompareClasses + TupleToFFIPtrs> Method<Args> {
     /// |-------|-------|------|
     /// |`met_ptr`|*mut [`MonoMethod`]|Pointer to method to create a representation for.|
     /// # Safety
-    /// Pointer must be either a valid pointer to [`MonoMethod`] recived from mono runtime, or a null pointer.
+    /// Pointer must be either a valid pointer to [`MonoMethod`] received from mono runtime, or a null pointer.
     pub unsafe fn from_ptr(met_ptr: *mut MonoMethod) -> Option<Self> {
         if met_ptr.is_null() {
             return None;
@@ -256,7 +258,7 @@ impl<Args: CompareClasses + TupleToFFIPtrs> Method<Args> {
     /// |-------|-------|------|
     /// |`met_ptr`| *mut [`MonoMethod`]|Pointer to method to create a representation for.|
     /// # Safety
-    /// Pointer must be either a valid pointer to [`MonoMethod`] recived from mono runtime, or a null pointer.
+    /// Pointer must be either a valid pointer to [`MonoMethod`] received from mono runtime, or a null pointer.
     pub unsafe fn from_ptr_checked(met_ptr: *mut MonoMethod) -> Option<Self> {
         if met_ptr.is_null() {
             return None;

@@ -43,8 +43,8 @@ macro_rules! profiler_test {
 }
 // Some tests do not pass because macro implementing them does not support code injection needed to test them propely.
 profiler_test! {add_runtime_initialized_callback}
-profiler_test! {add_runtime_shutown_begin_callback}
-profiler_test! {add_runtime_shutown_end_callback}
+profiler_test! {add_runtime_shutdown_begin_callback}
+profiler_test! {add_runtime_shutdown_end_callback}
 profiler_test! {add_context_loaded}
 profiler_test! {add_context_unloaded}
 profiler_test! {add_domain_loading,{},(&mut Domain)}

@@ -1,6 +1,6 @@
 use crate::binds::MonoObject;
 use crate::gc::{gc_unsafe_enter, gc_unsafe_exit, GCHandle};
-use crate::interop::{InteropClass, InteropRecive, InteropSend};
+use crate::interop::{InteropClass, InteropReceive, InteropSend};
 use crate::{dimensions::DimensionTrait, domain::Domain, Class, Object, ObjectTrait};
 use core::marker::PhantomData;
 use core::ptr::null_mut;
@@ -9,25 +9,26 @@ use std::ops::Index;
 // Documentation finished.
 /// Safe, rust representation of `MonoArray` (a reference to a managed array).
 /// # Nullable support
-/// [`Array<T>`] is non-nullable on default and will panic when null passed as argument form managed code. For nullable support use [`Option<Array<T>>`].
+/// [`Array<Dim, T>`] is non-nullable on default and will panic when null passed as argument form managed code.
+/// For nullable support use [`Option<Array<Dim, T>>`].
 /*
     why is there a weird constraint "where [();DIMENSIONS as usize]:Copy" in array type? It guarantees that Dimensions is higher than 0 and size array is larger than 0,
     so Array<DIMENSIONS,T> can exist.
 */
-pub struct Array<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass>
+pub struct Array<Dim: DimensionTrait, T: InteropSend + InteropReceive + InteropClass>
 where
     Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
     <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
     <<Dim as DimensionTrait>::Lengths as Index<usize>>::Output: Sized + Into<usize> + Copy,
 {
-    #[cfg(not(feature = "referneced_objects"))]
+    #[cfg(not(feature = "referenced_objects"))]
     arr_ptr: *mut crate::binds::MonoArray,
-    #[cfg(feature = "referneced_objects")]
+    #[cfg(feature = "referenced_objects")]
     handle: GCHandle,
     pd: PhantomData<T>,
     lengths: Dim::Lengths,
 }
-impl<T: InteropSend + InteropRecive + InteropClass, Dim: DimensionTrait> Array<Dim, T>
+impl<T: InteropSend + InteropReceive + InteropClass, Dim: DimensionTrait> Array<Dim, T>
 where
     Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy + Copy,
     <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
@@ -79,7 +80,7 @@ where
     /// ```
     pub fn get(&self, indices: Dim::Lengths) -> T {
         let index = self.get_index(indices);
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         #[allow(clippy::cast_possible_truncation)]
         #[allow(clippy::cast_possible_wrap)]
@@ -91,7 +92,7 @@ where
             ) as *const T::SourceType)
         };
         let rr = T::get_rust_rep(src);
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         rr
     }
@@ -124,7 +125,7 @@ where
         T: InteropSend,
     {
         let index = self.get_index(indices);
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let ptr = unsafe {
             #[allow(clippy::cast_possible_truncation)]
@@ -141,7 +142,7 @@ where
             unsafe { (*ptr.cast()) = value };
         }
 
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
     }
 
@@ -163,10 +164,10 @@ where
     /// ```
     #[must_use]
     pub fn len(&self) -> usize {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let len = unsafe { crate::binds::mono_array_length(self.get_ptr().cast()) };
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         len
     }
@@ -187,11 +188,11 @@ where
     /// |self| &Array | array to cast to object|
     #[must_use]
     pub fn to_object(&self) -> Object {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe { Object::from_ptr(self.get_ptr().cast()) }
             .expect("Could not create object from array!");
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         res
     }
@@ -215,7 +216,7 @@ where
     pub fn new(domain: &Domain, size: &Dim::Lengths) -> Self {
         #[allow(clippy::cast_possible_truncation)]
         let class = <T as InteropClass>::get_mono_class().get_array_class(Dim::DIMENSIONS as u32);
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let arr = unsafe {
             Self::from_ptr(
@@ -229,7 +230,7 @@ where
             )
         }
         .expect("could not create a new array!");
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         arr
     }
@@ -240,12 +241,12 @@ where
     /// |self|&Array|Array to clone|
     #[must_use]
     pub fn clone_managed_array(&self) -> Self {
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let res =
             unsafe { Self::from_ptr(crate::binds::mono_array_clone(self.get_ptr().cast()).cast()) }
-                .expect("coud not create copy of an array!");
-        #[cfg(feature = "referneced_objects")]
+                .expect("could not create copy of an array!");
+        #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
         res
     }
@@ -263,11 +264,11 @@ where
     /// |Name   |Type   |Description|
     /// |-------|-------|------|
     /// |self|&Array|Array to get size of|
-    pub fn get_lenghts(&self) -> Dim::Lengths {
+    pub fn get_lengths(&self) -> Dim::Lengths {
         self.lengths
     }
 }
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> InteropClass
+impl<Dim: DimensionTrait, T: InteropSend + InteropReceive + InteropClass> InteropClass
     for Array<Dim, T>
 where
     Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
@@ -278,7 +279,7 @@ where
         Self::get_class()
     }
 }
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> ObjectTrait
+impl<Dim: DimensionTrait, T: InteropSend + InteropReceive + InteropClass> ObjectTrait
     for Array<Dim, T>
 where
     Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
@@ -287,21 +288,21 @@ where
 {
     #[must_use]
     fn get_ptr(&self) -> *mut crate::binds::MonoObject {
-        #[cfg(not(feature = "referneced_objects"))]
+        #[cfg(not(feature = "referenced_objects"))]
         return self.arr_ptr.cast();
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         return self.handle.get_target();
     }
     #[must_use]
     unsafe fn from_ptr_unchecked(ptr: *mut MonoObject) -> Self {
         use crate::Method;
-        #[cfg(not(feature = "referneced_objects"))]
+        #[cfg(not(feature = "referenced_objects"))]
         let mut res = Self {
             arr_ptr: ptr.cast(),
             pd: PhantomData,
             lengths: Dim::zeroed(),
         };
-        #[cfg(feature = "referneced_objects")]
+        #[cfg(feature = "referenced_objects")]
         let mut res = Self {
             handle: GCHandle::create_default(ptr.cast()),
             pd: PhantomData,
@@ -343,7 +344,7 @@ where
         res
     }
 }
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass> Clone for Array<Dim, T>
+impl<Dim: DimensionTrait, T: InteropSend + InteropReceive + InteropClass> Clone for Array<Dim, T>
 where
     Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
     <Dim::Lengths as std::ops::Index<usize>>::Output: BorrowMut<usize>,
@@ -353,7 +354,7 @@ where
         unsafe { Self::from_ptr(self.get_ptr().cast()).unwrap() } //If object exists then it can't be null
     }
 }
-impl<Dim: DimensionTrait, T: InteropSend + InteropRecive + InteropClass, O: ObjectTrait>
+impl<Dim: DimensionTrait, T: InteropSend + InteropReceive + InteropClass, O: ObjectTrait>
     PartialEq<O> for Array<Dim, T>
 where
     Dim::Lengths: std::ops::IndexMut<usize> + BorrowMut<[usize]> + Copy,
@@ -366,7 +367,7 @@ where
 }
 use crate::dimensions::Dim1D;
 
-impl<T: InteropSend + InteropRecive + InteropClass + Clone> From<&[T]> for Array<Dim1D, T> {
+impl<T: InteropSend + InteropReceive + InteropClass + Clone> From<&[T]> for Array<Dim1D, T> {
     fn from(src: &[T]) -> Self {
         let size = src.len();
         let dom = Domain::get_current().expect("Can't create arrays before JIT starts!");

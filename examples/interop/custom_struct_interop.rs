@@ -9,8 +9,8 @@ namespace Vec3Namespace{
     }
 }
 */
-//this types layout does not differ on managed and unmanged side.
-#[derive(InteropSend,InteropRecive)]
+//this types layout does not differ on managed and unmanaged side.
+#[derive(InteropSend,InteropReceive)]
 struct Vec3{
     x:f32,
     y:f32,
@@ -58,21 +58,21 @@ struct SomeObjectClass{
     obj:Object,
 }
 
-//Reciving`SomeObjectClass` as a non-nullable!
-impl InteropRecive for SomeObjectClass{
+// Receiving `SomeObjectClass` as a non-nullable!
+impl InteropReceive for SomeObjectClass{
     type SourceType = *mut MonoObject;
     fn get_rust_rep(src:Self::SourceType)->Self{
         return unsafe{Object::from_ptr(src)}.expect("Got null on a non nullable type!");
     }
 }
-//Reciving `SomeObjectClass` as a nullable!
-impl InteropRecive for Option<SomeObjectClass>{
+// Receiving `SomeObjectClass` as a nullable!
+impl InteropReceive for Option<SomeObjectClass>{
     type SourceType = Option<Object>;
     fn get_rust_rep(src:Self::SourceType)->Self{
         return src;
     }
 }
-//Sending` SomeObjectClass` as a non-nullable!
+// Sending `SomeObjectClass` as a non-nullable!
 impl InteropSend for SomeObjectClass{
     type TargetType = *mut MonoObject;
     fn get_mono_rep(src:Self)->Self::TargetType{
@@ -80,9 +80,9 @@ impl InteropSend for SomeObjectClass{
     }
 }
 use core::ptr::null_mut;
-//Sending `SomeObjectClass` as a nullable!
+// Sending `SomeObjectClass` as a nullable!
 impl InteropSend for Option<SomeObjectClass>{
-    type Targetype = *mut MonoObject;
+    type TargetType = *mut MonoObject;
     fn get_mono_rep(src:Self)->Self::TargetType{
         match src{
             Some(src)=>return src.get_ptr(),
