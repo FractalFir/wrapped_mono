@@ -35,7 +35,7 @@ impl Domain {
     pub fn create() -> Self {
         unsafe { Self::from_ptr(mono_domain_create()) }
     }
-    /// Sets domain confing to one loaded from file *filename* in directory *`base_directory`*.
+    /// Sets domain config to one loaded from file *filename* in directory *`base_directory`*.
     pub fn set_config(&self, base_directory: &str, filename: &str) {
         let bd_cstr = CString::new(base_directory).expect(crate::STR2CSTR_ERR);
         let fnme_cstr = CString::new(filename).expect(crate::STR2CSTR_ERR);
@@ -60,7 +60,11 @@ impl Domain {
     pub fn set(&self, active: bool) {
         unsafe { crate::binds::mono_domain_set(self.ptr, i32::from(active)) };
     }
-    /// Attaches current thread (makes domain "aware" of this threads existence, allowing domain to eg. automatically stop it during garbage collection to prevent errors.) Should be done for all threads that will interact with this domain.  
+    /// Attaches current thread
+    /// This makes domain "aware" of this threads existence, allowing domain to e.g.
+    /// automatically stop it during garbage collection to prevent errors.
+    ///
+    /// Should be done for all threads that will interact with this domain.
     pub fn attach_thread(&self) {
         unsafe { crate::binds::mono_jit_thread_attach(self.ptr) };
     }

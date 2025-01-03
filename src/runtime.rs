@@ -4,7 +4,7 @@ use std::ffi::CString;
 #[allow(unused_imports)]
 use crate::jit;
 #[warn(unused_imports)]
-///Sets paths to directories containing manged assemblies and config files. If [`None`] passed for *`assembly_dir`*,
+///Sets paths to directories containing managed assemblies and config files. If [`None`] passed for *`assembly_dir`*,
 ///default system location for assemblies will be used. If [`None`] passed for *`config_dir`* default system configs will be used.
 pub fn set_dirs(assembly_dir: Option<&str>, config_dir: Option<&str>) {
     assembly_dir.map_or_else(

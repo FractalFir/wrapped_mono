@@ -9,7 +9,7 @@ use crate::Class;
 use crate::ObjectTrait;
 use std::ffi::CString;
 #[warn(unused_imports)]
-///Representaiton of [`Object`] of type **System.String**.
+/// Representation of [`Object`] of type **System.String**.
 pub struct MString {
     #[cfg(not(feature = "referenced_objects"))]
     s_ptr: *mut MonoString,
@@ -70,7 +70,7 @@ impl ToString for MString {
                 self.get_ptr().cast::<MonoString>(),
             ))
         };
-        let res = cstr.to_str().expect("Colud not create String!").to_owned();
+        let res = cstr.to_str().expect("Could not create String!").to_owned();
         unsafe { crate::binds::mono_free(cstr.into_raw().cast::<std::os::raw::c_void>()) };
         #[cfg(feature = "referenced_objects")]
         gc_unsafe_exit(marker);
@@ -93,7 +93,7 @@ impl ObjectTrait for MString {
     }
     /// Creates [`MString`] form pointer , or returns [`None`] if pointer equal to null.
     /// # Safety
-    /// *ptr* must be either a valid [`MonoString`] pointer or null. Pasing any other value will lead to undefined behaviour.
+    /// *ptr* must be either a valid [`MonoString`] pointer or null. Passing any other value will lead to undefined behaviour.
     unsafe fn from_ptr_unchecked(ptr: *mut MonoObject) -> Self {
         #[cfg(not(feature = "referenced_objects"))]
         {

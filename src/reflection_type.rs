@@ -31,7 +31,7 @@ impl ReflectionType {
     pub fn get_type_ptr(&self) -> *mut MonoType {
         unsafe { crate::binds::mono_reflection_type_get_type(self.get_ptr().cast()) }
     }
-    /// Creates an new instance from a pointer to unmanaged representation of `System.Type`
+    /// Creates a new instance from a pointer to unmanaged representation of `System.Type`
     /// # Safety
     /// The pointer must be either a pointer to valid *mut [`MonoType`] or null.
     pub unsafe fn from_type_ptr(type_ptr: *mut MonoType) -> Option<Self> {
@@ -39,7 +39,7 @@ impl ReflectionType {
             return None;
         }
         let dom = Domain::get_current()
-            .expect("Can't convert *MonoType to ReflecionType before JIT started.");
+            .expect("Can't convert *MonoType to ReflectionType before JIT started.");
         Some(
             unsafe {
                 Self::from_ptr(crate::binds::mono_type_get_object(dom.get_ptr(), type_ptr).cast())
@@ -72,7 +72,7 @@ impl InteropReceive for ReflectionType {
     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn get_rust_rep(rarg: Self::SourceType) -> Self {
-        unsafe { Self::from_ptr(rarg.cast()).expect("Recived null on a not nullable type") }
+        unsafe { Self::from_ptr(rarg.cast()).expect("Received null on a not nullable type") }
     }
 }*/
 impl InteropClass for ReflectionType {

@@ -9,7 +9,7 @@ namespace Vec3Namespace{
     }
 }
 */
-//this types layout does not differ on managed and unmanged side.
+//this types layout does not differ on managed and unmanaged side.
 #[derive(InteropSend,InteropReceive)]
 struct Vec3{
     x:f32,

@@ -5,9 +5,11 @@ use crate::tupleutilis::{CompareClasses, TupleToFFIPtrs};
 #[allow(unused_imports)] // for docs
 // use crate::delegate::Delegate;
 use crate::{class::Class, domain::Domain, method::Method};
-///Safe representation of a refernece to a manged Object. Is **not nullable** when passed between managed and unmanged code(e.g when added as an argument to function exposed as an interna call).
-///It means that while it may represent a nullable type, wrapped-mono will automaticly panic when recived null value.
-///For nullable support use `Option<Object>`.
+///Safe representation of a reference to a managed Object.
+/// Is **not nullable** when passed between managed and unmanaged code
+/// (e.g. when added as an argument to function exposed as an internal call).
+/// It means that while it may represent a nullable type, wrapped-mono will automatically panic if it receives a null value.
+/// For nullable support use `Option<Object>`.
 pub struct Object {
     #[cfg(not(feature = "referenced_objects"))]
     obj_ptr: *mut MonoObject,
@@ -15,7 +17,7 @@ pub struct Object {
     handle: GCHandle,
 }
 use crate::mstring::MString;
-///Trait contining functions common for all types of manged objects.
+///Trait containing functions common for all types of managed objects.
 pub trait ObjectTrait: Sized + InteropClass {
     fn cast<Target: ObjectTrait>(&self) -> Option<Target> {
         #[cfg(feature = "referenced_objects")]
@@ -54,8 +56,8 @@ pub trait ObjectTrait: Sized + InteropClass {
     /// # let domain = Domain::get_current().unwrap();
     /// let object = Object::new(&domain,&class);
     /// let object_copy = object.clone_managed_object();
-    /// assert!(object.hash() != object_copy.hash()); // Objects object and object_copy have exacly
-    /// // the same values of their fileds, but are diffrent instances, so their hash is diffrent.
+    /// assert_ne!(object.hash(), object_copy.hash()); // Objects object and object_copy have exactly
+    /// // the same values of their fields, but are different instances, so their hash is different.
     /// ```
     #[must_use]
     fn hash(&self) -> i32 {
@@ -73,7 +75,7 @@ pub trait ObjectTrait: Sized + InteropClass {
     /// # let class = Class::get_int_32();
     /// let domain = Domain::create(); //create Domain dom
     /// let object = Object::new(&domain,&class); //create object in Domain dom.
-    /// let obj_domain = object.get_domain(); //get doamin object is in
+    /// let obj_domain = object.get_domain(); //get domain object is in
     /// assert!(domain == obj_domain);
     ///```
     #[must_use]
@@ -98,9 +100,9 @@ pub trait ObjectTrait: Sized + InteropClass {
     /// # let some_obj = Object::new(&domain,&Class::get_void());
     /// # let other_obj = Object::box_val::<i32>(&domain,77);
     /// let size = some_obj.get_size();  //Get size of some_obj(in this case an instance of SomeClass)
-    /// assert!(size == std::mem::size_of::<MonoObject>() as u32); // 8 bytes on 32 bit systems, 16 on 64 bit ones (size of two pointers).
+    /// assert_eq!(size, std::mem::size_of::<MonoObject>() as u32); // 8 bytes on 32-bit systems, 16 on 64-bit ones (size of two pointers).
     /// let size_other = other_obj.get_size(); //Get size of other_obj(in this case an instance of OtherClass)
-    /// assert!(size_other == (std::mem::size_of::<MonoObject>() + std::mem::size_of::<i32>()) as u32); //size of two hidden pointers + some_int filed.
+    /// assert_eq!(size_other, (std::mem::size_of::<MonoObject>() + std::mem::size_of::<i32>()) as u32); //size of two hidden pointers + some_int filed.
     ///```
     #[must_use]
     fn get_size(&self) -> u32 {
@@ -130,7 +132,7 @@ pub trait ObjectTrait: Sized + InteropClass {
     /// # let class = Class::get_void();
     /// let object = Object::new(&domain,&class);
     /// let object_class = object.get_class();
-    /// assert!(class == object_class);
+    /// assert_eq!(class, object_class);
     /// ```
     #[must_use]
     fn get_class(&self) -> Class {
@@ -198,7 +200,8 @@ impl ObjectTrait for Object {
 }
 use crate::interop::InteropBox;
 impl Object {
-    ///Allocates new object of [`Class`] class. **Does not call the constructor**, to call constuctor call the `.ctor` method after creating the object.
+    ///Allocates new object of [`Class`] class.
+    /// **Does not call the constructor**, to call constructor call the `.ctor` method after creating the object.
     /// # Examples
     /// ```no_run
     /// # use wrapped_mono::*;
@@ -321,19 +324,19 @@ impl Object {
     /// # Explanation
     /// with given C# code
     ///```ignore
-    /// class ParrentClass{
-    ///     virtual void SomeMehod(){
+    /// class ParentClass{
+    ///     virtual void SomeMethod(){
     ///         //SomeFunction
     ///     }
     /// }
-    /// class ChildClass : ParrentClass{
-    ///     override void SomeMehod(){
+    /// class ChildClass : ParentClass{
+    ///     override void SomeMethod(){
     ///         ///SomeOtherFunction
     ///     }
     /// }
     ///```
-    /// When you call`get_vitual_method` on object that is instance of **`ChildClass`**
-    /// and method **`ParrentClass::SomeMethod`** you will get return value of **`ChildClass::SomeMethod`**.
+    /// When you call`get_virtual_method` on object that is instance of **`ChildClass`**
+    /// and method **`ParentClass::SomeMethod`** you will get return value of **`ChildClass::SomeMethod`**.
     #[must_use]
     pub fn get_virtual_method<T: TupleToFFIPtrs + CompareClasses + InteropSend>(
         obj: &Self,
@@ -353,7 +356,8 @@ impl Object {
     }
 }
 impl Object {
-    ///Clones the underlying [`MonoObject`] *not* the reference to this object. (e.g when called on a reference to a managed object A will create second object B, not another reference to object A).
+    /// Clones the underlying [`MonoObject`] *not* the reference to this object. (
+    /// e.g. when called on a reference to a managed object A will create second object B, not another reference to object A).
     #[must_use]
     pub fn clone_managed_object(&self) -> Self {
         //if clone fails, it means that there is a much bigger problem somewhere down the line, so it can be just ignored.

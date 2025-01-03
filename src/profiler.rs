@@ -15,7 +15,7 @@ struct _Profiler<T> {
     domain_unloading_cb: Option<fn(profiler: &mut Profiler<T>, dom: &mut Domain)>,
     domain_unloaded_cb: Option<fn(profiler: &mut Profiler<T>, dom: &mut Domain)>,
     domain_set_name_cb: Option<fn(profiler: &mut Profiler<T>, dom: &mut Domain, &str)>,
-    //TODO: fix jit_negin_cb: main method has either type Method<Object,iszie,isize,isize> or Method<String> signature.
+    //TODO: fix jit_begin_cb: main method has either type Method<Object,isize,isize,isize> or Method<String> signature.
     #[allow(clippy::type_complexity)]
     jit_begin_cb: Option<fn(profiler: &mut Profiler<T>, &Method<(String,)>)>,
     pub data: T,
@@ -37,7 +37,7 @@ impl ProfilerCallContext {
         let src: <T as InteropReceive>::SourceType = unsafe { *(ptr) };
         <T as InteropReceive>::get_rust_rep(src)
     }
-    ///Return local argument from current call contex at *index*. Index must be valid and type must match.
+    ///Return local argument from current call context at *index*. Index must be valid and type must match.
     pub fn get_local<T: InteropReceive>(&self, index: u32) -> T {
         let ptr = unsafe { crate::binds::mono_profiler_call_context_get_local(self.ptr, index) }
             as *const <T as InteropReceive>::SourceType;
@@ -92,7 +92,7 @@ impl<T> _Profiler<T> {
         }
     }
     pub fn add_rtime_init_cb(&mut self, cb: fn(profiler: &mut Profiler<T>)) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_runtime_initialized_callback(
                 self.handle,
@@ -106,23 +106,23 @@ impl<T> _Profiler<T> {
             self.rtime_init_cb = Some(cb);
         }
     }
-    //TODO: Check why cleanup callback colides with runtime_init callback and renable it.
+    //TODO: Check why cleanup callback collides with runtime_init callback and re-enable it.
     /*
     //################################################################
     //Cleanup
     unsafe extern "C" fn cleanup_callback(profiler:*mut _Profiler<T>){
         let this = &mut *(profiler);
-        println!("Clenup callback preparation!");
+        println!("Cleanup callback preparation!");
         match this.cleanup_cb{
             Some(cb)=>{
                 cb(&mut Profiler::<T>::from_ptr(profiler as *mut MonoProfiler));
             }
             None=>panic!("Invalid callback registration state. Callback registered for handler, yet handler has no callback function to call!"),
         }
-        println!("Clenup callback finished!");
+        println!("Cleanup callback finished!");
     }
     pub fn remove_cleanup_cb(&mut self){
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe{
             crate::binds::mono_profiler_set_cleanup_callback(self.handle,None);
             self.cleanup_cb = None;
@@ -138,7 +138,7 @@ impl<T> _Profiler<T> {
     }*/
     //##################################################
     //Runtime shutdown begin callback.
-    unsafe extern "C" fn runtime_shutown_begin_callback(profiler: *mut _Profiler<T>) {
+    unsafe extern "C" fn runtime_shutdown_begin_callback(profiler: *mut _Profiler<T>) {
         let this = &mut *(profiler);
         match this.rtime_shutdown_begin_cb{
             Some(cb)=>{
@@ -149,14 +149,14 @@ impl<T> _Profiler<T> {
         }
     }
     pub fn remove_runtime_shutdown_begin_cb(&mut self) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_runtime_shutdown_begin_callback(self.handle, None);
             self.rtime_shutdown_begin_cb = None;
         }
     }
     pub fn add_runtime_shutdown_begin_cb(&mut self, cb: fn(profiler: &mut Profiler<T>)) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_runtime_shutdown_begin_callback(
                 self.handle,
@@ -172,7 +172,7 @@ impl<T> _Profiler<T> {
     }
     //##################################################
     //Runtime shutdown end callback.
-    unsafe extern "C" fn runtime_shutown_end_callback(profiler: *mut _Profiler<T>) {
+    unsafe extern "C" fn runtime_shutdown_end_callback(profiler: *mut _Profiler<T>) {
         let this = &mut *(profiler);
         match this.rtime_shutdown_end_cb{
             Some(cb)=>{
@@ -183,14 +183,14 @@ impl<T> _Profiler<T> {
         }
     }
     pub fn remove_runtime_shutdown_end_cb(&mut self) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_runtime_shutdown_end_callback(self.handle, None);
             self.rtime_shutdown_end_cb = None;
         }
     }
     pub fn add_runtime_shutdown_end_cb(&mut self, cb: fn(profiler: &mut Profiler<T>)) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_runtime_shutdown_end_callback(
                 self.handle,
@@ -198,7 +198,7 @@ impl<T> _Profiler<T> {
                     unsafe extern "C" fn(*mut _Profiler<T>),
                     Option<unsafe extern "C" fn(*mut _MonoProfiler)>,
                 >(
-                    Self::runtime_shutown_end_callback as unsafe extern "C" fn(*mut _Profiler<T>)
+                    Self::runtime_shutdown_end_callback as unsafe extern "C" fn(*mut _Profiler<T>)
                 ),
             );
             self.rtime_shutdown_end_cb = Some(cb);
@@ -220,14 +220,14 @@ impl<T> _Profiler<T> {
         }
     }
     pub fn remove_context_loaded_cb(&mut self) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_context_loaded_callback(self.handle, None);
             self.context_loaded_cb = None;
         }
     }
     pub fn add_context_loaded_cb(&mut self, cb: fn(profiler: &mut Profiler<T>)) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_context_loaded_callback(
                 self.handle,
@@ -263,14 +263,14 @@ impl<T> _Profiler<T> {
         }
     }
     pub fn remove_context_unloaded_cb(&mut self) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_context_unloaded_callback(self.handle, None);
             self.context_unloaded_cb = None;
         }
     }
     pub fn add_context_unloaded_cb(&mut self, cb: fn(profiler: &mut Profiler<T>)) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_context_unloaded_callback(
                 self.handle,
@@ -307,14 +307,14 @@ impl<T> _Profiler<T> {
         }
     }
     pub fn remove_domain_loading_cb(&mut self) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_domain_loading_callback(self.handle, None);
             self.domain_loading_cb = None;
         }
     }
     pub fn add_domain_loading_cb(&mut self, cb: fn(profiler: &mut Profiler<T>, dom: &mut Domain)) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_domain_loading_callback(
                 self.handle,
@@ -346,14 +346,14 @@ impl<T> _Profiler<T> {
         }
     }
     pub fn remove_domain_loaded_cb(&mut self) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_domain_loaded_callback(self.handle, None);
             self.domain_loaded_cb = None;
         }
     }
     pub fn add_domain_loaded_cb(&mut self, cb: fn(profiler: &mut Profiler<T>, dom: &mut Domain)) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_domain_loaded_callback(
                 self.handle,
@@ -385,7 +385,7 @@ impl<T> _Profiler<T> {
         }
     }
     pub fn remove_domain_unloading_cb(&mut self) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_domain_unloading_callback(self.handle, None);
             self.domain_unloading_cb = None;
@@ -395,7 +395,7 @@ impl<T> _Profiler<T> {
         &mut self,
         cb: fn(profiler: &mut Profiler<T>, dom: &mut Domain),
     ) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_domain_unloading_callback(
                 self.handle,
@@ -427,14 +427,14 @@ impl<T> _Profiler<T> {
         }
     }
     pub fn remove_domain_unloaded_cb(&mut self) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_domain_unloaded_callback(self.handle, None);
             self.domain_unloaded_cb = None;
         }
     }
     pub fn add_domain_unloaded_cb(&mut self, cb: fn(profiler: &mut Profiler<T>, dom: &mut Domain)) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_domain_unloaded_callback(
                 self.handle,
@@ -471,7 +471,7 @@ impl<T> _Profiler<T> {
         let _ = cstr.into_raw();
     }
     pub fn remove_domain_name_cb(&mut self) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_domain_name_callback(self.handle, None);
             self.domain_set_name_cb = None;
@@ -481,7 +481,7 @@ impl<T> _Profiler<T> {
         &mut self,
         cb: fn(profiler: &mut Profiler<T>, dom: &mut Domain, name: &str),
     ) {
-        //Check if another callback has been registered and if so, renove it.
+        //Check if another callback has been registered and if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_domain_name_callback(
                 self.handle,
@@ -523,18 +523,18 @@ impl<T> _Profiler<T> {
                 let mut prof = Profiler::<T>::from_ptr(profiler as *mut MonoProfiler);
                 cb(&mut prof,&method);
             },
-            None=>panic!("Invalid callback registration state. Callback registered for hindler, yet hindler has no callback function to call!"),
+            None=>panic!("Invalid callback registration state. Callback registered for handler, yet handler has no callback function to call!"),
         }
     }
     pub fn remove_jit_begin_cb(&mut self) {
-        //Check if another callback has been registered ind if so, renove it.
+        //Check if another callback has been registered ind if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_jit_begin_callback(self.handle, None);
             self.jit_begin_cb = None;
         }
     }
     pub fn add_jit_begin_cb(&mut self, cb: fn(profiler: &mut Profiler<T>, &Method<(String,)>)) {
-        //Check if another callback has been registered ind if so, renove it.
+        //Check if another callback has been registered ind if so, remove it.
         unsafe {
             crate::binds::mono_profiler_set_jit_begin_callback(
                 self.handle,
@@ -550,7 +550,7 @@ impl<T> _Profiler<T> {
         }
     }
 }
-//impliment mono_profiler_set_coverage_filter_callback
+//implement mono_profiler_set_coverage_filter_callback
 /// A structure representing a profiler with custom user data. This structure will be passed when callbacks are called. No more than one callback per profiler can be registered.
 pub struct Profiler<T> {
     ptr: *mut _Profiler<T>,
@@ -569,7 +569,7 @@ impl<T> Profiler<T> {
     }
     /// Destroys the profiler.
     /// # Safety
-    /// makes all of copies of Profiler invalid
+    /// makes all of the copies of Profiler invalid
     pub fn destroy(self) {
         _Profiler::<T>::destroy(self.ptr);
     }
@@ -590,24 +590,24 @@ impl<T> Profiler<T> {
     pub fn remove_cleanup_callback(&mut self){
         unsafe{(*self.ptr).remove_rtime_init_cb()};
     }
-    /// Addscallback to be called when runtime is started.
+    /// Adds callback to be called when runtime is started.
     pub fn add_cleanup_callback(&mut self,cb: fn (profiler:&mut Profiler<T>)){
        unsafe{(*self.ptr).add_rtime_init_cb(cb)};
     }*/
     /// Removes callback added by [`fn@add_runtime_shutown_begin_callback()`]
-    pub fn remove_runtime_shutown_begin_callback(&mut self) {
+    pub fn remove_runtime_shutdown_begin_callback(&mut self) {
         unsafe { (*self.ptr).remove_runtime_shutdown_begin_cb() };
     }
     /// Adds callback to be called when runtime is started.
-    pub fn add_runtime_shutown_begin_callback(&mut self, cb: fn(profiler: &mut Profiler<T>)) {
+    pub fn add_runtime_shutdown_begin_callback(&mut self, cb: fn(profiler: &mut Profiler<T>)) {
         unsafe { (*self.ptr).add_runtime_shutdown_begin_cb(cb) };
     }
     /// Removes callback added by [`fn@add_runtime_shutown_end_callback()`]
-    pub fn remove_runtime_shutown_end_callback(&mut self) {
+    pub fn remove_runtime_shutdown_end_callback(&mut self) {
         unsafe { (*self.ptr).remove_runtime_shutdown_end_cb() };
     }
     /// Adds callback to be called when runtime is started.
-    pub fn add_runtime_shutown_end_callback(&mut self, cb: fn(profiler: &mut Profiler<T>)) {
+    pub fn add_runtime_shutdown_end_callback(&mut self, cb: fn(profiler: &mut Profiler<T>)) {
         unsafe { (*self.ptr).add_runtime_shutdown_end_cb(cb) };
     }
     /// Removes callback added by [`fn@add_context_loaded()`]

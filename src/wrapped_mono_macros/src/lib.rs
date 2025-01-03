@@ -223,7 +223,7 @@ pub fn derive_recive(input: TokenStream) -> TokenStream {
         //Check that enum is trivial and its values are set.
         let max_val = extract_enum_data(&inner).expect(ENUM_NOT_TRIVIAL);
         type_res.extend(TokenStream::from_str("u64").expect(TS_CR_FAIL));
-        fn_impl_res.extend(TokenStream::from_str(&format!("unsafe{{let ptr = &arg as *const u64; assert!(arg < {max_val},\"Error:Recived enum out of range!\");
+        fn_impl_res.extend(TokenStream::from_str(&format!("unsafe{{let ptr = &arg as *const u64; assert!(arg < {max_val},\"Error:Received enum out of range!\");
          const _: [(); 0 - !{{ const ASSERT: bool = (std::mem::size_of::<{input_name}>() <= std::mem::size_of::<u64>()); ASSERT }} as usize] = [];
          let res = *(ptr as *mut {input_name}); drop(arg); return res;}}")).expect(TS_CR_FAIL));
     } else {

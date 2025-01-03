@@ -316,7 +316,7 @@ impl Exception {
     }
     /// Returns [`Exception`] that is instance of **`System.InvalidCastException`**
     #[must_use]
-    pub fn invald_cast() -> Self {
+    pub fn invalid_cast() -> Self {
         #[cfg(feature = "referenced_objects")]
         let marker = gc_unsafe_enter();
         let res = unsafe {

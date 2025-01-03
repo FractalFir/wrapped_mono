@@ -19,14 +19,14 @@ pub enum MetadataTableKind {
     Method = crate::binds::MonoMetaTableEnum_MONO_TABLE_METHOD,
     ParamPointer = crate::binds::MonoMetaTableEnum_MONO_TABLE_PARAM_POINTER,
     Param = crate::binds::MonoMetaTableEnum_MONO_TABLE_PARAM,
-    InerfaceImpl = crate::binds::MonoMetaTableEnum_MONO_TABLE_INTERFACEIMPL,
+    InterfaceImpl = crate::binds::MonoMetaTableEnum_MONO_TABLE_INTERFACEIMPL,
     MemberRef = crate::binds::MonoMetaTableEnum_MONO_TABLE_MEMBERREF,
     Constant = crate::binds::MonoMetaTableEnum_MONO_TABLE_CONSTANT,
     CustomAttribute = crate::binds::MonoMetaTableEnum_MONO_TABLE_CUSTOMATTRIBUTE,
     FieldMarshal = crate::binds::MonoMetaTableEnum_MONO_TABLE_FIELDMARSHAL,
-    DeclSceurity = crate::binds::MonoMetaTableEnum_MONO_TABLE_DECLSECURITY,
+    DeclSecurity = crate::binds::MonoMetaTableEnum_MONO_TABLE_DECLSECURITY,
     ClassLayout = crate::binds::MonoMetaTableEnum_MONO_TABLE_CLASSLAYOUT,
-    FieldLatout = crate::binds::MonoMetaTableEnum_MONO_TABLE_FIELDLAYOUT,
+    FieldLayout = crate::binds::MonoMetaTableEnum_MONO_TABLE_FIELDLAYOUT,
     StandaloneSig = crate::binds::MonoMetaTableEnum_MONO_TABLE_STANDALONESIG,
     EventMap = crate::binds::MonoMetaTableEnum_MONO_TABLE_EVENTMAP,
     EventPointer = crate::binds::MonoMetaTableEnum_MONO_TABLE_EVENT_POINTER,
@@ -45,9 +45,9 @@ pub enum MetadataTableKind {
     Assembly = crate::binds::MonoMetaTableEnum_MONO_TABLE_ASSEMBLY,
     AssemblyProcessor = crate::binds::MonoMetaTableEnum_MONO_TABLE_ASSEMBLYPROCESSOR,
     AssemblyOS = crate::binds::MonoMetaTableEnum_MONO_TABLE_ASSEMBLYOS,
-    AssmeblyRef = crate::binds::MonoMetaTableEnum_MONO_TABLE_ASSEMBLYREF,
-    AssmeblyRefProcessor = crate::binds::MonoMetaTableEnum_MONO_TABLE_ASSEMBLYREFPROCESSOR,
-    AssmeblyRefOS = crate::binds::MonoMetaTableEnum_MONO_TABLE_ASSEMBLYREFOS,
+    AssemblyRef = crate::binds::MonoMetaTableEnum_MONO_TABLE_ASSEMBLYREF,
+    AssemblyRefProcessor = crate::binds::MonoMetaTableEnum_MONO_TABLE_ASSEMBLYREFPROCESSOR,
+    AssemblyRefOS = crate::binds::MonoMetaTableEnum_MONO_TABLE_ASSEMBLYREFOS,
     File = crate::binds::MonoMetaTableEnum_MONO_TABLE_FILE,
     ExportedType = crate::binds::MonoMetaTableEnum_MONO_TABLE_EXPORTEDTYPE,
     ManifestResource = crate::binds::MonoMetaTableEnum_MONO_TABLE_MANIFESTRESOURCE,
@@ -100,7 +100,7 @@ pub struct AssemblyMetadata {
 impl AssemblyMetadata {
     #[must_use]
     fn from_meta_table(table: &MetadataTableInfo, img: Image) -> Self {
-        assert!(table.kind == MetadataTableKind::Assembly);
+        assert_eq!(table.kind, MetadataTableKind::Assembly);
         Self {
             hash_alg: HashAlgorithm::from_u32(table.decode_row_col(0, 0)),
             major_version: table.decode_row_col(0, 1),
@@ -142,9 +142,9 @@ impl AssemblyFlags {
     pub fn is_set_WindowsRuntime(&self) -> bool {
         (self.flags & 512) != 0
     }
-    ///Checks is `Retargtable` flag is set.
+    ///Checks is `Retargetable` flag is set.
     #[must_use]
-    pub fn is_set_Retargtable(&self) -> bool {
+    pub fn is_set_Retargetable(&self) -> bool {
         (self.flags & 256) != 0
     }
     ///Checks if `PublicKey` flag is set.
@@ -176,7 +176,7 @@ impl std::fmt::Display for AssemblyFlags {
             "AssemblyFlags{{WindowsRuntime:{}, ",
             self.is_set_WindowsRuntime()
         )?;
-        write!(f, "Retargtable:{}, ", self.is_set_Retargtable())?;
+        write!(f, "Retargetable:{}, ", self.is_set_Retargetable())?;
         write!(f, "PublicKey:{}, ", self.is_set_PublicKey())?;
         write!(
             f,
@@ -249,14 +249,14 @@ pub struct AssemblyOSMetadata {
 impl AssemblyOSMetadata {
     #[must_use]
     fn from_meta_table(table: &MetadataTableInfo, img: Image) -> Self {
-        assert!(table.kind == MetadataTableKind::AssemblyOS);
+        assert_eq!(table.kind, MetadataTableKind::AssemblyOS);
         Self {
             platform: img.metadata_string_heap(table.decode_row_col(0, 0)),
             major_version: table.decode_row_col(0, 1),
             minor_version: table.decode_row_col(0, 2),
         }
     }
-    ///Gets [`AssemblyMetadata`]
+    /// Gets [`AssemblyMetadata`]
     #[must_use]
     pub fn from_image(img: Image) -> Option<Self> {
         let table = img.get_table_info(MetadataTableKind::AssemblyOS);
@@ -428,7 +428,7 @@ pub struct Signature {
 }
 #[derive(Debug)]
 enum SignatureDecodeError {
-    UnsuportedGeneric,
+    UnsupportedGeneric,
     InvalidTypedef,
 }
 impl Signature {
@@ -445,12 +445,12 @@ impl Signature {
         let flags = SignatureFlags::new(signature[0]);
         signature = &signature[1..];
         if flags.callconv_type() == CallingConventionType::Generic {
-            //TODO:support generic paramters
+            //TODO:support generic parameters
             /*
             let _generics =
                 i32::from_le_bytes(signature[0..std::mem::size_of::<i32>()].try_into().unwrap());
             signature = &signature[std::mem::size_of::<i32>()..];*/
-            return Err(SignatureDecodeError::UnsuportedGeneric);
+            return Err(SignatureDecodeError::UnsupportedGeneric);
         }
 
         let param_count = blob_decode_u32(&mut signature);
@@ -687,7 +687,7 @@ impl TypeDefinitionTable {
             } else {
                 methods.methods().len()
             };
-            //BUGFIX: should never normaly happen.
+            //BUGFIX: should never normally happen.
             if method_list > method_list_end || method_list_end > methods.methods().len() {
                 continue;
             }
