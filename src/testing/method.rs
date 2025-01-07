@@ -330,7 +330,7 @@ rusty_fork_test! {
     }
 }
 use crate::InteropBox;
-use crate::{InteropClass, InteropRecive, InteropSend};
+use crate::{InteropClass, InteropReceive, InteropSend};
 #[derive(Copy, Clone, PartialEq)]
 #[repr(u64)]
 #[allow(dead_code)]
@@ -340,7 +340,7 @@ enum CLikeEnum {
     Val3 = 612,
 }
 unsafe impl InteropSend for CLikeEnum {}
-impl InteropRecive for CLikeEnum {
+impl InteropReceive for CLikeEnum {
     type SourceType = Self;
 
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {

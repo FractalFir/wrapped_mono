@@ -1,15 +1,24 @@
 ﻿# wrapped_mono
-`wrapped_mono` is a safe, lightweight wrapper around the mono library. It allows embedding of the mono runtime inside a rust project. Inside this embedded runtime code written in languages supporting the .NET framework, such as C# and F#, can be run. This allows usage of libraries written in those languages, and using them as a scripting language. The mono runtime is used by many game engines, and this wrapper allows using it with projects written in Rust too.
+`wrapped_mono` is a safe, lightweight wrapper around the mono library.
+It allows embedding of the mono runtime inside a rust project.
+Inside this embedded runtime code written in languages supporting the .NET framework, such as C# and F#, can be run.
+This allows usage of libraries written in those languages, and using them as a scripting language.
+The mono runtime is used by many game engines, and this wrapper allows using it with projects written in Rust too.
+
 # WIP
 ## Lacking APIs
-While `wrapped_mono` already has support for most of the features of the mono runtime, some minor APIs don't have finished and fully tested wrappers. Those unfinished APIs are usually niche(eg. advanced debugging, access to pro filer(data about performance), access to assembly Metadata, dynamic code generation) and always have an alternative unsafe bindings that can be used.
+While `wrapped_mono` already has support for most of the features of the mono runtime, some minor APIs don't have finished and fully tested wrappers. Those unfinished APIs are usually niche (eg. advanced debugging, access to profiler (data about performance), access to assembly Metadata, dynamic code generation) and always have an alternative unsafe bindings that can be used.
+
 ## Safety checks
-This API tries to follow rusts rules about safety and error handling as much as possible, but some checks are unfinished and can't catch all potential problems, or are not done, since they would introduce a serious performance hit, while only covering a niche case that is clearly marked in documentation. A good example of this kind of case is accessing an object after deleting the domain it is in or shutting down the runtime. Most of possible errors are checked for, and those checks can be disabled to speed up `wrapped_mono` even more, but this is not advised. Cost of those checks is usually negligible(less than 1% of the cost of calling a function), and they prevent a lot of potential mistakes. 
+This API tries to follow Rust's rules about safety and error handling as much as possible, but some checks are unfinished and can't catch all potential problems, or are not done, since they would introduce a serious performance hit, while only covering a niche case that is clearly marked in documentation. A good example of this kind of case is accessing an object after deleting the domain it is in or shutting down the runtime. Most of possible errors are checked for, and those checks can be disabled to speed up `wrapped_mono` even more, but this is not advised.
+The cost of these checks is usually negligible (less than 1% of the cost of calling a function), and they prevent a lot of potential mistakes.
+
 # Supported platforms
-`wrapped_mono` supports Linux(tested on Fedora 37, Debian Bullseye and Arch), and Windows(tested on Windows 10). Other platforms, such as MacOS are not officially supported, but can be easily added by changing the `build.rs` to include platform-specific link flags.
+`wrapped_mono` supports Linux (tested on Fedora 37, Debian Bullseye and Arch), and Windows (tested on Windows 10).
+Other platforms, such as MacOS are not officially supported, but can be easily added by changing the `build.rs` to include platform-specific link flags.
 # Dependencies
 ## External
-* Mono library - the library this crate wraps around. Can be downloaded <a href="https://www.mono-project.com/download/stable/">here</a>. When installing, use default instructions from the website. Only needed on the system crate is compiled on (linked statically).
+* Mono library - the library this crate wraps around. Can be downloaded <a href="https://www.mono-project.com/download/stable/">here</a>. When installing, use default instructions from the website. Only needed on the system the crate is compiled on (linked statically).
 ## Rust 
 * `wrapped_mono_macros` - sub crate containing custom macros used by wrapped_mono. Separate, because proc\_macro's must be separate crates. 
 * `document-features` - used for documentation 
@@ -28,7 +37,7 @@ This API tries to follow rusts rules about safety and error handling as much as 
 - [X] Raise and catch exceptions
 - [X] Create n-dimensional Arrays, read and set their elements at any indices.
 - [X] Pass basic types(integers, chars, floating-point numbers, pointers, arrays, strings, exceptions,objects,types,delegates) between managed and unmanaged code
-- [X] Invoke deleagtes
+- [X] Invoke delegates
 - [X] Implement simple traits to pass any type between rust and C#/F# code!
 - [X] Automatically implement interop helper traits for any structs made from other types implementing the helper traits.
 - [X] Pass back and forth simple rust enums.
@@ -48,7 +57,7 @@ This API tries to follow rusts rules about safety and error handling as much as 
 ```rust
 use wrapped_mono::*;
 fn main(){
-    // Initialise the runtime with default version(`None`), and root domian named "main_domain"
+    // Initialise the runtime with default version(`None`), and root domain named "main_domain"
     let domain = jit::init("main_domain",None);
 
     // Load assembly "SomeAssembly.dll"
@@ -82,7 +91,7 @@ fn main(){
     }
     // Replace a method with "[MethodImplAttribute(MethodImplOptions.InternalCall)]" atribute with a rust function
     add_internal_call!("SomeClass::SqrtInternalCall",sqrt);
-    // This supports all types with `InteropRecive` trait
+    // This supports all types with `InteropReceive` trait
     #[invokable]
     fn avg(input:Array<Dim1D,f32>)->f32{
         let mut avg = 0.0;

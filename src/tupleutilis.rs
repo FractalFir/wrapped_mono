@@ -1,6 +1,6 @@
 #![allow(clippy::many_single_char_names)]
 use core::ffi::c_void;
-//for argument procesing
+//for argument processing
 type VoidPtr = *mut c_void;
 //Conversion of a tuple to pointers
 pub trait TupleToFFIPtrs {
@@ -405,37 +405,37 @@ impl<
 }
 use crate::{Class, InteropClass, InteropSend};
 pub trait CompareClasses {
-    fn compare(clases: &[Class]) -> bool;
+    fn compare(classes: &[Class]) -> bool;
 }
 impl CompareClasses for () {
-    fn compare(clases: &[Class]) -> bool {
-        clases.is_empty()
+    fn compare(classes: &[Class]) -> bool {
+        classes.is_empty()
     }
 }
 impl<A: InteropClass> CompareClasses for (A,) {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 1) && (A::get_mono_class().is_assignable_from(&clases[0]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 1) && (A::get_mono_class().is_assignable_from(&classes[0]))
     }
 }
 impl<A: InteropClass, B: InteropClass> CompareClasses for (A, B)
 where
     (A, B): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 2)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 2)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
     }
 }
 impl<A: InteropClass, B: InteropClass, C: InteropClass> CompareClasses for (A, B, C)
 where
     (A, B, C): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 3)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 3)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
     }
 }
 impl<A: InteropClass, B: InteropClass, C: InteropClass, D: InteropClass> CompareClasses
@@ -443,12 +443,12 @@ impl<A: InteropClass, B: InteropClass, C: InteropClass, D: InteropClass> Compare
 where
     (A, B, C, D): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 4)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
-            && (D::get_mono_class().is_assignable_from(&clases[3]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 4)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
+            && (D::get_mono_class().is_assignable_from(&classes[3]))
     }
 }
 impl<A: InteropClass, B: InteropClass, C: InteropClass, D: InteropClass, E: InteropClass>
@@ -456,13 +456,13 @@ impl<A: InteropClass, B: InteropClass, C: InteropClass, D: InteropClass, E: Inte
 where
     (A, B, C, D, E): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 5)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
-            && (D::get_mono_class().is_assignable_from(&clases[3]))
-            && (E::get_mono_class().is_assignable_from(&clases[4]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 5)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
+            && (D::get_mono_class().is_assignable_from(&classes[3]))
+            && (E::get_mono_class().is_assignable_from(&classes[4]))
     }
 }
 impl<
@@ -476,14 +476,14 @@ impl<
 where
     (A, B, C, D, E, F): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 6)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
-            && (D::get_mono_class().is_assignable_from(&clases[3]))
-            && (E::get_mono_class().is_assignable_from(&clases[4]))
-            && (F::get_mono_class().is_assignable_from(&clases[5]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 6)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
+            && (D::get_mono_class().is_assignable_from(&classes[3]))
+            && (E::get_mono_class().is_assignable_from(&classes[4]))
+            && (F::get_mono_class().is_assignable_from(&classes[5]))
     }
 }
 impl<
@@ -498,15 +498,15 @@ impl<
 where
     (A, B, C, D, E, F, G): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 7)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
-            && (D::get_mono_class().is_assignable_from(&clases[3]))
-            && (E::get_mono_class().is_assignable_from(&clases[4]))
-            && (F::get_mono_class().is_assignable_from(&clases[5]))
-            && (G::get_mono_class().is_assignable_from(&clases[6]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 7)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
+            && (D::get_mono_class().is_assignable_from(&classes[3]))
+            && (E::get_mono_class().is_assignable_from(&classes[4]))
+            && (F::get_mono_class().is_assignable_from(&classes[5]))
+            && (G::get_mono_class().is_assignable_from(&classes[6]))
     }
 }
 impl<
@@ -522,16 +522,16 @@ impl<
 where
     (A, B, C, D, E, F, G, H): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 8)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
-            && (D::get_mono_class().is_assignable_from(&clases[3]))
-            && (E::get_mono_class().is_assignable_from(&clases[4]))
-            && (F::get_mono_class().is_assignable_from(&clases[5]))
-            && (G::get_mono_class().is_assignable_from(&clases[6]))
-            && (H::get_mono_class().is_assignable_from(&clases[7]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 8)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
+            && (D::get_mono_class().is_assignable_from(&classes[3]))
+            && (E::get_mono_class().is_assignable_from(&classes[4]))
+            && (F::get_mono_class().is_assignable_from(&classes[5]))
+            && (G::get_mono_class().is_assignable_from(&classes[6]))
+            && (H::get_mono_class().is_assignable_from(&classes[7]))
     }
 }
 impl<
@@ -548,17 +548,17 @@ impl<
 where
     (A, B, C, D, E, F, G, H, I): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 9)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
-            && (D::get_mono_class().is_assignable_from(&clases[3]))
-            && (E::get_mono_class().is_assignable_from(&clases[4]))
-            && (F::get_mono_class().is_assignable_from(&clases[5]))
-            && (G::get_mono_class().is_assignable_from(&clases[6]))
-            && (H::get_mono_class().is_assignable_from(&clases[7]))
-            && (I::get_mono_class().is_assignable_from(&clases[8]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 9)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
+            && (D::get_mono_class().is_assignable_from(&classes[3]))
+            && (E::get_mono_class().is_assignable_from(&classes[4]))
+            && (F::get_mono_class().is_assignable_from(&classes[5]))
+            && (G::get_mono_class().is_assignable_from(&classes[6]))
+            && (H::get_mono_class().is_assignable_from(&classes[7]))
+            && (I::get_mono_class().is_assignable_from(&classes[8]))
     }
 }
 impl<
@@ -576,18 +576,18 @@ impl<
 where
     (A, B, C, D, E, F, G, H, I, J): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 10)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
-            && (D::get_mono_class().is_assignable_from(&clases[3]))
-            && (E::get_mono_class().is_assignable_from(&clases[4]))
-            && (F::get_mono_class().is_assignable_from(&clases[5]))
-            && (G::get_mono_class().is_assignable_from(&clases[6]))
-            && (H::get_mono_class().is_assignable_from(&clases[7]))
-            && (I::get_mono_class().is_assignable_from(&clases[8]))
-            && (J::get_mono_class().is_assignable_from(&clases[9]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 10)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
+            && (D::get_mono_class().is_assignable_from(&classes[3]))
+            && (E::get_mono_class().is_assignable_from(&classes[4]))
+            && (F::get_mono_class().is_assignable_from(&classes[5]))
+            && (G::get_mono_class().is_assignable_from(&classes[6]))
+            && (H::get_mono_class().is_assignable_from(&classes[7]))
+            && (I::get_mono_class().is_assignable_from(&classes[8]))
+            && (J::get_mono_class().is_assignable_from(&classes[9]))
     }
 }
 impl<
@@ -606,19 +606,19 @@ impl<
 where
     (A, B, C, D, E, F, G, H, I, J, K): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 11)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
-            && (D::get_mono_class().is_assignable_from(&clases[3]))
-            && (E::get_mono_class().is_assignable_from(&clases[4]))
-            && (F::get_mono_class().is_assignable_from(&clases[5]))
-            && (G::get_mono_class().is_assignable_from(&clases[6]))
-            && (H::get_mono_class().is_assignable_from(&clases[7]))
-            && (I::get_mono_class().is_assignable_from(&clases[8]))
-            && (J::get_mono_class().is_assignable_from(&clases[9]))
-            && (K::get_mono_class().is_assignable_from(&clases[10]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 11)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
+            && (D::get_mono_class().is_assignable_from(&classes[3]))
+            && (E::get_mono_class().is_assignable_from(&classes[4]))
+            && (F::get_mono_class().is_assignable_from(&classes[5]))
+            && (G::get_mono_class().is_assignable_from(&classes[6]))
+            && (H::get_mono_class().is_assignable_from(&classes[7]))
+            && (I::get_mono_class().is_assignable_from(&classes[8]))
+            && (J::get_mono_class().is_assignable_from(&classes[9]))
+            && (K::get_mono_class().is_assignable_from(&classes[10]))
     }
 }
 impl<
@@ -638,20 +638,20 @@ impl<
 where
     (A, B, C, D, E, F, G, H, I, J, K, L): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 12)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
-            && (D::get_mono_class().is_assignable_from(&clases[3]))
-            && (E::get_mono_class().is_assignable_from(&clases[4]))
-            && (F::get_mono_class().is_assignable_from(&clases[5]))
-            && (G::get_mono_class().is_assignable_from(&clases[6]))
-            && (H::get_mono_class().is_assignable_from(&clases[7]))
-            && (I::get_mono_class().is_assignable_from(&clases[8]))
-            && (J::get_mono_class().is_assignable_from(&clases[9]))
-            && (K::get_mono_class().is_assignable_from(&clases[10]))
-            && (L::get_mono_class().is_assignable_from(&clases[11]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 12)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
+            && (D::get_mono_class().is_assignable_from(&classes[3]))
+            && (E::get_mono_class().is_assignable_from(&classes[4]))
+            && (F::get_mono_class().is_assignable_from(&classes[5]))
+            && (G::get_mono_class().is_assignable_from(&classes[6]))
+            && (H::get_mono_class().is_assignable_from(&classes[7]))
+            && (I::get_mono_class().is_assignable_from(&classes[8]))
+            && (J::get_mono_class().is_assignable_from(&classes[9]))
+            && (K::get_mono_class().is_assignable_from(&classes[10]))
+            && (L::get_mono_class().is_assignable_from(&classes[11]))
     }
 }
 impl<
@@ -672,21 +672,21 @@ impl<
 where
     (A, B, C, D, E, F, G, H, I, J, K, L, M): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 13)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
-            && (D::get_mono_class().is_assignable_from(&clases[3]))
-            && (E::get_mono_class().is_assignable_from(&clases[4]))
-            && (F::get_mono_class().is_assignable_from(&clases[5]))
-            && (G::get_mono_class().is_assignable_from(&clases[6]))
-            && (H::get_mono_class().is_assignable_from(&clases[7]))
-            && (I::get_mono_class().is_assignable_from(&clases[8]))
-            && (J::get_mono_class().is_assignable_from(&clases[9]))
-            && (K::get_mono_class().is_assignable_from(&clases[10]))
-            && (L::get_mono_class().is_assignable_from(&clases[11]))
-            && (M::get_mono_class().is_assignable_from(&clases[12]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 13)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
+            && (D::get_mono_class().is_assignable_from(&classes[3]))
+            && (E::get_mono_class().is_assignable_from(&classes[4]))
+            && (F::get_mono_class().is_assignable_from(&classes[5]))
+            && (G::get_mono_class().is_assignable_from(&classes[6]))
+            && (H::get_mono_class().is_assignable_from(&classes[7]))
+            && (I::get_mono_class().is_assignable_from(&classes[8]))
+            && (J::get_mono_class().is_assignable_from(&classes[9]))
+            && (K::get_mono_class().is_assignable_from(&classes[10]))
+            && (L::get_mono_class().is_assignable_from(&classes[11]))
+            && (M::get_mono_class().is_assignable_from(&classes[12]))
     }
 }
 impl<
@@ -708,22 +708,22 @@ impl<
 where
     (A, B, C, D, E, F, G, H, I, J, K, L, M, N): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 14)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
-            && (D::get_mono_class().is_assignable_from(&clases[3]))
-            && (E::get_mono_class().is_assignable_from(&clases[4]))
-            && (F::get_mono_class().is_assignable_from(&clases[5]))
-            && (G::get_mono_class().is_assignable_from(&clases[6]))
-            && (H::get_mono_class().is_assignable_from(&clases[7]))
-            && (I::get_mono_class().is_assignable_from(&clases[8]))
-            && (J::get_mono_class().is_assignable_from(&clases[9]))
-            && (K::get_mono_class().is_assignable_from(&clases[10]))
-            && (L::get_mono_class().is_assignable_from(&clases[11]))
-            && (M::get_mono_class().is_assignable_from(&clases[12]))
-            && (N::get_mono_class().is_assignable_from(&clases[13]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 14)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
+            && (D::get_mono_class().is_assignable_from(&classes[3]))
+            && (E::get_mono_class().is_assignable_from(&classes[4]))
+            && (F::get_mono_class().is_assignable_from(&classes[5]))
+            && (G::get_mono_class().is_assignable_from(&classes[6]))
+            && (H::get_mono_class().is_assignable_from(&classes[7]))
+            && (I::get_mono_class().is_assignable_from(&classes[8]))
+            && (J::get_mono_class().is_assignable_from(&classes[9]))
+            && (K::get_mono_class().is_assignable_from(&classes[10]))
+            && (L::get_mono_class().is_assignable_from(&classes[11]))
+            && (M::get_mono_class().is_assignable_from(&classes[12]))
+            && (N::get_mono_class().is_assignable_from(&classes[13]))
     }
 }
 impl<
@@ -746,23 +746,23 @@ impl<
 where
     (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 15)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
-            && (D::get_mono_class().is_assignable_from(&clases[3]))
-            && (E::get_mono_class().is_assignable_from(&clases[4]))
-            && (F::get_mono_class().is_assignable_from(&clases[5]))
-            && (G::get_mono_class().is_assignable_from(&clases[6]))
-            && (H::get_mono_class().is_assignable_from(&clases[7]))
-            && (I::get_mono_class().is_assignable_from(&clases[8]))
-            && (J::get_mono_class().is_assignable_from(&clases[9]))
-            && (K::get_mono_class().is_assignable_from(&clases[10]))
-            && (L::get_mono_class().is_assignable_from(&clases[11]))
-            && (M::get_mono_class().is_assignable_from(&clases[12]))
-            && (N::get_mono_class().is_assignable_from(&clases[13]))
-            && (O::get_mono_class().is_assignable_from(&clases[14]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 15)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
+            && (D::get_mono_class().is_assignable_from(&classes[3]))
+            && (E::get_mono_class().is_assignable_from(&classes[4]))
+            && (F::get_mono_class().is_assignable_from(&classes[5]))
+            && (G::get_mono_class().is_assignable_from(&classes[6]))
+            && (H::get_mono_class().is_assignable_from(&classes[7]))
+            && (I::get_mono_class().is_assignable_from(&classes[8]))
+            && (J::get_mono_class().is_assignable_from(&classes[9]))
+            && (K::get_mono_class().is_assignable_from(&classes[10]))
+            && (L::get_mono_class().is_assignable_from(&classes[11]))
+            && (M::get_mono_class().is_assignable_from(&classes[12]))
+            && (N::get_mono_class().is_assignable_from(&classes[13]))
+            && (O::get_mono_class().is_assignable_from(&classes[14]))
     }
 }
 impl<
@@ -786,24 +786,24 @@ impl<
 where
     (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P): TupleToFFIPtrs,
 {
-    fn compare(clases: &[Class]) -> bool {
-        (clases.len() == 16)
-            && (A::get_mono_class().is_assignable_from(&clases[0]))
-            && (B::get_mono_class().is_assignable_from(&clases[1]))
-            && (C::get_mono_class().is_assignable_from(&clases[2]))
-            && (D::get_mono_class().is_assignable_from(&clases[3]))
-            && (E::get_mono_class().is_assignable_from(&clases[4]))
-            && (F::get_mono_class().is_assignable_from(&clases[5]))
-            && (G::get_mono_class().is_assignable_from(&clases[6]))
-            && (H::get_mono_class().is_assignable_from(&clases[7]))
-            && (I::get_mono_class().is_assignable_from(&clases[8]))
-            && (J::get_mono_class().is_assignable_from(&clases[9]))
-            && (K::get_mono_class().is_assignable_from(&clases[10]))
-            && (L::get_mono_class().is_assignable_from(&clases[11]))
-            && (M::get_mono_class().is_assignable_from(&clases[12]))
-            && (N::get_mono_class().is_assignable_from(&clases[13]))
-            && (O::get_mono_class().is_assignable_from(&clases[14]))
-            && (P::get_mono_class().is_assignable_from(&clases[15]))
+    fn compare(classes: &[Class]) -> bool {
+        (classes.len() == 16)
+            && (A::get_mono_class().is_assignable_from(&classes[0]))
+            && (B::get_mono_class().is_assignable_from(&classes[1]))
+            && (C::get_mono_class().is_assignable_from(&classes[2]))
+            && (D::get_mono_class().is_assignable_from(&classes[3]))
+            && (E::get_mono_class().is_assignable_from(&classes[4]))
+            && (F::get_mono_class().is_assignable_from(&classes[5]))
+            && (G::get_mono_class().is_assignable_from(&classes[6]))
+            && (H::get_mono_class().is_assignable_from(&classes[7]))
+            && (I::get_mono_class().is_assignable_from(&classes[8]))
+            && (J::get_mono_class().is_assignable_from(&classes[9]))
+            && (K::get_mono_class().is_assignable_from(&classes[10]))
+            && (L::get_mono_class().is_assignable_from(&classes[11]))
+            && (M::get_mono_class().is_assignable_from(&classes[12]))
+            && (N::get_mono_class().is_assignable_from(&classes[13]))
+            && (O::get_mono_class().is_assignable_from(&classes[14]))
+            && (P::get_mono_class().is_assignable_from(&classes[15]))
     }
 }
 //use lazy_static::*;

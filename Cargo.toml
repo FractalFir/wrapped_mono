@@ -24,7 +24,7 @@ bencher = "0.1.5"
 [workspace]
 members = ["src/wrapped_mono_macros"]
 [features]
-default = ["referneced_objects"]
+default = ["referenced_objects"]
 ## Disables boxing/unboxing safety checks. Normally, when an object is unboxed, it's type is checked to prevent crashes and errors. Enabling unsafe_unboxing will make wrapped_mono assume that type given by the user is always correct.
 unsafe_boxing = []
 ## Disables array safety checks. Normally, when an array is created, it will make checks to ensure that its managed type matches its unmanaged type.
@@ -38,7 +38,7 @@ regen_binds = ["bindgen"]
 ## Dumps code created as results of macros into "macro.dump" file. Use for debugging when macros do not behave as expected.
 dump_macro_results = ["wrapped_mono_macros/dump_macro_results"]
 ## Prevents objects in use by rust from being removed by mono runtime, adds slight overhead but is essential for storing objects long term. Can be disabled, but disabling it forces manual management of object lifetimes using GC handles.
-referneced_objects = []
+referenced_objects = []
 ## Uses some old variants of mono API. Try if `mono_threads_enter_gc_unsafe_region` symbol is missing during linking.
 old_gc_unsafe = []
 

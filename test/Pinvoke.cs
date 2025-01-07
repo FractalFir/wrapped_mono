@@ -23,11 +23,11 @@ class Test{
         PassDataArray(new int[]{0,1,2,3,4,5});
         int STRes = SendTestString(tmp);
         if(STRes!= 5){
-            throw new System.Exception($"Recived wrong value!:{STRes}");
+            throw new System.Exception($"Received wrong value!:{STRes}");
         }
         object obj = GetObject();
         if(obj != null){
-            throw new System.Exception($"Recived something else than null {obj}!");
+            throw new System.Exception($"Received something else than null {obj}!");
         }
         System.Environment.Exit(0);
     }

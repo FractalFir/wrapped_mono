@@ -3,25 +3,25 @@ use std::os::raw::c_void;
 use crate::object::ObjectTrait;
 /// Trait specifying how to convert a type when transferring it between managed and unmanaged code. It specifies how to convert
 /// `SourceType` used by `MonoRuntime` to type implementing this trait.
-pub trait InteropRecive {
-    ///Souce type used by `MonoRuntime` when calling functions exposed by `add_internal_call`, or getting a value back from a method, that can be converted to a rust type.
+pub trait InteropReceive {
+    ///Source type used by `MonoRuntime` when calling functions exposed by `add_internal_call`, or getting a value back from a method, that can be converted to a rust type.
     type SourceType: Copy;
-    ///Function converting [`Self::SourceType`] to type implementing [`InteropRecive`] trait.
+    ///Function converting [`Self::SourceType`] to type implementing [`InteropReceive`] trait.
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self;
 }
 /// Trait specifying how to convert a type when transferring it between managed and unmanaged code. It specifies how to convert type implementing this trait
 /// to `TargetType` used by `MonoRuntime`.
 /// # Safety
-/// This type has the appopieate layout on the mono side.
+/// This type has the appropriate layout on the mono side.
 pub unsafe trait InteropSend: Sized {
-    ///Function converting type implementing [`InteropRecive`] trait to type that should be returned to `MonoRuntime`.
+    ///Function converting type implementing [`InteropReceive`] trait to type that should be returned to `MonoRuntime`.
     fn get_ffi_ptr(&mut self) -> *mut c_void {
         std::ptr::addr_of_mut!(*self) as *mut c_void
     }
     fn is_class_type() -> bool {
         false
     }
-    /// Internal function used for returing values from Rust callbacks to  Mono functions
+    /// Internal function used for returning values from Rust callbacks to Mono functions
     unsafe fn return_value_to_mono(mut self) -> Self {
         if Self::is_class_type() {
             assert_eq!(std::mem::size_of::<Self>(), std::mem::size_of::<*mut ()>());
@@ -32,7 +32,7 @@ pub unsafe trait InteropSend: Sized {
         }
     }
 }
-impl InteropRecive for String {
+impl InteropReceive for String {
     type SourceType = *mut crate::binds::MonoString;
     // unless this function is abused, this argument should come from the mono runtime, so it should be always valid.
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
@@ -47,97 +47,97 @@ impl InteropRecive for String {
         res
     }
 }
-impl InteropRecive for usize {
+impl InteropReceive for usize {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl InteropRecive for isize {
+impl InteropReceive for isize {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl InteropRecive for i8 {
+impl InteropReceive for i8 {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl InteropRecive for i16 {
+impl InteropReceive for i16 {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl InteropRecive for i32 {
+impl InteropReceive for i32 {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl InteropRecive for i64 {
+impl InteropReceive for i64 {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl InteropRecive for u8 {
+impl InteropReceive for u8 {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl InteropRecive for u16 {
+impl InteropReceive for u16 {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl InteropRecive for u32 {
+impl InteropReceive for u32 {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl InteropRecive for u64 {
+impl InteropReceive for u64 {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl InteropRecive for f32 {
+impl InteropReceive for f32 {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl InteropRecive for f64 {
+impl InteropReceive for f64 {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl<T> InteropRecive for *mut T {
+impl<T> InteropReceive for *mut T {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl<T> InteropRecive for *const T {
+impl<T> InteropReceive for *const T {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl InteropRecive for bool {
+impl InteropReceive for bool {
     type SourceType = Self;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         mono_arg
     }
 }
-impl InteropRecive for char {
+impl InteropReceive for char {
     type SourceType = u16;
     fn get_rust_rep(mono_arg: Self::SourceType) -> Self {
         let src = [mono_arg];
@@ -191,10 +191,10 @@ use crate::class::Class;
 /// Managed type returned by `get_mono_class` of `InteropClass` **must** be boxable, otherwise a crash may occur.
 pub trait InteropBox
 where
-    Self: InteropRecive + InteropSend + InteropClass,
+    Self: InteropReceive + InteropSend + InteropClass,
 {
 }
-impl<T: ObjectTrait> InteropRecive for T {
+impl<T: ObjectTrait> InteropReceive for T {
     type SourceType = *mut crate::binds::MonoObject;
     fn get_rust_rep(src: Self::SourceType) -> T {
         if src.is_null() {
@@ -231,7 +231,7 @@ unsafe impl<T: ObjectTrait> InteropSend for Option<T> {
         true
     }
 }
-impl<T: ObjectTrait> InteropRecive for Option<T> {
+impl<T: ObjectTrait> InteropReceive for Option<T> {
     type SourceType = *mut crate::binds::MonoObject;
     fn get_rust_rep(src: Self::SourceType) -> Option<T> {
         if src.is_null() {
