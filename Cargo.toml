@@ -43,3 +43,8 @@ referenced_objects = []
 old_gc_unsafe = []
 
 profiler_api= []
+# Allows a different Mono dynamic library to be linked, in case the library differs (e.g. in some Unity builds)
+# As this is highly unsafe (the user needs to verify himself if the alternative library is ABI/API-compatible)
+# this feature should be used with caution. The only use case for this is for debugging other applications in my
+# knowledge.
+mono_lib_fom_env = []

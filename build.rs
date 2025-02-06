@@ -138,7 +138,22 @@ mod os_specific {
         Err(errors)
     }
     pub fn insert_link_args() {
+        #[cfg(feature = "mono_lib_fom_env")]{
+            /*
+            This unsafe is only semantic, but this operation can lead to highly unsafe behavior during
+            runtime due to a mismatch in the actual dll in use.
+             */
+            unsafe {
+                if let Ok(env_val) = std::env::var("MONO_LIB_NAME"){
+                    println!("cargo:rustc-link-lib={env_val}");
+                }else{
+                    panic!("The environment variable MONO_LIB_NAME must be set as you are using the feature `mono_lib_fom_env`");
+                }
+            }
+        }
+        #[cfg(not(feature = "mono_lib_fom_env"))]
         println!("cargo:rustc-link-lib=mono-2.0");
+
         println!("cargo:rustc-link-lib=stdc++");
         println!("cargo:rustc-link-lib=z");
     }
