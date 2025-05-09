@@ -82,8 +82,6 @@ fn target_dir() -> String {
         .unwrap() //build
         .parent()
         .unwrap() //debug
-        .parent()
-        .unwrap() //target
         .to_str()
         .unwrap()
         .to_owned();
@@ -180,6 +178,7 @@ mod os_specific {
         println!("cargo:rustc-link-search=C:\\Program Files\\Mono\\lib");
 
         println!("cargo:rustc-link-lib=libmono-static-sgen");
+        println!("cargo:rustc-link-lib=bcrypt");
         println!("cargo:rustc-link-lib=winmm");
         println!("cargo:rustc-link-lib=ole32");
         println!("cargo:rustc-link-lib=user32");
@@ -205,12 +204,12 @@ mod os_specific {
         let trgt_dir = crate::target_dir();
         for version in versions {
             let spath_str =
-                ("C:\\Program Files\\Mono\\lib\\mono\\".to_owned() + version + "\\mscorlib.dll");
+                "C:\\Program Files\\Mono\\lib\\mono\\".to_owned() + version + "\\mscorlib.dll";
             let spath = Path::new(&spath_str);
-            let tpath_str = (&trgt_dir).to_owned() + "\\lib\\mono\\" + version + "\\mscorlib.dll";
+            let tpath_str = trgt_dir.to_owned() + "\\lib\\mono\\" + version + "\\mscorlib.dll";
             let tpath = Path::new(&tpath_str);
-            std::fs::create_dir_all(Path::new(
-                &((&trgt_dir).to_owned() + "\\lib\\mono\\" + version),
+            _ = std::fs::create_dir_all(Path::new(
+                &(trgt_dir.to_owned() + "\\lib\\mono\\" + version),
             ));
             match std::fs::copy(spath, tpath) {
                 Ok(_) => (),
